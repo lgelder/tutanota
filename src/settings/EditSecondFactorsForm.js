@@ -39,6 +39,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {getEtId, isSameId} from "../api/common/EntityFunctions"
 import {nativeApp} from "../native/NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
+import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

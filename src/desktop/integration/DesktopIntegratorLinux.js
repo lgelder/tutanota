@@ -1,11 +1,11 @@
 // @flow
-import fs from "fs-extra"
 import {app, dialog} from "electron"
 import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
 import {execFile} from "child_process"
 import type {WindowManager} from "../DesktopWindowManager"
 import {log} from "../DesktopUtils"
+import fs from "fs"
 
 const DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")
 const CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath('home'), ".config")
@@ -22,7 +22,7 @@ const iconSourcePath64 = path.join(path.dirname(executablePath), `resources/icon
 const iconSourcePath512 = path.join(path.dirname(executablePath), `resources/icons/logo-solo-red.png`)
 const nointegrationpath = path.join(CONFIG_HOME, 'tuta_integration/no_integration')
 
-fs.access(iconSourcePath512, fs.constants.F_OK)
+fs.promises.access(iconSourcePath512, fs.constants.F_OK)
   .catch(() => log.error("icon logo-solo-red.png not found, has the file name changed?"))
 
 function logExecFile(err, stdout, stderr) {
@@ -40,7 +40,7 @@ export function isIntegrated(): Promise<boolean> {
 }
 
 function checkFileIsThere(pathToCheck: string): Promise<boolean> {
-	return fs.access(
+	return fs.promises.access(
 		pathToCheck,
 		fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK
 	).then(() => true).catch(() => false)
@@ -57,7 +57,7 @@ export function enableAutoLaunch(): Promise<void> {
 	Exec=${packagePath} -a
 	StartupNotify=false
 	Terminal=false`
-		fs.ensureDirSync(path.dirname(autoLaunchPath))
+		fs.mkdirSync(path.dirname(autoLaunchPath), {recursive: true})
 		fs.writeFileSync(autoLaunchPath, autoLaunchDesktopEntry, {encoding: 'utf-8'})
 	})
 }
@@ -154,18 +154,18 @@ MimeType=x-scheme-handler/mailto;
 Categories=Network;
 X-Tutanota-Version=${app.getVersion()}
 TryExec=${packagePath}`
-	return fs.ensureDir(path.dirname(desktopFilePath))
-	         .then(() => fs.writeFile(desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
+	return fs.promises.mkdir(path.dirname(desktopFilePath), {recursive: true})
+	         .then(() => fs.promises.writeFile(desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
 }
 
 function copyIcons(): Promise<void> {
 	return Promise.all([
-		fs.mkdir(iconTargetDir64, {recursive: true}),
-		fs.mkdir(iconTargetDir512, {recursive: true})
+		fs.promises.mkdir(iconTargetDir64, {recursive: true}),
+		fs.promises.mkdir(iconTargetDir512, {recursive: true})
 	]).then(() => {
 		return Promise.all([
-			fs.copyFile(iconSourcePath64, iconTargetPath64),
-			fs.copyFile(iconSourcePath512, iconTargetPath512)
+			fs.promises.copyFile(iconSourcePath64, iconTargetPath64),
+			fs.promises.copyFile(iconSourcePath512, iconTargetPath512)
 		])
 	}).then(() => {
 		try {// refresh icon cache (update last modified timestamp)
@@ -195,8 +195,8 @@ function askPermission(): Promise<void> {
 		let p: Promise<void> = Promise.resolve()
 		if (checkboxChecked) {
 			log.debug("updating no_integration blacklist...")
-			p.then(() => fs.ensureDir(path.dirname(nointegrationpath)))
-			 .then(() => fs.writeFile(nointegrationpath, packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
+			p.then(() => fs.mkdir(path.dirname(nointegrationpath), {recursive: true}))
+			 .then(() => fs.promises.writeFile(nointegrationpath, packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
 		}
 		if (response === 1) { // clicked yes
 			return p.then(() => integrate())

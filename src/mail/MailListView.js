@@ -3,7 +3,7 @@ import m from "mithril"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {List} from "../gui/base/List"
-import {HttpMethod, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
@@ -15,7 +15,6 @@ import {assertMainOrNode} from "../api/Env"
 import {
 	getArchiveFolder,
 	getFolderName,
-	getInboxFolder,
 	getSenderOrRecipientHeading,
 	isTutanotaTeamMail,
 	showDeleteConfirmationDialog
@@ -36,6 +35,8 @@ import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
 import {debounce} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
+import {getInboxFolder} from "./MailModel"
+import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 
@@ -56,7 +57,6 @@ export class MailListView implements Component {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;
-	view: Function;
 
 	constructor(mailListId: Id, mailView: MailView) {
 		this.listId = mailListId
@@ -201,7 +201,8 @@ export class MailListView implements Component {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
 					return Promise.filter(mails, (mail) => {
-						return findAndApplyMatchingRule(mailboxDetail, mail, true).then(matchingMailId => !matchingMailId)
+						return findAndApplyMatchingRule(worker, locator.entityClient, mailboxDetail, mail, true)
+							.then(matchingMailId => !matchingMailId)
 					}).then(inboxMails => {
 						if (mails.length === count && inboxMails.length < mails.length) {
 							//console.log("load more because of matching inbox rules")

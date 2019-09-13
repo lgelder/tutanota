@@ -1,9 +1,3 @@
-const Promise = require('bluebird')
-
-const path = require("path")
-const fs = Promise.Promise.promisifyAll(require("fs-extra"))
-
-
 global.window = undefined
 
 function getUrls(env) {
@@ -17,11 +11,11 @@ function getUrls(env) {
 /**
  * Renders the initial HTML page to bootstrap Tutanota for different environments
  */
-module.exports.renderHtml = function (scripts, env) {
-	global.window = require("mithril/test-utils/browserMock")(global)
+export async function renderHtml(scripts, env) {
+	global.window = (await import("mithril/test-utils/browserMock.js")).default(global)
 	global.requestAnimationFrame = setTimeout
-	const m = require('mithril')
-	const render = require('mithril-node-render')
+	const m = (await import('mithril')).default
+	const render = (await import('mithril-node-render')).default
 
 	return render(
 		m("html", [
@@ -79,15 +73,22 @@ const csp = (m, env) => {
 		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: blob: data: *; "
 			+ `style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)} https://tutanota.com;]`)
 	} else {
-		return null
+		return m("meta[http-equiv=Content-Security-Policy][content="
+			+ "default-src * 'unsafe-inline' 'unsafe-eval';"
+			+ " script-src * 'unsafe-inline' 'unsafe-eval';"
+			+ ` connect-src 'self' 'unsafe-inline' ${getUrls(env)};`
+			+ " img-src * data: blob: 'unsafe-inline';"
+			+ " frame-src *;"
+			+ " style-src * 'unsafe-inline';"
+			+ "]")
 	}
 }
 
-module.exports.renderTestHtml = async function (scripts) {
-	global.window = require("mithril/test-utils/browserMock")()
+export async function renderTestHtml(scripts) {
+	global.window = (await import("mithril/test-utils/browserMock.js")).default()
 	global.requestAnimationFrame = setTimeout
-	const m = require('mithril')
-	const render = require('mithril-node-render')
+	const m = (await import('mithril')).default
+	const render = (await import('mithril-node-render')).default()
 
 	let html = '<!DOCTYPE html>\n' + await render(
 		m("html", [
@@ -101,14 +102,4 @@ module.exports.renderTestHtml = async function (scripts) {
 	)
 	global.window = undefined // we have to reset the window stream as it leads to problems with system js builder, otherwise
 	return html
-}
-
-function _writeFile(targetFile, content) {
-	return fs.mkdirsAsync(path.dirname(targetFile)).then(() => fs.writeFileAsync(targetFile, content, 'utf-8'))
-}
-
-class ExternalScript {
-	constructor(url) {
-		this.url = url
-	}
 }

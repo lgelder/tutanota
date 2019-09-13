@@ -1,6 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
-import chalk from 'chalk'
+import o from "ospec"
 import mockery from 'mockery'
 import path from 'path'
 import {downcast, neverNull} from "../../src/api/common/utils/Utils"

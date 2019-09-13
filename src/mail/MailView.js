@@ -17,7 +17,7 @@ import {worker} from "../api/main/WorkerClient"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
 import {CurrentView} from "../gui/base/Header"
-import {getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -35,12 +35,12 @@ import {theme} from "../gui/theme"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
-	appendEmailSignature,
 	archiveMails,
+	getDefaultSignature,
+	appendEmailSignature,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
-	getInboxFolder,
 	getMailboxName,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
@@ -68,6 +68,8 @@ import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditor"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {getFolder, getInboxFolder} from "./MailModel";
+import {getListId, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 
@@ -720,7 +722,7 @@ export class MailView implements CurrentView {
 		(mails, elementClicked, selectionChanged, multiSelectOperation) => {
 			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 				// set or update the visible mail
-				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel)
+				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel)
 				let url = `/mail/${mails[0]._id.join("/")}`
 				if (this.selectedFolder) {
 					this._folderToUrl[this.selectedFolder._id[1]] = url
@@ -793,7 +795,7 @@ export class MailView implements CurrentView {
 				if (operation === OperationType.UPDATE && this.mailViewer
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel)
+						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel, locator.contactModel)
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})

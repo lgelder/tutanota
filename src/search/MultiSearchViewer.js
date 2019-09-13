@@ -10,7 +10,6 @@ import {SearchListView} from "./SearchListView"
 import {erase, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {NotFoundError} from "../api/common/error/RestError"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
@@ -28,6 +27,7 @@ import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {NBSP} from "../api/common/utils/StringUtils"
+import {isSameTypeRef} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 
@@ -54,7 +54,7 @@ export class MultiSearchViewer {
 			} else {
 				console.log("ERROR LIST TYPE NOT FOUND")
 			}
-			
+
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
 					(this._searchListView.list && this._searchListView.list._selectedEntities.length > 0)
@@ -206,7 +206,7 @@ export class MultiSearchViewer {
 				.setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 				moreButtons.push(new Button("export_action",
-					this.getSelectedMails(mails => exportMails(mails)),
+					this.getSelectedMails(mails => exportMails(locator.entityClient, mails)),
 					() => Icons.Export)
 					.setType(ButtonType.Dropdown))
 			}

@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {_TypeModel as GroupInfoModel, createGroupInfo, GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {NotFoundError} from "../../../../src/api/common/error/RestError"
 import type {Db} from "../../../../src/api/worker/search/SearchTypes"
@@ -15,10 +15,10 @@ import {createUser} from "../../../../src/api/entities/sys/User"
 import {createCustomer, CustomerTypeRef} from "../../../../src/api/entities/sys/Customer"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {browserDataStub} from "../../TestUtils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
 
 
 const dbMock: any = {iv: fixedIv}

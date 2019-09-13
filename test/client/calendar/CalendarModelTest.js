@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef, createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {createRepeatRuleWithValues, getAllDayDateUTCFromZone, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"
@@ -36,6 +36,8 @@ import {_loadEntity} from "../../../src/api/common/EntityFunctions"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
 import type {LoginController} from "../../../src/api/main/LoginController"
 import {ProgressTracker} from "../../../src/api/main/ProgressTracker"
+import {EntityClient} from "../../../src/api/common/EntityClient"
+import {MailModel} from "../../../src/mail/MailModel"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {
@@ -723,7 +725,8 @@ o.spec("CalendarModel", function () {
 				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
 				updateCalendarEvent: o.spy(() => Promise.resolve()),
 			})
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, makeLoginController(), makeProgressTracker())
+			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, makeLoginController(), makeProgressTracker,
+				makeMailModel())
 
 			await model.processCalendarUpdate("sender@example.com", {
 				method: CalendarMethod.REPLY,
@@ -768,7 +771,8 @@ o.spec("CalendarModel", function () {
 			}))
 			workerMock.eventByUid.set(uid, existingEvent)
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker())
+			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker(),
+				new EntityClient(workerClient), makeMailModel())
 
 			await model.processCalendarUpdate(sender, {
 				summary: "v2", // should be ignored
@@ -814,7 +818,8 @@ o.spec("CalendarModel", function () {
 			const sender = "sender@example.com"
 			const workerMock = new WorkerMock()
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker())
+			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker(),
+				new EntityClient(workerClient), makeMailModel())
 
 			await model.processCalendarUpdate(sender, {
 				summary: "1",
@@ -859,7 +864,8 @@ o.spec("CalendarModel", function () {
 			workerMock.eventByUid.set(uid, existingEvent)
 
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker())
+			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker(),
+				new EntityClient(workerClient), makeMailModel())
 
 			const sentEvent = createCalendarEvent({
 				summary: "v2",
@@ -902,7 +908,8 @@ o.spec("CalendarModel", function () {
 			workerMock.eventByUid.set(uid, existingEvent)
 
 			const workerClient = makeWorkerClient(workerMock)
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker())
+			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController,  makeProgressTracker(),
+				new EntityClient(workerClient), makeMailModel())
 
 			const sentEvent = createCalendarEvent({
 				summary: "v2",
@@ -943,7 +950,8 @@ o.spec("CalendarModel", function () {
 				workerMock.eventByUid.set(uid, existingEvent)
 
 				const workerClient = makeWorkerClient(workerMock)
-				const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker())
+				const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController,  makeProgressTracker(),
+					new EntityClient(workerClient), makeMailModel())
 
 				const sentEvent = createCalendarEvent({uid, sequence: "2", organizer: createEncryptedMailAddress({address: sender})})
 				await model.processCalendarUpdate(sender, {
@@ -971,7 +979,8 @@ o.spec("CalendarModel", function () {
 				workerMock.eventByUid.set(uid, existingEvent)
 
 				const workerClient = makeWorkerClient(workerMock)
-				const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController, makeProgressTracker())
+				const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, loginController,  makeProgressTracker(),
+					new EntityClient(workerClient), makeMailModel())
 
 				const sentEvent = createCalendarEvent({uid, sequence: "2", organizer: createEncryptedMailAddress({address: sender})})
 				await model.processCalendarUpdate("another-sender", {
@@ -1055,4 +1064,8 @@ class WorkerMock extends EntityRestClientMock {
 	getEventByUid(loadUid) {
 		return Promise.resolve(this.eventByUid.get(loadUid))
 	}
+}
+
+function makeMailModel(): MailModel {
+	return downcast({})
 }

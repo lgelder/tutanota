@@ -10,9 +10,8 @@ import {ContactEditor} from "./ContactEditor"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
-import {isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {assertNotNull, getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, neverNull, noOp} from "../api/common/utils/Utils"
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -31,10 +30,9 @@ import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
-import {LazyContactListId} from "../contacts/ContactUtils"
 import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
-import {exportAsVCard} from "./VCardExporter"
+import {exportContacts} from "./VCardExporter"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -44,6 +42,9 @@ import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {flat} from "../api/common/utils/ArrayUtils"
+import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {isSameId} from "../api/common/utils/EntityUtils";
+import type {ContactModel} from "./ContactModel"
 
 assertMainOrNode()
 
@@ -229,7 +230,7 @@ export class ContactView implements CurrentView {
 		} else {
 			return [
 				new Button('importVCard_action', () => this._importAsVCard(), () => Icons.ContactImport).setType(ButtonType.Dropdown),
-				new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Export).setType(ButtonType.Dropdown)
+				new Button("exportVCard_action", () => exportAsVCard(locator.contactModel), () => Icons.Export).setType(ButtonType.Dropdown)
 			]
 		}
 	}
@@ -252,8 +253,9 @@ export class ContactView implements CurrentView {
 						const contactMembership =
 							assertNotNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact))
 						const contactList = vCardListToContacts(flatvCards, contactMembership.group)
-						return LazyContactListId
-							.getAsync()
+						return locator
+							.contactModel
+							.contactListId()
 							.then(contactListId => Promise.each(contactList, (contact) => setup(contactListId, contact)))
 							.then(() => contactList.length)
 					}))
@@ -270,7 +272,7 @@ export class ContactView implements CurrentView {
 	}
 
 	_mergeAction(): Promise<void> {
-		return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
+		return showProgressDialog("pleaseWait_msg", locator.contactModel.contactListId().then(contactListId => {
 			return loadAll(ContactTypeRef, contactListId)
 		})).then(allContacts => {
 			if (allContacts.length === 0) {
@@ -369,12 +371,12 @@ export class ContactView implements CurrentView {
 	 */
 	updateUrl(args: Object) {
 		if (!this._contactList && !args.listId) {
-			LazyContactListId.getAsync().then(contactListId => {
+			locator.contactModel.contactListId().then(contactListId => {
 				this._setUrl(`/contact/${contactListId}`)
 			})
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
-			LazyContactListId.getAsync().then(contactListId => {
+			locator.contactModel.contactListId().then(contactListId => {
 				if (args.listId !== contactListId) {
 					this._setUrl(`/contact/${contactListId}`)
 				} else {
@@ -487,4 +489,25 @@ export class ContactView implements CurrentView {
 			content: this._multiContactViewer.createActionBar(() => this._contactList.list.selectNone(), true)
 		}) : null
 	}
+}
+
+/**
+ *Creates a vCard file with all contacts if at least one contact exists
+ */
+export function exportAsVCard(contactModel: ContactModel): Promise<void> {
+	return showProgressDialog("pleaseWait_msg",
+		contactModel.contactListId().then(contactListId => {
+			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
+				if (allContacts.length === 0) {
+					return 0
+				} else {
+					return exportContacts(allContacts).return(allContacts.length)
+				}
+			})
+		})
+	).then(nbrOfContacts => {
+		if (nbrOfContacts === 0) {
+			Dialog.error("noContacts_msg")
+		}
+	})
 }

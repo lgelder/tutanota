@@ -1,7 +1,6 @@
 // @flow
 import n from "../nodemocker"
-import o from "ospec/ospec.js"
-import chalk from 'chalk'
+import o from "ospec"
 import {defer, noOp} from "../../../src/api/common/utils/Utils"
 import {DesktopConfigKey} from "../../../src/desktop/config/DesktopConfig"
 

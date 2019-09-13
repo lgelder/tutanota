@@ -152,65 +152,15 @@ interface Ospec {
 	spy<T>(T): OspecSpy<T>;
 	timeout: (number) => void;
 	specTimeout: (number) => void;
+	timeout: (number) => void;
 }
 
-declare module 'ospec/ospec.js' {
+declare module 'ospec' {
 	declare export default Ospec;
 }
 
 declare module 'mockery' {
 	declare export default any;
-}
-
-declare module 'chalk' {
-
-	declare interface Chalk {
-		(...args: Array<string>): string,
-
-		red: Chalk,
-		green: Chalk,
-		blue: Chalk,
-		black: Chalk,
-		yellow: Chalk,
-		magenta: Chalk,
-		gray: Chalk,
-		white: Chalk,
-		cyan: Chalk,
-
-		redBright: Chalk,
-		greenBright: Chalk,
-		yellowBright: Chalk,
-		blueBright: Chalk,
-		magentaBright: Chalk,
-		cyanBright: Chalk,
-		whiteBright: Chalk,
-
-
-		bgBlack: Chalk,
-		bgRed: Chalk,
-		bgGreen: Chalk,
-		bgYellow: Chalk,
-		bgBlue: Chalk,
-		bgMagenta: Chalk,
-		bgCyan: Chalk,
-		bgWhite: Chalk,
-		bgBlackBright: Chalk,
-		bgRedBright: Chalk,
-		bgGreenBright: Chalk,
-		bgYellowBright: Chalk,
-		bgBlueBright: Chalk,
-		bgMagentaBright: Chalk,
-		bgCyanBright: Chalk,
-		bgWhiteBright: Chalk,
-
-		reset: Chalk,
-		bold: Chalk,
-		dim: Chalk,
-		underline: Chalk,
-	}
-
-	//declare var chalk: Chalk;
-	declare export default Chalk
 }
 
 declare module 'faker' {
@@ -283,10 +233,6 @@ declare module 'qrcode' {
 	declare export default any;
 }
 
-declare module 'chalk' {
-	declare export default any;
-}
-
 declare type Squire = any
 
 declare var tutao: {
@@ -326,3 +272,21 @@ export interface VnodeDOM<Attrs> extends Vnode<Attrs> {
 	attrs: Attrs,
 	dom: HTMLElement,
 }
+
+// override flowlib to include "hot"
+declare var module: {
+	exports: any,
+	require(id: string): any,
+	id: string,
+	filename: string,
+	loaded: boolean,
+	parent: any,
+	children: Array<any>,
+	builtinModules: Array<string>,
+	hot: ?{
+		data?: {[string]: mixed},
+		dispose: ((data: {[string]: mixed}) => void) => void,
+		accept: (() => void) => void
+	},
+	...
+};

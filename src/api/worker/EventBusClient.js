@@ -7,11 +7,7 @@ import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} fro
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {
 	compareOldestFirst,
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
 	getElementId,
-	getLetId,
 	isSameId
 } from "../common/EntityFunctions"
 import {
@@ -43,6 +39,7 @@ import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatu
 import {ProgressMonitorDelegate} from "./ProgressMonitorDelegate"
 import type {IProgressMonitor} from "../common/utils/ProgressMonitor"
 import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

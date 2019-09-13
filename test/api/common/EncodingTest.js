@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {
 	_replaceLoneSurrogates,
 	_stringToUtf8Uint8ArrayLegacy,
@@ -20,7 +20,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex, uint8ArrayToString
 } from "../../../src/api/common/utils/Encoding"
-import {GENERATED_MIN_ID} from "../../../src/api/common/EntityFunctions"
+import {GENERATED_MIN_ID} from "../../../src/api/common/utils/EntityUtils";
 // $FlowIssue[missing-export] TextEncoder *is* present in util.
 import {TextDecoder as nodeTextDecoder, TextEncoder as nodeTextEncoder} from "util"
 

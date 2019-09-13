@@ -7,7 +7,7 @@ import {Button} from "../gui/base/Button"
 import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {asyncImport, defer, neverNull} from "../api/common/utils/Utils"
+import {defer, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {themeId} from "../gui/theme"
@@ -81,8 +81,7 @@ export class LoginView {
 		this._isDeleteCredentials = false;
 		this._moreExpanded = stream(false)
 
-		this._viewController = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-			`${env.rootPathPrefix}src/login/LoginViewController.js`)
+		this._viewController = import('../login/LoginViewController.js')
 			.then(module => new module.LoginViewController(this))
 
 		if (window.location.href.includes('signup')) {

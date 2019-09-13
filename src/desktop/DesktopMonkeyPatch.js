@@ -1,6 +1,5 @@
 // @flow
-import chalk from "chalk"
-import fs from 'fs-extra'
+import fs from 'fs'
 import path from 'path'
 import {app} from 'electron'
 import {execSync} from 'child_process'
@@ -17,7 +16,7 @@ process.on('exit', () => {
 	const oldLogFilePath = path.join(logDir, "tutanota_desktop_old.log")
 	const entries = logger.getEntries()
 
-	fs.mkdirpSync(logDir)
+	fs.mkdirSync(logDir, {recursive: true})
 
 	try {
 		fs.renameSync(logFilePath, oldLogFilePath)
@@ -35,15 +34,14 @@ process.on('exit', () => {
 })
 
 global.env = {rootPathPrefix: "../../", adminTypes: []}
-global.System = {'import': (...args) => Promise.resolve(require(...args))}
 
 const oldLog = console.log
 const oldError = console.error
 const oldWarn = console.warn
 
-;(console: any).log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
-;(console: any).error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
-;(console: any).warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
+;(console: any).log = (...args) => oldLog(`[${new Date().toISOString()}]`, ...args)
+;(console: any).error = (...args) => oldError(`[${new Date().toISOString()}]`, ...args)
+;(console: any).warn = (...args) => oldWarn(`[${new Date().toISOString()}]`, ...args)
 
 if (process.platform === "win32") {
 	try {

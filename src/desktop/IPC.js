@@ -80,9 +80,7 @@ export class IPC {
 
 		switch (method) {
 			case 'init':
-				if (!this.initialized(windowId).isFulfilled()) {
-					this._initialized[windowId].resolve()
-				}
+				this._initialized[windowId].resolve()
 				return Promise.resolve(process.platform)
 			case 'findInPage':
 				return this.initialized(windowId).then(() => {
@@ -200,7 +198,7 @@ export class IPC {
 						args[3].toString(),
 						args[4].toString()
 					)
-				]).return()
+				]).then(() => {})
 			case 'initPushNotifications':
 				// Nothing to do here because sse connection is opened when starting the native part.
 				return Promise.resolve()
@@ -246,9 +244,9 @@ export class IPC {
 			if (w) {
 				w.sendMessageToWebContents(windowId, request)
 			}
-			return Promise.fromCallback(cb => {
-				this._queue[requestId] = cb
-			});
+			return new Promise((resolve, reject) => {
+				this._queue[requestId] = (err, result) => err ? reject(err) : resolve(result)
+			})
 		})
 	}
 

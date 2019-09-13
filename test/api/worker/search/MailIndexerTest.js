@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import type {Db, ElementDataDbRow, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
@@ -25,7 +25,6 @@ import type {File as TutanotaFile} from "../../../../src/api/entities/tutanota/F
 import {createFile} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
-import {getElementId, getListId} from "../../../../src/api/common/EntityFunctions"
 import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
 import type {MailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
@@ -46,6 +45,7 @@ import {createMailFolderRef} from "../../../../src/api/entities/tutanota/MailFol
 import {EntityRestClientMock} from "../EntityRestClientMock"
 import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
+import {getElementId, getListId} from "../../../../src/api/common/utils/EntityUtils";
 
 class FixedDateProvider implements DateProvider {
 	now: number;
@@ -181,12 +181,11 @@ o.spec("MailIndexer test", () => {
 		}).then(done)
 	})
 
-	o("processNewMail catches NotFoundError", function (done) {
+	o("processNewMail catches NotFoundError", async function () {
 		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
-		indexer.processNewMail(event).then(result => {
-			o(result).equals(null)
-		}).then(done)
+		const result = await indexer.processNewMail(event)
+		o(result).equals(null)
 	})
 
 	o("processNewMail catches NotAuthorizedError", function (done) {

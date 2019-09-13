@@ -8,12 +8,11 @@ import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
-import {CUSTOM_MIN_ID, isSameId} from "../api/common/EntityFunctions"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import type {User} from "../api/entities/sys/User"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {compareGroupInfos, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
@@ -47,6 +46,8 @@ import {checkAndImportUserData} from "./ImportUsersViewer"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
+import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 export const CSV_USER_FORMAT = "username;user@domain.com;password"
