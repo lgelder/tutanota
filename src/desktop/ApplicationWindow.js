@@ -1,5 +1,5 @@
 // @flow
-import type {BrowserWindow, ContextMenuParams, ElectronPermission, FindInPageResult, WebContents} from 'electron'
+import type {BrowserWindow, ContextMenuParams, DragInfo, ElectronPermission, FindInPageResult, WebContents} from 'electron'
 // $FlowIgnore[untyped-import]
 import u2f from '../misc/u2f-api.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
@@ -104,6 +104,7 @@ export class ApplicationWindow {
 	center: (() => void) = () => this._browserWindow.center()
 	showInactive: (() => void) = () => this._browserWindow.showInactive()
 	isFocused: (() => boolean) = () => this._browserWindow.isFocused()
+	startDrag = (i: DragInfo) => this._browserWindow.webContents.startDrag(i)
 
 	get browserWindow(): BrowserWindow {
 		return this._browserWindow

@@ -476,6 +476,8 @@ declare module 'electron' {
 		removeAllListeners(event: DesktopNotificationEvent): Notification;
 	}
 
+	declare export type DragInfo = {files: string[] | string, icon?: NativeImage | string}
+
 	declare export class WebContents {
 		on(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
 		once(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
@@ -503,6 +505,7 @@ declare module 'electron' {
 		paste(): void;
 		undo(): void;
 		redo(): void;
+		startDrag(item: DragInfo): void;
 	}
 
 	declare export class WebFrame {

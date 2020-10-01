@@ -106,7 +106,7 @@ export class IPC {
 						w.stopFindInPage()
 					}
 				}).catch(noOp)
-			case 'setSearchOverlayState':
+			case 'setSearchOverlayState': {
 				const w = this._wm.get(windowId)
 				if (w) {
 					const state: boolean = downcast(args[0])
@@ -114,6 +114,7 @@ export class IPC {
 					w.setSearchOverlayState(state, force)
 				}
 				return Promise.resolve()
+			}
 			case 'registerMailto':
 				return this._desktopUtils.registerAsMailtoHandler(true)
 			case 'unregisterMailto':
@@ -232,6 +233,16 @@ export class IPC {
 				return !!this._updater
 					? Promise.resolve(this._updater.updateInfo)
 					: Promise.resolve(null)
+			case 'dragExport': {
+				const w = this._wm.get(windowId)
+				if (w) {
+					return DesktopUtils.writeFilesToTmp(args).then(files => w.startDrag({
+						files,
+						icon: nativeImage.createEmpty()
+					}))
+				}
+				return Promise.resolve()
+			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
 		}
