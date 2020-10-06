@@ -141,9 +141,9 @@ export class DesktopUtils {
 	/**
 	 * Writes files to tmp and deletes them after 3 seconds
 	 * @param files Array of named content to write to tmp
-	 * @returns {string[]} Array of the resulting paths.
+	 * @returns {Array<string>} Array of the resulting paths.
 	 */
-	static writeFilesToTmp(files: {name: string, content: string}[]): Promise<string[]> {
+	static writeFilesToTmp(files: Array<{name: string, content: string}>): Promise<Array<string>> {
 		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
 		const dirPromise = fs.mkdirp(dirPath)
 		const legalNames = DesktopUtils.legalizeFilenames(files.map(f => f.name))
@@ -153,9 +153,11 @@ export class DesktopUtils {
 		}))
 		const writePromise = () => Promise.map(legalFiles, f => {
 			const p = path.join(dirPath, f.name)
-			return fs.writeFile(p, f.content).then(() => p)
+			return fs.writeFile(p, f.content)
+			         .then(() => setTimeout(() => fs.remove(dirPath), 3000))
+			         .then(() => p)
 		})
-		setTimeout(() => fs.remove(dirPath), 3000)
+
 		return dirPromise.then(writePromise)
 	}
 }
