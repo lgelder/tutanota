@@ -75,7 +75,10 @@ class HtmlSanitizer {
 	sanitizeFragment(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean = false
 	): SanitizedHTML {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
-			Object.assign({}, this._prepareSanitize(html, blockExternalContent, allowRelativeLinks), {RETURN_DOM_FRAGMENT: true})
+			Object.assign({}, this._prepareSanitize(html, blockExternalContent, allowRelativeLinks), {
+				RETURN_DOM_FRAGMENT: true,
+				ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+			})
 		return {
 			html: this.purifier.sanitize(html, config),
 			externalContent: this._externalContent,

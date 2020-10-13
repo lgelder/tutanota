@@ -27,6 +27,8 @@ import "./gui/base/WizardDialogNTest"
 import "./calendar/CalendarEventViewModelTest"
 import "./gui/ColorTest"
 import "./mail/SendMailModelTest"
+import "./mail/TemplateSearchFilterTest"
+import "./mail/KnowledgeBaseSearchFilterTest"
 import o from "ospec/ospec.js"
 
 node(() => {

@@ -2,7 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {KnowledgeBaseRef} from "./KnowledgeBaseRef"
 import type {MailFolderRef} from "./MailFolderRef"
+import type {EmailTemplateRef} from "./EmailTemplateRef"
 
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 export const _TypeModel: TypeModel = {
@@ -79,6 +81,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"knowledgeBase": {
+			"name": "knowledgeBase",
+			"id": 1193,
+			"since": 46,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "KnowledgeBaseRef",
+			"final": false
+		},
 		"systemFolders": {
 			"name": "systemFolders",
 			"id": 443,
@@ -87,6 +98,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"refType": "MailFolderRef",
 			"final": true
+		},
+		"templates": {
+			"name": "templates",
+			"id": 1170,
+			"since": 45,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "EmailTemplateRef",
+			"final": false
 		},
 		"mails": {
 			"name": "mails",
@@ -120,7 +140,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "46"
 }
 
 export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {
@@ -139,7 +159,9 @@ export type MailBox = {
 	lastInfoDate: Date;
 	symEncShareBucketKey: ?Uint8Array;
 
+	knowledgeBase: ?KnowledgeBaseRef;
 	systemFolders: ?MailFolderRef;
+	templates: ?EmailTemplateRef;
 	mails: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;

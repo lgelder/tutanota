@@ -57,25 +57,32 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, noOp, defer} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
+import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "../templates/TemplatePopup"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {templateModel} from "../templates/TemplateModel"
+import {knowledgebase} from "../knowledgebase/KnowledgeBaseModel"
+import {KnowledgeBaseView} from "../knowledgebase/KnowledgeBaseView"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
 	body: Stream<string>,
 	doBlockExternalContent: Stream<boolean>,
 	doShowToolbar: Stream<boolean>,
-	onload?: Function,
+	onload?: (editor: Editor) => void,
 	onclose?: Function,
 	areDetailsExpanded: Stream<boolean>,
 	selectedNotificationLanguage: Stream<string>,
 	inlineImages?: Promise<InlineImages>,
 	_focusEditorOnLoad: () => void,
-	_onSend: () => void
+	_onSend: () => void,
+	_editor: ?Editor,
 }
 
-export function createMailEditorAttrs(model: SendMailModel, doBlockExternalContent: boolean, doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>): MailEditorAttrs {
+export function createMailEditorAttrs(model: SendMailModel, doBlockExternalContent: boolean, doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>,
+                                      onload?: (Editor) => void): MailEditorAttrs {
 	return {
 		model,
 		body: stream(""),
@@ -85,7 +92,9 @@ export function createMailEditorAttrs(model: SendMailModel, doBlockExternalConte
 		selectedNotificationLanguage: stream(""),
 		inlineImages: inlineImages,
 		_focusEditorOnLoad: () => {},
-		_onSend: () => {}
+		_onSend: () => {},
+		_editor: null,
+		onload
 	}
 }
 
@@ -126,6 +135,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(model.getBody())
+			a.onload && a.onload(this.editor)
 			// Add mutation observer to remove attachments when corresponding DOM element is removed
 			new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
 				attributes: false,
@@ -136,6 +146,8 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
 			this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
 		})
+
+		a._editor = this.editor
 
 		const insertImageHandler = isApp()
 			? null
@@ -252,6 +264,18 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			})
 			: null
 
+		const templateButtonAttrs = {
+			label: "templateOpen_label",
+			click: () => openTemplateFeature(this.editor),
+			icon: () => Icons.ListAlt,
+		}
+
+		const knowledgebaseButtonAttrs = {
+			label: () => "Open Knowledgebase Panel",
+			click: () => this.openKnowledgeBase(),
+			icon: () => Icons.ListOrdered,
+		}
+
 		const subjectFieldAttrs: TextFieldAttrs = {
 			label: "subject_label",
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
@@ -260,9 +284,11 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			injectionsRight: () => {
 				return showConfidentialButton
 					? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
-					: [m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
+					: [
+						m(ButtonN, templateButtonAttrs), m(ButtonN, knowledgebaseButtonAttrs), m(ButtonN, attachFilesButtonAttrs),
+						toolbarButton()
+					]
 			}
-
 		}
 
 		function animate(domElement: HTMLElement, fadein: boolean) {
@@ -309,10 +335,10 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			}
 		}
 
-
 		return m("#mail-editor.full-height.text.touch-callout", {
 			onremove: vnode => {
 				model.dispose()
+				knowledgebase.close()
 				this.objectUrls.forEach((url) => URL.revokeObjectURL(url))
 			},
 			onclick: (e) => {
@@ -378,6 +404,14 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			m(".pt-s.text.scroll-x.break-word-links", {onclick: () => this.editor.focus()}, m(this.editor)),
 			m(".pb")
 		])
+	}
+
+	openKnowledgeBase() {
+		knowledgebase.init().then(() => {
+			knowledgebase.sortEntriesByMatchingKeywords(this.editor.getValue())
+			knowledgebase.setActive()
+			m.redraw()
+		})
 	}
 }
 
@@ -464,9 +498,27 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		}
 	}
 
-	mailEditorAttrs = createMailEditorAttrs(model, blockExternalContent, model.toRecipients().length !== 0, inlineImages);
+	const editorDeferred = defer()
+	mailEditorAttrs = createMailEditorAttrs(model, blockExternalContent, model.toRecipients().length !== 0, inlineImages, (editor) => {
+		editorDeferred.resolve(editor)
+	});
 
-	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditor, mailEditorAttrs)
+	const knowledgebaseComponent = {
+		view: () => {
+			return knowledgebase.getStatus()
+				? m(KnowledgeBaseView, {
+					onSubmit: (text) => {
+						editorDeferred.promise.then((editor) => {
+							editor.insertHTML(text)
+							editor.focus()
+						})
+					}
+				})
+				: null
+		}
+	}
+
+	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditor, mailEditorAttrs, knowledgebaseComponent)
 	               .addShortcut({
 		               key: Keys.ESC,
 		               exec() { closeButtonAttrs.click(newMouseEvent(), domCloseButton) },
@@ -508,6 +560,12 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		               shift: true,
 		               exec: send,
 		               help: "send_action"
+	               })
+	               .addShortcut({
+		               key: Keys.SPACE,
+		               ctrl: true,
+		               exec: () => openTemplateFeature(mailEditorAttrs._editor),
+		               help: "templateOpen_label"
 	               }).setCloseHandler(() => closeButtonAttrs.click(newMouseEvent(), domCloseButton))
 
 	if (model.getConversationType() === ConversationType.REPLY || model.toRecipients().length) {
@@ -515,6 +573,33 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	}
 
 	return dialog
+}
+
+
+function openTemplateFeature(editor: ?Editor) {
+	const _editor = assertNotNull(editor)
+	const highlightedText = _editor.getSelectedText()
+	const cursorRect = _editor.getCursorPosition()
+	const editorRect = _editor.getDOM().getBoundingClientRect();
+	const onsubmit = (text) => {
+		_editor.insertHTML(text)
+		_editor.focus()
+	}
+
+	let rect
+	const availableHeightBelowCursor = window.innerHeight - cursorRect.bottom
+	const popUpHeight = TEMPLATE_POPUP_HEIGHT + 10 // height + 10px offset for space from the bottom of the screen
+
+	// By default the popup is shown below the cursor. If there is not enough space move the popup above the cursor
+	const popUpWidth = editorRect.right - editorRect.left;
+	if (availableHeightBelowCursor < popUpHeight) {
+		const diff = popUpHeight - availableHeightBelowCursor
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom - diff, popUpWidth, cursorRect.height);
+	} else {
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height);
+	}
+	templateModel.init().then(new TemplatePopup(rect, onsubmit, highlightedText).show())
+	//new TemplatePopup(rect, onsubmit, highlightedText).show()
 }
 
 

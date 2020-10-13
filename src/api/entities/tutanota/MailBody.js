@@ -97,7 +97,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "43"
+	"version": "46"
 }
 
 export function createMailBody(values?: $Shape<$Exact<MailBody>>): MailBody {

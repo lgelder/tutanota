@@ -8,58 +8,80 @@ export type TranslationKey = TranslationKeyType
 
 assertMainOrNodeBoot()
 
-export type Language = {code: string, textId: TranslationKey}
-
 export type DateTimeFormatOptions = {
 	hourCycle?: string
 }
 
-export const languages: Language[] = [
-	{code: 'ar', textId: 'languageArabic_label'},
-	{code: 'bg', textId: 'languageBulgarian_label'},
-	{code: 'ca', textId: 'languageCatalan_label'},
-	{code: 'cs', textId: 'languageCzech_label'},
-	{code: 'da', textId: 'languageDanish_label'},
-	{code: 'de', textId: 'languageGerman_label'},
-	{code: 'de_sie', textId: 'languageGermanSie_label'},
-	{code: 'el', textId: 'languageGreek_label'},
-	{code: 'en', textId: 'languageEnglish_label'},
-	{code: 'en_gb', textId: 'languageEnglishUk_label'},
-	{code: 'es', textId: 'languageSpanish_label'},
-	{code: 'et', textId: 'languageEstonian_label'},
-	{code: 'fa_ir', textId: 'languagePersian_label'},
-	{code: 'fi', textId: 'languageFinnish_label'},
-	{code: 'fr', textId: 'languageFrench_label'},
-	{code: 'gl', textId: 'languageGalician_label'},
-	{code: 'hi', textId: 'languageHindi_label'},
-	{code: 'hr', textId: 'languageCroatian_label'},
-	{code: 'hu', textId: 'languageHungarian_label'},
-	{code: 'id', textId: 'languageIndonesian_label'},
-	{code: 'it', textId: 'languageItalian_label'},
-	{code: 'ja', textId: 'languageJapanese_label'},
-	{code: 'lt', textId: 'languageLithuanian_label'},
-	{code: 'lv', textId: 'languageLatvian_label'},
-	{code: 'nl', textId: 'languageDutch_label'},
-	{code: 'no', textId: 'languageNorwegian_label'},
-	{code: 'pl', textId: 'languagePolish_label'},
-	{code: 'pt_br', textId: 'languagePortugeseBrazil_label'},
-	{code: 'pt_pt', textId: 'languagePortugesePortugal_label'},
-	{code: 'ro', textId: 'languageRomanian_label'},
-	{code: 'ru', textId: 'languageRussian_label'},
-	{code: 'sk', textId: 'languageSlovak_label'},
-	{code: 'sl', textId: 'languageSlovenian_label'},
-	{code: 'sr', textId: 'languageSerbian_label'},
-	{code: 'sv', textId: 'languageSwedish_label'},
-	{code: 'tr', textId: 'languageTurkish_label'},
-	{code: 'uk', textId: 'languageUkrainian_label'},
-	{code: 'vi', textId: 'languageVietnamese_label'},
-	{code: 'zh', textId: 'languageChineseSimplified_label'},
-	{code: 'zh_tw', textId: 'languageChineseTraditional_label'}
-]
-export const languageByCode: {[string]: Language} = languages.reduce((acc, curr) => {
-	acc[curr.code] = curr
-	return acc
-}, {})
+/**
+ * Language = {code, textId}
+ * "code" is the 2 letter abbr. of the language ("en", "ar")
+ * "textId" corresponds to a code ("languageEnglish_label", "languageArabic_label")
+ *
+ * lang.get(textId) will return the translated languages
+ * languageByCode[code] will return the whole language Object
+ * in all cases lang.get(languageByCode[code].textId) will always return the translated language from a code
+ */
+
+export const LanguageNames = Object.freeze({
+	ar: 'languageArabic_label',
+	bg: 'languageBulgarian_label',
+	ca: 'languageCatalan_label',
+	cs: 'languageCzech_label',
+	da: 'languageDanish_label',
+	de: 'languageGerman_label',
+	de_sie: 'languageGermanSie_label',
+	el: 'languageGreek_label',
+	en: 'languageEnglish_label',
+	en_gb: 'languageEnglishUk_label',
+	es: 'languageSpanish_label',
+	et: 'languageEstonian_label',
+	fa_ir: 'languagePersian_label',
+	fi: 'languageFinnish_label',
+	fr: 'languageFrench_label',
+	gl: 'languageGalician_label',
+	hi: 'languageHindi_label',
+	hr: 'languageCroatian_label',
+	hu: 'languageHungarian_label',
+	id: 'languageIndonesian_label',
+	it: 'languageItalian_label',
+	ja: 'languageJapanese_label',
+	lt: 'languageLithuanian_label',
+	lv: 'languageLatvian_label',
+	nl: 'languageDutch_label',
+	no: 'languageNorwegian_label',
+	pl: 'languagePolish_label',
+	pt_br: 'languagePortugeseBrazil_label',
+	pt_pt: 'languagePortugesePortugal_label',
+	ro: 'languageRomanian_label',
+	ru: 'languageRussian_label',
+	sk: 'languageSlovak_label',
+	sl: 'languageSlovenian_label',
+	sr: 'languageSerbian_label',
+	sv: 'languageSwedish_label',
+	tr: 'languageTurkish_label',
+	uk: 'languageUkrainian_label',
+	vi: 'languageVietnamese_label',
+	zh: 'languageChineseSimplified_label',
+	zh_tw: 'languageChineseTraditional_label',
+})
+export type LanguageCode = $Keys<typeof LanguageNames>
+
+export type Language = {code: LanguageCode, textId: TranslationKey}
+
+export const languageByCode: {[LanguageCode]: Language}= {}
+// cannot import typedEntries here for some reason
+for (let [code, textId] of downcast(Object.entries(LanguageNames))) {
+	languageByCode[code] = {code, textId}
+}
+
+
+export const languages: $ReadOnlyArray<{code: LanguageCode, textId: TranslationKey}> = downcast(Object.entries(LanguageNames)).map(([code, textId]) => {
+	return {code, textId}
+})
+
+
+
+
 
 const infoLinks = {
 	"homePage_link": "https://tutanota.com",
@@ -95,7 +117,7 @@ const infoLinks = {
 export class LanguageViewModel {
 	translations: Object;
 	fallback: Object;
-	code: string;
+	code: LanguageCode;
 	languageTag: string;
 	staticTranslations: Object;
 	formats: {
@@ -146,14 +168,14 @@ export class LanguageViewModel {
 		this.staticTranslations[key] = text
 	}
 
-	initWithTranslations(code: string, languageTag: string, fallBackTranslations: Object, translations: Object) {
+	initWithTranslations(code: LanguageCode, languageTag: string, fallBackTranslations: Object, translations: Object) {
 		this.translations = translations
 		this.fallback = fallBackTranslations
 		this.code = code
 	}
 
 
-	setLanguage(lang: {code: string, languageTag: string}): Promise<void> {
+	setLanguage(lang: {code: LanguageCode, languageTag: string}): Promise<void> {
 		this._setLanguageTag(lang.languageTag)
 		if (this.code === lang.code) {
 			return Promise.resolve()
@@ -326,7 +348,7 @@ export class LanguageViewModel {
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguageNoDefault(restrictions: ?string[]): ?{code: string, languageTag: string} {
+export function getLanguageNoDefault(restrictions: ?LanguageCode[]): ?{code: LanguageCode, languageTag: string} {
 	// navigator.languages can be an empty array on android 5.x devices
 	let languageTags
 	if (typeof navigator !== 'undefined') {
@@ -352,7 +374,7 @@ export function getLanguageNoDefault(restrictions: ?string[]): ?{code: string, l
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
+export function getLanguage(restrictions: ?LanguageCode[]): {code: LanguageCode, languageTag: string} { // TODO: change from string to LanguageCode
 	const language = getLanguageNoDefault(restrictions)
 	if (language) return language
 
@@ -363,7 +385,7 @@ export function getLanguage(restrictions: ?string[]): {code: string, languageTag
 	}
 }
 
-export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]): ?string {
+export function _getSubstitutedLanguageCode(tag: string, restrictions: ?LanguageCode[]): ?LanguageCode {
 	let code = tag.toLowerCase().replace("-", "_")
 	let language = languages.find(l => l.code === code && (restrictions == null
 		|| restrictions.indexOf(l.code) !== -1))
@@ -379,7 +401,7 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]
 	if (language) {
 		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations
 			&& whitelabelCustomizations.germanLanguageCode) {
-			return whitelabelCustomizations.germanLanguageCode
+			return downcast(whitelabelCustomizations.germanLanguageCode)
 		} else {
 			return language.code
 		}

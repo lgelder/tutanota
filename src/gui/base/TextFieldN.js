@@ -26,6 +26,8 @@ export type TextFieldAttrs = {
 	disabled?: boolean,
 	oninput?: (value: string, input: HTMLInputElement) => mixed,
 	onclick?: clickHandler,
+	focusOnCreate?: boolean,
+	onInputCreate?: (vnode: Vnode<*>) => void,
 }
 
 export const Type = Object.freeze({
@@ -134,6 +136,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					"aria-label": lang.getMaybeLazy(a.label),
 					oncreate: (vnode) => {
 						this.domInput = vnode.dom
+						if (a.focusOnCreate) {
+							this.domInput.focus()
+						}
 						this.domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						this.domInput.value = a.value()
 						if (a.type !== Type.Area) {
@@ -147,6 +152,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 								}
 							})
 						}
+						a.onInputCreate && a.onInputCreate(vnode)
 					},
 					onfocus: (e) => {
 						this.focus(e, a)
@@ -206,6 +212,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					this.domInput = vnode.dom
 					this.domInput.value = a.value()
 					this.domInput.style.height = px(Math.max(a.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
+					a.onInputCreate && a.onInputCreate(vnode)
 				},
 				onfocus: (e) => this.focus(e, a),
 				onblur: e => this.blur(e, a),
@@ -217,6 +224,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					this.domInput.style.height = '0px'
 					this.domInput.style.height = px(this.domInput.scrollHeight)
 					a.value(this.domInput.value) // update the input on each change
+					if(a.oninput){
+						a.oninput(this.domInput.value, this.domInput)
+					}
 				},
 				onupdate: () => {
 					// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.

@@ -5,7 +5,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {load, loadAll, loadRange, serviceRequest, update} from "../api/main/Entity"
-import {getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
+import {downcast, getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -69,6 +69,7 @@ import {LockedError, PreconditionFailedError} from "../api/common/error/RestErro
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -82,7 +83,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_customMetaTagsField: TextField;
 	_whitelabelImprintUrl: TextField;
 	_whitelabelPrivacyUrl: TextField;
-	_defaultGermanLanguageFile: ?DropDownSelector<string>;
+	_defaultGermanLanguageFile: ?DropDownSelector<LanguageCode>;
 	_whitelabelCodeField: TextField;
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
 	_whitelabelStatusField: TextFieldAttrs;
@@ -437,15 +438,15 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 						let customGermanLanguageFileDefined = whitelabelConfig
 						&& whitelabelConfig.germanLanguageCode ? whitelabelConfig.germanLanguageCode : false
-						let items = [
+						let items: Array<{name: string, value: LanguageCode}> = [
 							{name: "Deutsch (Du)", value: "de"},
 							{name: "Deutsch (Sie)", value: "de_sie"}
 						]
 						if (whitelabelConfig && (lang.code === 'de' || lang.code === 'de_sie')) {
 							const streamValue = stream(customGermanLanguageFileDefined
-								? neverNull(whitelabelConfig.germanLanguageCode)
+								? downcast(whitelabelConfig.germanLanguageCode)
 								: items[0].value)
-							this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, streamValue, 250).setSelectionChangedHandler(v => {
+							this._defaultGermanLanguageFile = new DropDownSelector("germanLanguageFile_label", null, items, streamValue, 250).setSelectionChangedHandler((v: LanguageCode) => {
 								if (v) {
 									neverNull(whitelabelConfig).germanLanguageCode = v
 									update(whitelabelConfig)
@@ -554,7 +555,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					icon: () => Icons.Add
 				},
 				lines: customerProperties.notificationMailTemplates.map((template) => {
-					const langName = lang.get(languageByCode[template.language].textId)
+					const langName = lang.get(languageByCode[downcast(template.language)].textId)
 					return {
 						cells: [langName, template.subject],
 						actionButtonAttrs: attachDropdown(

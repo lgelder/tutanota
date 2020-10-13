@@ -1,5 +1,5 @@
 // @flow
-import {px, size} from "../gui/size"
+import {size} from "../gui/size"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
@@ -346,7 +346,7 @@ export class MailViewer {
 									if (!client.isMobileDevice()) {
 										this._handleAnchorClick(event, false)
 									}
-								},
+								}
 							},
 							m("#mail-body.selectable.touch-callout.break-word-links", {
 								oncreate: vnode => {

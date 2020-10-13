@@ -193,6 +193,7 @@ module.exports = {
 		"chooseNumber_msg": "Bitte klicke auf eine deiner Telefonnummern, um das Tutanota-Passwort per SMS zu erhalten.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Bitte auswählen ...",
+		"chooseLanguage_action": "Wähle eine Sprache",
 		"clearFolder_action": "Ordner leeren",
 		"clickNumber_msg": "Bitte klicke auf deine Telefonnummer, um das Tutanota-Passwort per SMS zu erhalten.",
 		"clickToUpdate_msg": "Hier klicken um sie sofort zu installieren.",
@@ -262,6 +263,7 @@ module.exports = {
 		"createdUsersCount_msg": "{1} Benutzer angelegt.",
 		"created_label": "Erstellt",
 		"createEvent_label": "Ereignis",
+		"createTemplate_action": "Vorlage Erstellen",
 		"createUserFailed_msg": "Der Benutzer konnte nicht erstellt werden. Bitte kontaktiere den Support.",
 		"creditCardCardHolderName_label": "Name des Kreditkarteninhabers",
 		"creditCardCardHolderName_msg": "Bitte gib den Namen des Kreditkarteninhabers ein.",
@@ -379,6 +381,7 @@ module.exports = {
 		"editMail_action": "Bearbeite die ausgewählte E-Mail",
 		"editMessage_label": "Nachricht bearbeiten",
 		"edit_action": "Bearbeiten",
+		"editTemplate_action": "Vorlage bearbeiten",
 		"emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktiviere sie dort zuerst.",
 		"emailAliasesTooManyActivatedForBooking_msg": "Es sind zu viele E-Mail-Aliasse für diese Buchung aktiviert. Bitte deaktiviere alle nicht mehr benötigten E-Mail-Aliasse.",
 		"emailAlias_label": "E-Mail-Alias",
@@ -1263,6 +1266,23 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+
+		// TODO: put them in order vvv
+		"template_label": "Vorlagen",
+		"title_label": "Titel",
+		"tag_label": "Tag",
+		"submit_label": "Einfügen",
+		"content_label": "Inhalt",
+		"languageContentEmpty_msg": "Der Inhalt von {language} ist leer!",
+		"deleteLanguageContent_msg": "Möchtest Du den Eintrag {language} löschen?",
+		"emptyTitle_msg": "Der Titel ist leer",
+		"templateSettings_label": "Vorlagen Bearbeiten",
+		"nothingFound_label": "Keine Vorlagen gefunden",
+		"loadingTemplates_label": "Vorlagen werden geladen...",
+		"noEntryFound_label": "Keine Einträge gefunden",
+		"templateTagExists_msg": "Template Tag existiert bereits!",
+		"emptyTag_msg": "Der Tag ist leer",
+		"matchingKeywords_label": "Übereinstimmende Keywords",
 	}
 }

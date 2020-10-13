@@ -160,6 +160,9 @@ styles.registerStyle('main', () => {
 		'.overflow-x-hidden': {
 			'overflow-x': 'hidden'
 		},
+		'.overflow-wrap': {
+			'overflow-wrap': 'anywhere'
+		},
 
 
 		'h1, h2, h3, h4, h5, h6': {margin: 0, 'font-weight': 'normal'},
@@ -179,6 +182,11 @@ styles.registerStyle('main', () => {
 		".border": {border: `1px solid ${theme.content_border}`},
 
 		".white-space-pre": {'white-space': "pre"},
+
+		".min-content": {
+			width: "min-content",
+			height: "min-content"
+		},
 
 		// margins
 		'.m-0': {margin: 0},
@@ -326,7 +334,7 @@ styles.registerStyle('main', () => {
 		'.underline': {'text-decoration': 'underline'},
 		'.hover-ul:hover': {'text-decoration': isApp() ? 'none' : 'underline'},
 
-		// positioning
+		// positioning1
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
 		'.fixed': {position: 'fixed'},
@@ -349,6 +357,9 @@ styles.registerStyle('main', () => {
 			'overflow-x': 'auto',
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar',
+		},
+		'.scroll-y': {
+			'overflow-y': 'scroll'
 		},
 		'*': {
 			"scrollbar-color": `${theme.content_button} transparent`,
@@ -396,6 +407,7 @@ styles.registerStyle('main', () => {
 		'.flex-direction-change': {display: 'flex', 'justify-content': 'center'},
 		'.flex-column': {'flex-direction': "column"}, //TODO migrate to .col
 		".col": {'flex-direction': "column"},
+		".row": {'flex-direction': "row"},
 		'.flex-column-reverse': {'flex-direction': "column-reverse"}, //TODO: migrate to col-reverse
 		'.col-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},
@@ -429,6 +441,7 @@ styles.registerStyle('main', () => {
 		'.justify-between': {'justify-content': 'space-between'},
 		'.justify-end': {'justify-content': 'flex-end'},
 		'.justify-start': {'justify-content': 'flex-start'},
+		'.justify-right': {'justify-content': 'right'},
 		'.child-grow > *': {flex: "1 1 auto"},
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
@@ -665,6 +678,11 @@ styles.registerStyle('main', () => {
 			'align-items': 'center',
 			position: "relative"
 		},
+		'.template-list-row': {
+			'border-left': px(size.border_selection) + ' solid transparent',
+			'align-items': 'center',
+			position: "relative"
+		},
 		'.folder-counter': {
 			position: 'absolute',
 			top: px(0),
@@ -866,6 +884,12 @@ styles.registerStyle('main', () => {
 			'margin': px(size.vpad_small / 2),
 			'background-color': theme.button_bubble_bg,
 			'padding': `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
+		},
+		'.bubbleTag-no-padding': {
+			'max-width': "300px",
+			'border-radius': px(size.border_radius),
+			'margin': px(size.vpad_small / 2),
+			'background-color': theme.button_bubble_bg,
 		},
 		'mark': {
 			// 'background-color': theme.content_button,
