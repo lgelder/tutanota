@@ -67,6 +67,7 @@ import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditor"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {selectMsgFiles} from "./Exporter"
 import {getListId, isSameId} from "../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 
@@ -226,7 +227,7 @@ export class MailView implements CurrentView {
 			{
 				key: Keys.HOME,
 				exec: () => {
-					if (this.mailViewer) this.mailViewer.scrollToTop()
+					selectMsgFiles()
 				},
 				help: "scrollToTop_action"
 			},
