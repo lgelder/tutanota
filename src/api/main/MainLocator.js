@@ -39,10 +39,11 @@ export const locator: MainLocatorType = ({
 		this.entropyCollector = new EntropyCollector(worker)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(worker)
-		this.mailModel = new MailModel(notifications, this.eventController, worker)
-		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins, this.progressTracker)
-		this.contactModel = new ContactModelImpl(worker)
 		this.entityClient = new EntityClient(worker)
+		this.mailModel = new MailModel(notifications, this.eventController, worker, this.entityClient)
+		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins, this.progressTracker,
+			this.entityClient, this.mailModel)
+		this.contactModel = new ContactModelImpl(worker, this.entityClient, logins)
 		workerDeferred.resolve(worker)
 	}
 }: any)

@@ -1,10 +1,9 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex"
 import type {UnencryptedStatisticLogRef} from "./UnencryptedStatisticLogRef"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -94,7 +93,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createCustomerContactFormGroupRoot(values?: $Shape<$Exact<CustomerContactFormGroupRoot>>): CustomerContactFormGroupRoot {

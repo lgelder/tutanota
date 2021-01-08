@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {U2fResponseData} from "./U2fResponseData"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const SecondFactorAuthDataTypeRef: TypeRef<SecondFactorAuthData> = new TypeRef("sys", "SecondFactorAuthData")
 export const _TypeModel: TypeModel = {

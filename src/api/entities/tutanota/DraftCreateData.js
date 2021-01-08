@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DraftData} from "./DraftData"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", "DraftCreateData")
 export const _TypeModel: TypeModel = {
@@ -73,7 +72,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createDraftCreateData(values?: $Shape<$Exact<DraftCreateData>>): DraftCreateData {

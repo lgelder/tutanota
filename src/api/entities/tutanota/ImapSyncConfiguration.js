@@ -1,7 +1,6 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const ImapSyncConfigurationTypeRef: TypeRef<ImapSyncConfiguration> = new TypeRef("tutanota", "ImapSyncConfiguration")
@@ -73,7 +72,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createImapSyncConfiguration(values?: $Shape<$Exact<ImapSyncConfiguration>>): ImapSyncConfiguration {

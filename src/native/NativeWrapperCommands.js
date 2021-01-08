@@ -25,7 +25,7 @@ const createMailEditor = (msg: Request): Promise<void> => {
 						             mailboxDetails,
 						             recipients,
 						             subject || (files.length > 0 ? files[0].name : ""),
-						             (text || "") + mailUtilsModule.getEmailSignature(),
+						             (text || "") + mailUtilsModule.getEmailSignature(logins.getUserController().props),
 						             files
 					             )
 				             return editorPromise.then(editor => editor.show())

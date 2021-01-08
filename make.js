@@ -24,7 +24,7 @@ options
 	})
 	.parse(process.argv)
 
-spawn(flow, {stdio: "inherit"})
+spawn(flow, ["--quiet"], {stdio: "inherit"})
 
 const SOCKET_PATH = "/tmp/buildServer"
 

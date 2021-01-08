@@ -1,7 +1,6 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const PasswordMessagingDataTypeRef: TypeRef<PasswordMessagingData> = new TypeRef("tutanota", "PasswordMessagingData")
@@ -53,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createPasswordMessagingData(values?: $Shape<$Exact<PasswordMessagingData>>): PasswordMessagingData {

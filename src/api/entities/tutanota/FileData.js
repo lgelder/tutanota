@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DataBlock} from "./DataBlock"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const FileDataTypeRef: TypeRef<FileData> = new TypeRef("tutanota", "FileData")
 export const _TypeModel: TypeModel = {
@@ -82,7 +81,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createFileData(values?: $Shape<$Exact<FileData>>): FileData {

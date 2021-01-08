@@ -1,7 +1,6 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const ContactFormStatisticFieldTypeRef: TypeRef<ContactFormStatisticField> = new TypeRef("tutanota", "ContactFormStatisticField")
@@ -44,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createContactFormStatisticField(values?: $Shape<$Exact<ContactFormStatisticField>>): ContactFormStatisticField {

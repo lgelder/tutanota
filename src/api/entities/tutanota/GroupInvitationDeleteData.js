@@ -1,7 +1,6 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const GroupInvitationDeleteDataTypeRef: TypeRef<GroupInvitationDeleteData> = new TypeRef("tutanota", "GroupInvitationDeleteData")
@@ -37,7 +36,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createGroupInvitationDeleteData(values?: $Shape<$Exact<GroupInvitationDeleteData>>): GroupInvitationDeleteData {

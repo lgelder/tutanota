@@ -134,6 +134,7 @@ async function buildAndStartDesktop({main, preload}, log, version) {
 			nativeDepWorkaroundPlugin(false),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true}),
+			env.preludeEnvPlugin(env.create(null, version, "Desktop", false))
 		],
 	})
 	const nodeBundleWrapper = {

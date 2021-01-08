@@ -1,10 +1,9 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {ImapSyncConfiguration} from "./ImapSyncConfiguration"
 import type {InboxRule} from "./InboxRule"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const TutanotaPropertiesTypeRef: TypeRef<TutanotaProperties> = new TypeRef("tutanota", "TutanotaProperties")
 export const _TypeModel: TypeModel = {
@@ -174,7 +173,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createTutanotaProperties(values?: $Shape<$Exact<TutanotaProperties>>): TutanotaProperties {

@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {appendEmailSignature, LINE_BREAK, prependEmailSignature} from "../../../src/mail/MailUtils"
 import type {EmailSignatureTypeEnum} from "../../../src/api/common/TutanotaConstants"
 import {EmailSignatureType} from "../../../src/api/common/TutanotaConstants"

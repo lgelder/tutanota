@@ -725,8 +725,8 @@ o.spec("CalendarModel", function () {
 				getEventByUid: (loadUid) => uid === loadUid ? Promise.resolve(existingEvent) : Promise.resolve(null),
 				updateCalendarEvent: o.spy(() => Promise.resolve()),
 			})
-			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, makeLoginController(), makeProgressTracker,
-				makeMailModel())
+			const model = new CalendarModelImpl(makeNotifications(), eventController, workerClient, makeLoginController(),
+				makeProgressTracker(), new EntityClient(workerClient), makeMailModel())
 
 			await model.processCalendarUpdate("sender@example.com", {
 				method: CalendarMethod.REPLY,

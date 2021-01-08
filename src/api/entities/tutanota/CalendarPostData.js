@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CalendarGroupData} from "./CalendarGroupData"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const CalendarPostDataTypeRef: TypeRef<CalendarPostData> = new TypeRef("tutanota", "CalendarPostData")
 export const _TypeModel: TypeModel = {
@@ -37,7 +36,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createCalendarPostData(values?: $Shape<$Exact<CalendarPostData>>): CalendarPostData {

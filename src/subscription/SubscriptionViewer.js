@@ -16,8 +16,6 @@ import {Icons} from "../gui/base/icons/Icons"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
-import {HttpMethod} from "../api/common/EntityFunctions"
-import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
@@ -77,8 +75,8 @@ import type {TranslationKey} from "../misc/LanguageViewModel.js"
 import type {ColumnWidthEnum, TableLineAttrs} from "../gui/base/TableN"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {Dialog} from "../gui/base/Dialog"
-import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
+import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
+import {HttpMethod} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 

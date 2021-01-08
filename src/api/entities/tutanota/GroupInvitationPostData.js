@@ -1,10 +1,9 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
 import type {SharedGroupData} from "./SharedGroupData"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const GroupInvitationPostDataTypeRef: TypeRef<GroupInvitationPostData> = new TypeRef("tutanota", "GroupInvitationPostData")
 export const _TypeModel: TypeModel = {
@@ -47,7 +46,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createGroupInvitationPostData(values?: $Shape<$Exact<GroupInvitationPostData>>): GroupInvitationPostData {

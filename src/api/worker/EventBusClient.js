@@ -6,11 +6,6 @@ import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {
-	compareOldestFirst,
-	getElementId,
-	isSameId
-} from "../common/EntityFunctions"
-import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	ConnectionError,
@@ -39,7 +34,15 @@ import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatu
 import {ProgressMonitorDelegate} from "./ProgressMonitorDelegate"
 import type {IProgressMonitor} from "../common/utils/ProgressMonitor"
 import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/utils/EntityUtils";
+import {
+	compareOldestFirst,
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	getElementId,
+	getLetId,
+	isSameId
+} from "../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

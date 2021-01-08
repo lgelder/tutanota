@@ -35,10 +35,8 @@ import {theme} from "../gui/theme"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
-	archiveMails,
-	getDefaultSignature,
 	appendEmailSignature,
-	getFolder,
+	archiveMails,
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
@@ -48,6 +46,7 @@ import {
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
+import {getFolder, getInboxFolder} from "./MailModel";
 import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {ActionBar} from "../gui/base/ActionBar";
@@ -68,7 +67,6 @@ import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditor"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
-import {getFolder, getInboxFolder} from "./MailModel";
 import {getListId, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()

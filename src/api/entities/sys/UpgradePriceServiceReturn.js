@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {PlanPrices} from "./PlanPrices"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const UpgradePriceServiceReturnTypeRef: TypeRef<UpgradePriceServiceReturn> = new TypeRef("sys", "UpgradePriceServiceReturn")
 export const _TypeModel: TypeModel = {

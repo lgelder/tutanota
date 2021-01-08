@@ -1,11 +1,10 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {AttachmentKeyData} from "./AttachmentKeyData"
 import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
 import type {SecureExternalRecipientKeyData} from "./SecureExternalRecipientKeyData"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const SendDraftDataTypeRef: TypeRef<SendDraftData> = new TypeRef("tutanota", "SendDraftData")
 export const _TypeModel: TypeModel = {
@@ -121,7 +120,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createSendDraftData(values?: $Shape<$Exact<SendDraftData>>): SendDraftData {

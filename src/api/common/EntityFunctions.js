@@ -33,9 +33,6 @@ export type MediaTypeEnum = $Values<typeof MediaType>;
 const modelMaps = {"sys": sysModelMap, "tutanota": tutanotaModelMap, "monitor": monitorModelMap}
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
-	const pathPrefix = env.adminTypes.includes(typeRef.app + "/" + typeRef.type)
-		? "admin/"
-		: env.rootPathPrefix
 	const modelMap = modelMaps[typeRef.app]
 
 	if (modelMap[typeRef.type] == null) {
@@ -49,56 +46,6 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 	}
 }
 
-export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
-	let i = {
-		_type: typeRef
-	}
-	if (typeModel.type === Type.Element || typeModel.type === Type.ListElement) {
-		(i: any)._errors = {}
-	}
-	for (let valueName of Object.keys(typeModel.values)) {
-		let value = typeModel.values[valueName]
-		i[valueName] = _getDefaultValue(value)
-	}
-	for (let associationName of Object.keys(typeModel.associations)) {
-		let association = typeModel.associations[associationName]
-		if (association.cardinality === Cardinality.Any) {
-			i[associationName] = []
-		} else {
-			i[associationName] = null // set to null even if the cardinality is One
-		}
-	}
-	return (i: any);
-}
-
-function _getDefaultValue(value: ModelValue): any {
-	if (value.name === "_format") {
-		return "0"
-	} else if (value.name === "_id") {
-		return null // aggregate ids are set in the worker, list ids must be set explicitely and element ids are created on the server
-	} else if (value.name === "_permissions") {
-		return null
-	} else if (value.cardinality === Cardinality.ZeroOrOne) {
-		return null
-	} else {
-		switch (value.type) {
-			case ValueType.Bytes:
-				return new Uint8Array(0)
-			case ValueType.Date:
-				return new Date()
-			case ValueType.Number:
-				return "0"
-			case ValueType.String:
-				return ""
-			case ValueType.Boolean:
-				return false
-			case ValueType.CustomId:
-			case ValueType.GeneratedId:
-				return null // we have to use null although the value must be set to something different
-		}
-	}
-	throw new Error(`no default value for ${JSON.stringify(value)}`)
-}
 
 export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface, extraHeaders?: Params): Promise<Id> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {

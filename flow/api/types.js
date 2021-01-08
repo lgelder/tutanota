@@ -281,7 +281,6 @@ type EnvType = {
 	dist: boolean,
 	versionNumber: string,
 	timeout: number,
-	rootPathPrefix: string,
 	adminTypes: string[],
 	systemConfig: any
 }

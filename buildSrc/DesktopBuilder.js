@@ -1,5 +1,5 @@
 import {resolveLibs} from "./RollupConfig.js"
-import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./Builder.js"
+import {nativeDepWorkaroundPlugin} from "./Builder.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import Promise from "bluebird"
 import fs from "fs"
@@ -10,6 +10,7 @@ import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import electronBuilder from "electron-builder"
 import generatePackgeJson from "./electron-package-json-template.js"
+import {create as createEnv, preludeEnvPlugin} from "./env.js"
 
 const {babel} = pluginBabel
 
@@ -21,7 +22,7 @@ export async function buildDesktop({
 	                                   updateUrl, // where the client should pull its updates from, if any
 	                                   nameSuffix, // suffix used to distinguish test-, prod- or snapshot builds on the same machine
 	                                   notarize, // for the MacOs notarization feature
-	                                   outDir, // where to copy the finished artifacts
+	                                   outDir, // where copy the finished artifacts
 	                                   unpacked // output desktop client without packing it into an installer
                                    }) {
 	// The idea is that we
@@ -63,7 +64,7 @@ export async function buildDesktop({
 		}
 	}
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"))
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version)
 
 	console.log("Starting installer build...")
 	// package for linux, win, mac
@@ -94,7 +95,7 @@ export async function buildDesktop({
 	])
 }
 
-async function rollupDesktop(dirname, outDir) {
+async function rollupDesktop(dirname, outDir, version) {
 	function babelPreset() {
 		return babel({
 			plugins: [
@@ -117,6 +118,7 @@ async function rollupDesktop(dirname, outDir) {
 			nodeResolve({preferBuiltins: true}),
 			commonjs({exclude: "src/**"}),
 			terser(),
+			preludeEnvPlugin(createEnv(null, version, "Desktop", true))
 		]
 	})
 	await mainBundle.write({sourcemap: true, format: "commonjs", dir: outDir})

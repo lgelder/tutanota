@@ -1,10 +1,10 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {BookingsRef} from "./BookingsRef"
 import type {DomainInfo} from "./DomainInfo"
-import {TypeRef} from "../../common/utils/EntityUtils";
+import type {GiftCardsRef} from "./GiftCardsRef"
 
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", "CustomerInfo")
 export const _TypeModel: TypeModel = {
@@ -207,6 +207,15 @@ export const _TypeModel: TypeModel = {
 			"refType": "DomainInfo",
 			"final": true
 		},
+		"giftCards": {
+			"name": "giftCards",
+			"id": 1794,
+			"since": 65,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "GiftCardsRef",
+			"final": true
+		},
 		"accountingInfo": {
 			"name": "accountingInfo",
 			"id": 159,
@@ -239,7 +248,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "64"
+	"version": "66"
 }
 
 export function createCustomerInfo(values?: $Shape<$Exact<CustomerInfo>>): CustomerInfo {
@@ -271,6 +280,7 @@ export type CustomerInfo = {
 
 	bookings: ?BookingsRef;
 	domainInfos: DomainInfo[];
+	giftCards: ?GiftCardsRef;
 	accountingInfo: Id;
 	customer: Id;
 	takeoverCustomer: ?Id;

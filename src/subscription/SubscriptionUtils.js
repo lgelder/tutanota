@@ -18,7 +18,6 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {Dialog} from "../gui/base/Dialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import * as BuyDialog from "./BuyDialog"
-import {asyncImport} from "../api/common/utils/Utils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -278,8 +277,7 @@ export function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum
 
 
 export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
-	asyncImport(typeof module !== "undefined"
-		? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/terms.js`)
+	import("./terms.js")
 		.then(terms => {
 			let dialog: Dialog
 			let visibleLang = lang.code.startsWith("de") ? "de" : "en"

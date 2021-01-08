@@ -1,10 +1,9 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {OtpChallenge} from "./OtpChallenge"
 import type {U2fChallenge} from "./U2fChallenge"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const ChallengeTypeRef: TypeRef<Challenge> = new TypeRef("sys", "Challenge")
 export const _TypeModel: TypeModel = {

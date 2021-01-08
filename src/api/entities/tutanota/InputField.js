@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {Name} from "./Name"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const InputFieldTypeRef: TypeRef<InputField> = new TypeRef("tutanota", "InputField")
 export const _TypeModel: TypeModel = {
@@ -55,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createInputField(values?: $Shape<$Exact<InputField>>): InputField {

@@ -1,11 +1,10 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CalendarEventAttendee} from "./CalendarEventAttendee"
 import type {EncryptedMailAddress} from "./EncryptedMailAddress"
 import type {CalendarRepeatRule} from "./CalendarRepeatRule"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const CalendarEventTypeRef: TypeRef<CalendarEvent> = new TypeRef("tutanota", "CalendarEvent")
 export const _TypeModel: TypeModel = {
@@ -184,7 +183,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createCalendarEvent(values?: $Shape<$Exact<CalendarEvent>>): CalendarEvent {

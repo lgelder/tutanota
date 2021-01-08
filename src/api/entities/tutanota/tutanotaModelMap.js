@@ -113,6 +113,7 @@ const map: {[string]: () => mixed} = {
     CalendarEventIndexRef: () => import('./CalendarEventIndexRef'),
     CalendarEventUpdate: () => import('./CalendarEventUpdate'),
     CalendarEventUpdateList: () => import('./CalendarEventUpdateList'),
-    EntropyData: () => import('./EntropyData')
+    EntropyData: () => import('./EntropyData'),
+    OutOfOfficeNotificationRecipientList: () => import('./OutOfOfficeNotificationRecipientList')
 }
 export default map

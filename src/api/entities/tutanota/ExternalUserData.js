@@ -1,9 +1,8 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CreateExternalUserGroupData} from "./CreateExternalUserGroupData"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const ExternalUserDataTypeRef: TypeRef<ExternalUserData> = new TypeRef("tutanota", "ExternalUserData")
 export const _TypeModel: TypeModel = {
@@ -127,7 +126,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createExternalUserData(values?: $Shape<$Exact<ExternalUserData>>): ExternalUserData {

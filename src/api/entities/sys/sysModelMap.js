@@ -177,6 +177,18 @@ const map: {[string]: () => mixed} = {
     RejectedSendersRef: () => import('./RejectedSendersRef'),
     SecondFactorAuthDeleteData: () => import('./SecondFactorAuthDeleteData'),
     TakeOverDeletedAddressData: () => import('./TakeOverDeletedAddressData'),
-    WebsocketLeaderStatus: () => import('./WebsocketLeaderStatus')
+    WebsocketLeaderStatus: () => import('./WebsocketLeaderStatus'),
+    GiftCard: () => import('./GiftCard'),
+    GiftCardsRef: () => import('./GiftCardsRef'),
+    GiftCardOption: () => import('./GiftCardOption'),
+    GiftCardGetReturn: () => import('./GiftCardGetReturn'),
+    GiftCardCreateData: () => import('./GiftCardCreateData'),
+    GiftCardDeleteData: () => import('./GiftCardDeleteData'),
+    GiftCardCreateReturn: () => import('./GiftCardCreateReturn'),
+    GiftCardRedeemData: () => import('./GiftCardRedeemData'),
+    GiftCardRedeemGetReturn: () => import('./GiftCardRedeemGetReturn'),
+    Braintree3ds2Request: () => import('./Braintree3ds2Request'),
+    Braintree3ds2Response: () => import('./Braintree3ds2Response'),
+    PaymentDataServicePostData: () => import('./PaymentDataServicePostData')
 }
 export default map

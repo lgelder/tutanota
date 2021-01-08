@@ -1,11 +1,10 @@
 // @flow
 
-import {create} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {MailAddress} from "./MailAddress"
 import type {EncryptedMailAddress} from "./EncryptedMailAddress"
 import type {MailRestriction} from "./MailRestriction"
-import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const MailTypeRef: TypeRef<Mail> = new TypeRef("tutanota", "Mail")
 export const _TypeModel: TypeModel = {
@@ -304,7 +303,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createMail(values?: $Shape<$Exact<Mail>>): Mail {

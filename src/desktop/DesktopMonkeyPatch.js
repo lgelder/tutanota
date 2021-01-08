@@ -33,8 +33,6 @@ process.on('exit', () => {
 	}
 })
 
-global.env = {rootPathPrefix: "../../", adminTypes: []}
-
 const oldLog = console.log
 const oldError = console.error
 const oldWarn = console.warn
