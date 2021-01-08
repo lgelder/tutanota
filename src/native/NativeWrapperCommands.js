@@ -3,6 +3,7 @@ import {Request} from "../api/common/WorkerProtocol"
 import {getMimeType, getName, getSize} from "./FileApp"
 import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 import {nativeApp} from "./NativeWrapper"
+import type {LoginController} from "../api/main/LoginController"
 
 const createMailEditor = (msg: Request): Promise<void> => {
 	return Promise.all([
@@ -25,7 +26,7 @@ const createMailEditor = (msg: Request): Promise<void> => {
 						             mailboxDetails,
 						             recipients,
 						             subject || (files.length > 0 ? files[0].name : ""),
-						             (text || "") + mailUtilsModule.getEmailSignature(logins.getUserController().props),
+						             mailUtilsModule.appendEmailSignature(text || "", logins.getUserController().props),
 						             files
 					             )
 				             return editorPromise.then(editor => editor.show())
