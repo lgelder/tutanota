@@ -4,6 +4,7 @@ import chokidar from "chokidar"
 import express from "express"
 import http from "http"
 import expressws from "express-ws"
+import fs from "fs"
 
 const logStream = createWriteStream("/tmp/build.log")
 
@@ -46,11 +47,13 @@ async function runServer() {
 				outerLog(...args)
 				socket.write(args.join(" ") + "\n")
 			}
-			log("new build request")
+			log("new build request " + data.toString())
 			try {
 				const msg = data.toString()
 				if (msg === "clean") {
 					log("clean")
+					await fs.promises.rmdir("build", {recursive: true})
+					log("Clean completed")
 					closeServer(httpServer)
 					return
 				}
