@@ -203,10 +203,12 @@ function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscript
 					}
 					const okAction = () => {
 						let captchaTime = captchaInput.value().trim()
-						if (captchaTime.match(/^[0-2][0-9]:[0-5][05]$/) && Number(captchaTime.substr(0, 2)) < 24) {
+						if (captchaTime.match(/^[0-2]?[0-9]:[0-5]?[05]$/)) {
 							let data = createRegistrationCaptchaServiceData()
 							data.token = captchaReturn.token
-							data.response = captchaTime
+							// Accept 12h and 24h format and add leading zeros if missing
+							let [h, m] = captchaTime.split(':').map(t => Number(t))
+							data.response = [h % 12, m % 60].map(a => String(a).padStart(2,'0')).join(':')
 							dialog.close()
 							serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data)
 								.then(() => {
