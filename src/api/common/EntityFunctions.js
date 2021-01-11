@@ -8,6 +8,8 @@ import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
 import monitorModelMap from "../entities/monitor/monitorModelMap"
 import type {ListElement} from "./utils/EntityUtils"
 import {customIdToString, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT, TypeRef} from "./utils/EntityUtils"
+import accountingModelMap from "../entities/accounting/accountingModelMap"
+import baseModelMap from "../entities/base/baseModelMap"
 
 
 export const HttpMethod = Object.freeze({
@@ -30,7 +32,13 @@ export type MediaTypeEnum = $Values<typeof MediaType>;
  * We access most types through the TypeRef but also sometimes we include them completely dynamically (e.g. encryption of aggregates).
  * This means that we need to tell our bundler which ones do exist so that they are included.
  */
-const modelMaps = {"sys": sysModelMap, "tutanota": tutanotaModelMap, "monitor": monitorModelMap}
+const modelMaps = {
+	base: baseModelMap,
+	sys: sysModelMap,
+	tutanota: tutanotaModelMap,
+	monitor: monitorModelMap,
+	accounting: accountingModelMap,
+}
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
 	const modelMap = modelMaps[typeRef.app]
