@@ -15,6 +15,17 @@ import path from "path"
  */
 export function buildWithServer({clean, builder, watchFolders, socketPath, buildOpts}) {
 	return new Promise((resolve, reject) => {
+		function start(clean, attempt) {
+			console.log("Starting build server")
+			const serverPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "./BuildServer.js")
+			// If server fails to start and you don't know hwy, set "stdio" to "inherit"
+			spawn(process.argv[0], [
+				serverPath, builder, watchFolders.join(":"), socketPath
+			], {detached: true, cwd: process.cwd()})
+			console.log("Started build server")
+			setTimeout(() => connect(clean, attempt + 1), 2000)
+		}
+
 		function connect(restart, attempt = 0) {
 			try {
 				const client = createConnection(socketPath)
@@ -23,7 +34,8 @@ export function buildWithServer({clean, builder, watchFolders, socketPath, build
 						if (restart) {
 							console.log("Restarting the build server!")
 							client.write("clean")
-							setTimeout(() => connect(false, 0), 2000)
+							start(false, attempt)
+							// setTimeout(() => connect(false, 0), 2000)
 						} else {
 							client.write(JSON.stringify(buildOpts))
 						}
@@ -44,14 +56,7 @@ export function buildWithServer({clean, builder, watchFolders, socketPath, build
 						if (attempt > 2) {
 							reject(new Error("Failed to start build server", e))
 						}
-						console.log("Starting build server")
-						const serverPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "./BuildServer.js")
-						// If server fails to start and you don't know hwy, set "stdio" to "inherit"
-						spawn(process.argv[0], [
-							serverPath, builder, watchFolders.join(":"), socketPath
-						], {detached: true, cwd: process.cwd(), stdio: "inherit"})
-						console.log("Started build server")
-						setTimeout(() => connect(clean, attempt + 1), 10000)
+						start(clean, attempt)
 					})
 			} catch (e) {
 				reject(e)
