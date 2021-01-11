@@ -42,6 +42,9 @@ import {formatPrice} from "../subscription/SubscriptionUtils"
 import {locator} from "../api/main/MainLocator"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {getHourCycle} from "../misc/Formatter"
+import {createNotAvailableForFreeClickHandler} from "../subscription/PriceUtils"
+import * as StorageCapacityOptionsDialog from "../subscription/StorageCapacityOptionsDialog"
+import {showMoreStorageNeededOrderDialog, showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -308,11 +311,7 @@ export class LoginViewController implements ILoginViewController {
 				if (Number(usedStorage) > (Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR)) {
 					return worker.readAvailableCustomerStorage().then(availableStorage => {
 						if (Number(usedStorage) > (Number(availableStorage) * Const.MEMORY_WARNING_FACTOR)) {
-							return Dialog.error("insufficientStorageWarning_msg").then(() => {
-								// TODO naviagate to admin storage
-								//tutao.locator.navigator.settings();
-								//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE);
-							})
+							return showMoreStorageNeededOrderDialog("insufficientStorageWarning_msg")
 						}
 					})
 				}

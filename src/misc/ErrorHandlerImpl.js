@@ -40,6 +40,8 @@ import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {UserError} from "../api/common/error/UserError"
+import * as StorageCapacityOptionsDialog from "../subscription/StorageCapacityOptionsDialog"
+import type {TranslationKey} from "./LanguageViewModel"
 
 assertMainOrNode()
 
@@ -128,10 +130,7 @@ export function handleUncaughtError(e: Error) {
 		Dialog.error("dataExpired_msg")
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
-			Dialog.error("insufficientStorageAdmin_msg").then(() => {
-				// tutao.locator.navigator.settings()
-				// tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE)
-			})
+			showMoreStorageNeededOrderDialog("insufficientStorageAdmin_msg")
 		} else {
 			Dialog.error("insufficientStorageUser_msg")
 		}
@@ -392,6 +391,18 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 			      }
 		      })
 	}
+}
+
+export function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey | lazy<string>): Promise<void> {
+	return Dialog.confirm(messageIdOrMessageFunction, "upgrade_action").then((confirm) => {
+		if (confirm) {
+			if (logins.getUserController().isPremiumAccount()) {
+				StorageCapacityOptionsDialog.show()
+			} else {
+				showNotAvailableForFreeDialog(false)
+			}
+		}
+	})
 }
 
 export function loggingOut() {
