@@ -17,7 +17,7 @@ import {
 import {isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {assertNotNull, clone, defer, downcast} from "../api/common/utils/Utils"
+import {assertNotNull, clone, defer, downcast, noOp} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarMethod, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
@@ -36,7 +36,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
 import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
-import {NotFoundError} from "../api/common/error/RestError"
+import {LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 import m from "mithril"
@@ -60,6 +60,8 @@ import type {IProgressMonitor} from "../api/common/utils/ProgressMonitor"
 import {EntityClient} from "../api/common/EntityClient"
 import type {MailModel} from "../mail/MailModel"
 import {elementIdPart, getElementId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
+import {FileTypeRef} from "../api/entities/tutanota/File"
+import {parseCalendarFile} from "./CalendarImporter"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -323,7 +325,6 @@ export class CalendarModelImpl implements CalendarModel {
 	_scheduledNotifications: Map<string, TimeoutID>;
 	/** Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event */
 	_pendingAlarmRequests: Map<string, DeferredObject<void>>;
-	_logins: LoginController
 	_progressTracker: ProgressTracker
 	_logins: LoginController;
 	_entityClient: EntityClient;
@@ -456,18 +457,16 @@ export class CalendarModelImpl implements CalendarModel {
 	}
 
 	_handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
-		// FIXME: do not import calendarImporter here as it pulls UI
-		return Promise.resolve()
-		// return this._entityClient.load(FileTypeRef, update.file)
-		//            .then((file) => this._worker.downloadFileContent(file))
-		//            .then((dataFile: DataFile) => parseCalendarFile(dataFile))
-		//            .then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
-		//            .catch((e) => e instanceof ParserError || e instanceof NotFoundError,
-		// 	           (e) => console.warn("Error while parsing calendar update", e))
-		//            .then(() => this._entityClient.erase(update))
-		//            .catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
-		//            .catch(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e))
-		//            .catch(LockedError, noOp)
+		return this._entityClient.load(FileTypeRef, update.file)
+		           .then((file) => this._worker.downloadFileContent(file))
+		           .then((dataFile: DataFile) => parseCalendarFile(dataFile))
+		           .then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
+		           .catch((e) => e instanceof ParserError || e instanceof NotFoundError,
+			           (e) => console.warn("Error while parsing calendar update", e))
+		           .then(() => this._entityClient.erase(update))
+		           .catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
+		           .catch(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e))
+		           .catch(LockedError, noOp)
 	}
 
 	/**

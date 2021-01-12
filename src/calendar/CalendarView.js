@@ -63,7 +63,6 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
-import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
@@ -84,6 +83,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CalendarEventPopup} from "./CalendarEventPopup"
 import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
 import {getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
+import {exportCalendar, showCalendarImportDialog} from "./CalendarImporterDialog"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export const DEFAULT_HOUR_OF_DAY = 6
