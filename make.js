@@ -31,19 +31,12 @@ const SOCKET_PATH = "/tmp/buildServer"
 runBuild()
 
 function runBuild() {
-	const entryPoints = {
-		web: ["src/app.js", "src/api/worker/WorkerImpl.js"],
-		desktop: {
-			main: "src/desktop/DesktopMain.js",
-			preload: "src/desktop/preload.js",
-		}
-	}
 	buildWithServer({
 		clean: opts.clean,
 		builder: "./Builder.js",
 		watchFolders: ["src"],
 		socketPath: SOCKET_PATH,
-		buildOpts: {...opts, entryPoints},
+		buildOpts: opts,
 	})
 		.then(() => {
 			console.log("Build finished")
