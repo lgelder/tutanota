@@ -76,7 +76,7 @@ const csp = (m, env) => {
 		return m("meta[http-equiv=Content-Security-Policy][content="
 			+ "default-src * 'unsafe-inline' 'unsafe-eval';"
 			+ " script-src * 'unsafe-inline' 'unsafe-eval';"
-			+ ` connect-src 'self' 'unsafe-inline' ${getUrls(env)};`
+			+ ` connect-src 'self' 'unsafe-inline' ${getUrls(env)} ws://localhost:9001;`
 			+ " img-src * data: blob: 'unsafe-inline';"
 			+ " frame-src *;"
 			+ " style-src * 'unsafe-inline';"

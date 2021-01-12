@@ -339,5 +339,8 @@ if (hot) {
 		data.state = state
 	})
 	// Import ourselves again to actually replace ourselves and all the dependencies
-	hot.accept(() => require(module.id))
+	hot.accept(() => {
+		console.log("Requiring new app.js")
+		require(module.id)
+	})
 }

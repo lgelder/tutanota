@@ -195,7 +195,7 @@ function askPermission(): Promise<void> {
 		let p: Promise<void> = Promise.resolve()
 		if (checkboxChecked) {
 			log.debug("updating no_integration blacklist...")
-			p.then(() => fs.mkdir(path.dirname(nointegrationpath), {recursive: true}))
+			p.then(() => fs.promises.mkdir(path.dirname(nointegrationpath), {recursive: true}))
 			 .then(() => fs.promises.writeFile(nointegrationpath, packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
 		}
 		if (response === 1) { // clicked yes

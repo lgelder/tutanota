@@ -84,10 +84,14 @@ async function runServer() {
 
 						if (httpServer) {
 							httpServer.messageAllSockets({status: "prepare"})
-							const updates = await generateBundles(bundleWrappers)
-							for (const update of updates) {
-								httpServer.messageAllSockets({status: "ready"})
-								httpServer.messageAllSockets({changes: update.changes})
+							try {
+								const updates = await generateBundles(bundleWrappers)
+								for (const update of updates) {
+									httpServer.messageAllSockets({status: "ready"})
+									httpServer.messageAllSockets({changes: update.changes})
+								}
+							} catch (e) {
+								socket.write("err: " + String(e) + "\n")
 							}
 						}
 					})

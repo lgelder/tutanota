@@ -80,7 +80,7 @@ export async function build({watch, desktop, stage, host}, log) {
 	const bundle = await nollup({
 		input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
 		plugins: rollupDebugPlugins(path.resolve("."))
-			.concat(watch ? hmr({bundleId: ''}) : []),
+			.concat(watch ? hmr({bundleId: '', hmrHost: "localhost:9001", verbose: true}) : []),
 	})
 	const generateBundle = async () => {
 		log("Generating")

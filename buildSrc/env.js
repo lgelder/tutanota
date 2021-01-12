@@ -22,16 +22,16 @@
 // prod desktop dist     | mail.tutanota.com | desktop.html | node -l dist
 
 // Attention: The contents of this file is evaluated at compile time and not at runtime
-export function create(staticUrl, version, mode, dist, adminTypes) {
+export function create(staticUrl, version, mode, dist) {
 	return {
 		"staticUrl": staticUrl,
 		"mode": mode != null ? mode : "Browser",
 		"versionNumber": version,
 		"dist": dist != null ? dist : false,
 		"timeout": 20000,
-		"adminTypes": adminTypes ? adminTypes : []
 	}
 }
+
 export function preludeEnvPlugin(env) {
 	return {
 		name: "prelude-env",

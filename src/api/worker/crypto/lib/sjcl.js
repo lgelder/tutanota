@@ -588,32 +588,6 @@ sjcl.codec.utf8String = {
  * @author Dan Boneh
  */
 
-// /**
-//  * Hexadecimal
-//  * @namespace
-//  */
-// sjcl.codec.hex = {
-// 	/** Convert from a bitArray to a hex string. */
-// 	fromBits: function (arr) {
-// 		var out = "", i;
-// 		for (i = 0; i < arr.length; i++) {
-// 			out += ((arr[i] | 0) + 0xF00000000000).toString(16).substr(4);
-// 		}
-// 		return out.substr(0, sjcl.bitArray.bitLength(arr) / 4);//.replace(/(.{8})/g, "$1 ");
-// 	},
-// 	/** Convert from a hex string to a bitArray. */
-// 	toBits: function (str) {
-// 		var i, out = [], len;
-// 		str = str.replace(/\s|0x/g, "");
-// 		len = str.length;
-// 		str = str + "00000000";
-// 		for (i = 0; i < str.length; i += 8) {
-// 			out.push(parseInt(str.substr(i, 8), 16) ^ 0);
-// 		}
-// 		return sjcl.bitArray.clamp(out, len * 4);
-// 	}
-// };
-
 /** @fileOverview Bit array codec implementations.
  *
  * @author Nils Kenneweg
@@ -779,54 +753,6 @@ sjcl.codec.base64 = {
 	}
 };
 
-// sjcl.codec.base64url = {
-// 	fromBits: function (arr) {
-// 		return sjcl.codec.base64.fromBits(arr, 1, 1);
-// 	},
-// 	toBits: function (str) {
-// 		return sjcl.codec.base64.toBits(str, 1);
-// 	}
-// };
-/** @fileOverview Bit array codec implementations.
- *
- * @author Emily Stark
- * @author Mike Hamburg
- * @author Dan Boneh
- */
-
-// /**
-//  * Arrays of bytes
-//  * @namespace
-//  */
-// sjcl.codec.bytes = {
-// 	/** Convert from a bitArray to an array of bytes. */
-// 	fromBits: function (arr) {
-// 		var out = [], bl = sjcl.bitArray.bitLength(arr), i, tmp;
-// 		for (i = 0; i < bl / 8; i++) {
-// 			if ((i & 3) === 0) {
-// 				tmp = arr[i / 4];
-// 			}
-// 			out.push(tmp >>> 24);
-// 			tmp <<= 8;
-// 		}
-// 		return out;
-// 	},
-// 	/** Convert from an array of bytes to a bitArray. */
-// 	toBits: function (bytes) {
-// 		var out = [], i, tmp = 0;
-// 		for (i = 0; i < bytes.length; i++) {
-// 			tmp = tmp << 8 | bytes[i];
-// 			if ((i & 3) === 3) {
-// 				out.push(tmp);
-// 				tmp = 0;
-// 			}
-// 		}
-// 		if (i & 3) {
-// 			out.push(sjcl.bitArray.partial(8 * (i & 3), tmp));
-// 		}
-// 		return out;
-// 	}
-// };
 /** @fileOverview Javascript SHA-256 implementation.
  *
  * An older version of this implementation is available in the public
@@ -2250,108 +2176,6 @@ sjcl.prng.prototype = {
 				this._NOT_READY;
 		}
 	},
-	//
-	// /** Get the generator's progress toward readiness, as a fraction */
-	// getProgress: function (paranoia) {
-	// 	var entropyRequired = this._PARANOIA_LEVELS[paranoia ? paranoia : this._defaultParanoia];
-	//
-	// 	if (this._strength >= entropyRequired) {
-	// 		return 1.0;
-	// 	} else {
-	// 		return (this._poolStrength > entropyRequired) ?
-	// 			1.0 :
-	// 			this._poolStrength / entropyRequired;
-	// 	}
-	// },
-	//
-	// /** start the built-in entropy collectors */
-	// startCollectors: function () {
-	// 	if (this._collectorsStarted) {
-	// 		return;
-	// 	}
-	//
-	// 	this._eventListener = {
-	// 		loadTimeCollector: this._bind(this._loadTimeCollector),
-	// 		mouseCollector: this._bind(this._mouseCollector),
-	// 		keyboardCollector: this._bind(this._keyboardCollector),
-	// 		accelerometerCollector: this._bind(this._accelerometerCollector),
-	// 		touchCollector: this._bind(this._touchCollector)
-	// 	};
-	//
-	// 	if (window.addEventListener) {
-	// 		window.addEventListener("load", this._eventListener.loadTimeCollector, false);
-	// 		window.addEventListener("mousemove", this._eventListener.mouseCollector, false);
-	// 		window.addEventListener("keypress", this._eventListener.keyboardCollector, false);
-	// 		window.addEventListener("devicemotion", this._eventListener.accelerometerCollector, false);
-	// 		window.addEventListener("touchmove", this._eventListener.touchCollector, false);
-	// 	} else if (document.attachEvent) {
-	// 		document.attachEvent("onload", this._eventListener.loadTimeCollector);
-	// 		document.attachEvent("onmousemove", this._eventListener.mouseCollector);
-	// 		document.attachEvent("keypress", this._eventListener.keyboardCollector);
-	// 	} else {
-	// 		throw new sjcl.exception.bug("can't attach event");
-	// 	}
-	//
-	// 	this._collectorsStarted = true;
-	// },
-	//
-	// /** stop the built-in entropy collectors */
-	// stopCollectors: function () {
-	// 	if (!this._collectorsStarted) {
-	// 		return;
-	// 	}
-	//
-	// 	if (window.removeEventListener) {
-	// 		window.removeEventListener("load", this._eventListener.loadTimeCollector, false);
-	// 		window.removeEventListener("mousemove", this._eventListener.mouseCollector, false);
-	// 		window.removeEventListener("keypress", this._eventListener.keyboardCollector, false);
-	// 		window.removeEventListener("devicemotion", this._eventListener.accelerometerCollector, false);
-	// 		window.removeEventListener("touchmove", this._eventListener.touchCollector, false);
-	// 	} else if (document.detachEvent) {
-	// 		document.detachEvent("onload", this._eventListener.loadTimeCollector);
-	// 		document.detachEvent("onmousemove", this._eventListener.mouseCollector);
-	// 		document.detachEvent("keypress", this._eventListener.keyboardCollector);
-	// 	}
-	//
-	// 	this._collectorsStarted = false;
-	// },
-	//
-	// /* use a cookie to store entropy.
-	//  useCookie: function (all_cookies) {
-	//  throw new sjcl.exception.bug("random: useCookie is unimplemented");
-	//  },*/
-	//
-	// /** add an event listener for progress or seeded-ness. */
-	// addEventListener: function (name, callback) {
-	// 	this._callbacks[name][this._callbackI++] = callback;
-	// },
-	//
-	// /** remove an event listener for progress or seeded-ness */
-	// removeEventListener: function (name, cb) {
-	// 	var i, j, cbs = this._callbacks[name], jsTemp = [];
-	//
-	// 	/* I'm not sure if this is necessary; in C++, iterating over a
-	// 	 * collection and modifying it at the same time is a no-no.
-	// 	 */
-	//
-	// 	for (j in cbs) {
-	// 		if (cbs.hasOwnProperty(j) && cbs[j] === cb) {
-	// 			jsTemp.push(j);
-	// 		}
-	// 	}
-	//
-	// 	for (i = 0; i < jsTemp.length; i++) {
-	// 		j = jsTemp[i];
-	// 		delete cbs[j];
-	// 	}
-	// },
-	//
-	// _bind: function (func) {
-	// 	var that = this;
-	// 	return function () {
-	// 		func.apply(that, arguments);
-	// 	};
-	// },
 
 	/** Generate 4 random words, no reseed, no gate.
 	 * @private
@@ -2429,85 +2253,6 @@ sjcl.prng.prototype = {
 		this._reseedCount++;
 		this._reseed(reseedData);
 	},
-	//
-	// _keyboardCollector: function () {
-	// 	this._addCurrentTimeToEntropy(1);
-	// },
-	//
-	// _mouseCollector: function (ev) {
-	// 	var x, y;
-	//
-	// 	try {
-	// 		x = ev.x || ev.clientX || ev.offsetX || 0;
-	// 		y = ev.y || ev.clientY || ev.offsetY || 0;
-	// 	} catch (err) {
-	// 		// Event originated from a secure element. No mouse position available.
-	// 		x = 0;
-	// 		y = 0;
-	// 	}
-	//
-	// 	if (x != 0 && y != 0) {
-	// 		this.addEntropy([x, y], 2, "mouse");
-	// 	}
-	//
-	// 	this._addCurrentTimeToEntropy(0);
-	// },
-	//
-	// _touchCollector: function (ev) {
-	// 	var touch = ev.touches[0] || ev.changedTouches[0];
-	// 	var x = touch.pageX || touch.clientX,
-	// 		y = touch.pageY || touch.clientY;
-	//
-	// 	this.addEntropy([x, y], 1, "touch");
-	//
-	// 	this._addCurrentTimeToEntropy(0);
-	// },
-	//
-	// _loadTimeCollector: function () {
-	// 	this._addCurrentTimeToEntropy(2);
-	// },
-	//
-	// _addCurrentTimeToEntropy: function (estimatedEntropy) {
-	// 	if (typeof window !== 'undefined' && window.performance && typeof window.performance.now === "function") {
-	// 		//how much entropy do we want to add here?
-	// 		this.addEntropy(window.performance.now(), estimatedEntropy, "loadtime");
-	// 	} else {
-	// 		this.addEntropy((new Date()).valueOf(), estimatedEntropy, "loadtime");
-	// 	}
-	// },
-	// _accelerometerCollector: function (ev) {
-	// 	var ac = ev.accelerationIncludingGravity.x || ev.accelerationIncludingGravity.y
-	// 		|| ev.accelerationIncludingGravity.z;
-	// 	if (window.orientation) {
-	// 		var or = window.orientation;
-	// 		if (typeof or === "number") {
-	// 			this.addEntropy(or, 1, "accelerometer");
-	// 		}
-	// 	}
-	// 	if (ac) {
-	// 		this.addEntropy(ac, 2, "accelerometer");
-	// 	}
-	// 	this._addCurrentTimeToEntropy(0);
-	// },
-	//
-	// _fireEvent: function (name, arg) {
-	// 	var j, cbs = sjcl.random._callbacks[name], cbsTemp = [];
-	// 	/* TODO: there is a race condition between removing collectors and firing them */
-	//
-	// 	/* I'm not sure if this is necessary; in C++, iterating over a
-	// 	 * collection and modifying it at the same time is a no-no.
-	// 	 */
-	//
-	// 	for (j in cbs) {
-	// 		if (cbs.hasOwnProperty(j)) {
-	// 			cbsTemp.push(cbs[j]);
-	// 		}
-	// 	}
-	//
-	// 	for (j = 0; j < cbsTemp.length; j++) {
-	// 		cbsTemp[j](arg);
-	// 	}
-	// }
 };
 
 /** an instance for the prng.
@@ -2560,23 +2305,6 @@ sjcl.random = new sjcl.prng(6);
 		}
 	}
  }());*/
-/** @fileOverview Bit array codec implementations.
- *
- * @author Marco Munizaga
- */
-
-// ivk: commented out. we expect that they are there. "this" is undefined generally and rollup overwrites it as "undefined".
-
-// //patch arraybuffers if they don't exist
-// if (typeof (ArrayBuffer) === 'undefined') {
-// 	(function (globals) {
-// 		"use strict";
-// 		globals.ArrayBuffer = function () {
-// 		};
-// 		globals.DataView = function () {
-// 		};
-// 	}(this));
-// }
 
 /**
  * ArrayBuffer
@@ -2656,30 +2384,6 @@ sjcl.codec.arrayBuffer = {
 		}
 		return out;
 	},
-
-
-	// /** Prints a hex output of the buffer contents, akin to hexdump **/
-	// hexDumpBuffer: function (buffer) {
-	// 	var stringBufferView = new DataView(buffer);
-	// 	var string = '';
-	// 	var pad = function (n, width) {
-	// 		n = n + '';
-	// 		return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
-	// 	};
-	//
-	// 	for (var i = 0; i < stringBufferView.byteLength; i += 2) {
-	// 		if (i % 16 == 0) string += ('\n' + (i).toString(16) + '\t');
-	// 		string += (pad(stringBufferView.getUint16(i).toString(16), 4) + ' ');
-	// 	}
-	//
-	// 	if (typeof console === undefined) {
-	// 		console = console || {
-	// 			log: function () {
-	// 			}
-	// 		}; //fix for IE
-	// 	}
-	// 	console.log(string.toUpperCase());
-	// }
 };
 
 export default sjcl
