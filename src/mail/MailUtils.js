@@ -62,6 +62,7 @@ import {client} from "../misc/ClientDetector"
 import {getTimeZone} from "../calendar/CalendarUtils"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
+import {moveMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -423,7 +424,7 @@ export function getDefaultSender(logins: LoginController, mailboxDetails: Mailbo
 	}
 }
 
-export function showDeleteConfirmationDialog(mails: Mail[]): Promise<boolean> {
+export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promise<boolean> {
 	let groupedMails = mails.reduce((all, mail) => {
 		locator.mailModel.isFinalDelete(locator.mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
 		return all
@@ -562,7 +563,7 @@ export function archiveMails(mails: Mail[]): Promise<*> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
 		return locator.mailModel.getMailboxFolders(mails[0])
-		              .then((folders) => locator.mailModel.moveMails(mails, getArchiveFolder(folders)))
+		              .then((folders) => moveMails(locator.mailModel, mails, getArchiveFolder(folders)))
 	} else {
 		return Promise.resolve()
 	}
@@ -572,7 +573,7 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
 		return locator.mailModel.getMailboxFolders(mails[0])
-		              .then((folders) => locator.mailModel.moveMails(mails, getInboxFolder(folders)))
+		              .then((folders) => moveMails(locator.mailModel, mails, getInboxFolder(folders)))
 	} else {
 		return Promise.resolve()
 	}
@@ -580,7 +581,7 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
 
 export function exportMails(entityClient: EntityClient, mails: Mail[]): Promise<void> {
 	const mapper = mail => entityClient.load(MailBodyTypeRef, mail.body)
-		.then(body => mailToEmlFile(entityClient, mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
+	                                   .then(body => mailToEmlFile(entityClient, mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
 	const exportPromise = Promise.map(mails, mapper, {concurrency: 5})
 	const zipName = `${sortableTimestamp()}-mail-export.zip`
 	return showProgressDialog("pleaseWait_msg", fileController.zipDataFiles(exportPromise, zipName))

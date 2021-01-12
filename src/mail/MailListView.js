@@ -37,6 +37,7 @@ import {worker} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
 import {getInboxFolder} from "./MailModel"
 import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
+import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -83,24 +84,18 @@ export class MailListView implements Component {
 					m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))
 				],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
-				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
-					if (confirmed) {
-						this.list.selectNone()
-						locator.mailModel.deleteMails([listElement])
-					}
-					return Promise.resolve(confirmed)
-				}),
+				swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
 						return Promise.resolve() // externals don't have an archive folder
 					} else if (this.targetInbox()) {
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement)
-						              .then((folders) => locator.mailModel.moveMails([listElement], getInboxFolder(folders)))
+						              .then((folders) => moveMails(locator.mailModel, [listElement], getInboxFolder(folders)))
 					} else {
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement)
-						              .then((folders) => locator.mailModel.moveMails([listElement], getArchiveFolder(folders)))
+						              .then((folders) => moveMails(locator.mailModel, [listElement], getArchiveFolder(folders)))
 					}
 				},
 				enabled: true

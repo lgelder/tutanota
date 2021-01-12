@@ -68,6 +68,7 @@ import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeS
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {getListId, isSameId} from "../api/common/utils/EntityUtils";
+import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -426,7 +427,7 @@ export class MailView implements CurrentView {
 				const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
 				return targetFolders.map(f => ({
 					label: () => getFolderName(f),
-					click: () => locator.mailModel.moveMails(selectedMails, f),
+					click: () => moveMails(locator.mailModel, selectedMails, f),
 					icon: getFolderIcon(f),
 					type: ButtonType.Dropdown,
 				}))
@@ -612,7 +613,7 @@ export class MailView implements CurrentView {
 				dropHandler: (droppedMailId) => {
 					// the dropped mail is among the selected mails, move all selected mails
 					if (this.mailList.list.isEntitySelected(droppedMailId)) {
-						locator.mailModel.moveMails(this.mailList.list.getSelectedEntities(), folder)
+						moveMails(locator.mailModel, this.mailList.list.getSelectedEntities(), folder)
 					} else {
 						let entity = this.mailList.list.getEntity(droppedMailId)
 						if (entity) {
@@ -757,13 +758,7 @@ export class MailView implements CurrentView {
 		}
 
 	deleteMails(mails: Mail[]): Promise<void> {
-		return showDeleteConfirmationDialog(mails).then((confirmed) => {
-			if (confirmed) {
-				locator.mailModel.deleteMails(mails)
-			} else {
-				return Promise.resolve()
-			}
-		})
+		return promptAndDeleteMails(locator.mailModel, mails, noOp)
 	}
 
 	_finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {

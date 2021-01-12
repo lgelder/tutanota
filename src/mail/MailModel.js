@@ -198,14 +198,11 @@ export class MailModel {
 				return this._worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
 			})
 			              .return()
-			// FIXME: do not import dialog here
-			// .catch(LockedError, e => Dialog.error("operationStillActive_msg")) //LockedError should no longer be thrown!?!
-			// .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 		}
 		return Promise.resolve()
 	}
 
-	moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
+	moveMails(mails: $ReadOnlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
@@ -225,7 +222,7 @@ export class MailModel {
 	 * otherwise moves them to the trash folder.
 	 * A deletion confirmation must have been show before.
 	 */
-	deleteMails(mails: Mail[]): Promise<void> {
+	deleteMails(mails: $ReadOnlyArray<Mail>): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
@@ -258,9 +255,6 @@ export class MailModel {
 			deleteMailData.mails = mailChunk
 			return this._worker.serviceRequest(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
 		}).return()
-		// FIXME: do not import dialog here
-		// .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
-
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

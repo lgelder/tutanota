@@ -28,6 +28,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {NBSP} from "../api/common/utils/StringUtils"
 import {isSameTypeRef} from "../api/common/utils/EntityUtils";
+import {moveMails} from "../mail/MailGuiUtils"
 
 assertMainOrNode()
 
@@ -180,7 +181,7 @@ export class MultiSearchViewer {
 									//is needed for correct selection behavior on mobile
 									this._searchListView.selectNone()
 									// move all groups one by one because the mail list cannot be modified in parallel
-									return locator.mailModel.moveMails(selectedMails, f)
+									return moveMails(locator.mailModel, selectedMails, f)
 								}, getFolderIcon(f)
 							).setType(ButtonType.Dropdown)
 						})

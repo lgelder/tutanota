@@ -126,6 +126,7 @@ import {EntityClient} from "../api/common/EntityClient"
 import {getFolder, MailModel} from "./MailModel"
 import type {ContactModel} from "../contacts/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../api/common/utils/EntityUtils"
+import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -579,7 +580,7 @@ export class MailViewer {
 								return targetFolders.map(f => {
 									return {
 										label: () => getFolderName(f),
-										click: () => this._mailModel.moveMails([mail], f),
+										click: () => moveMails(this._mailModel, [mail], f),
 										icon: getFolderIcon(f),
 										type: ButtonType.Dropdown,
 									}
@@ -599,11 +600,7 @@ export class MailViewer {
 		actions.push(m(ButtonN, {
 			label: "delete_action",
 			click: () => {
-				showDeleteConfirmationDialog([this.mail]).then((confirmed) => {
-					if (confirmed) {
-						this._mailModel.deleteMails([this.mail])
-					}
-				})
+				promptAndDeleteMails(this._mailModel, [this.mail], noOp)
 			},
 			icon: () => Icons.Trash,
 			colors,
@@ -701,7 +698,7 @@ export class MailViewer {
 			      .then(() => this._mailModel.getMailboxDetailsForMail(this.mail))
 			      .then((mailboxDetails) => {
 				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
-				      return this._mailModel.moveMails([this.mail], spamFolder)
+				      return moveMails(this._mailModel, [this.mail], spamFolder)
 			      })
 			      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
 			      .catch(NotFoundError, () => console.log("mail already moved"))
@@ -1366,7 +1363,7 @@ export class MailViewer {
 				return defaultSendMailModel(mailboxDetails).initAsResponse(args).then(model => model.send(MailMethod.NONE))
 			})
 		}).then(() => this._mailModel.getMailboxFolders(this.mail)).then((folders) => {
-			this._mailModel.moveMails([this.mail], getArchiveFolder(folders))
+			return moveMails(this._mailModel, [this.mail], getArchiveFolder(folders))
 		})
 	}
 

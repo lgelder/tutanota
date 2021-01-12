@@ -25,6 +25,7 @@ import {theme} from "../gui/theme"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {locator} from "../api/main/MainLocator"
 import type {PosRect} from "../gui/base/Dropdown"
+import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -102,7 +103,7 @@ export class MultiMailViewer {
 						.filter(f => f !== this._mailView.selectedFolder)
 						.map(f => {
 							return new Button(() => getFolderName(f),
-								this._actionBarAction((mails) => locator.mailModel.moveMails(mails, f)),
+								this._actionBarAction((mails) => moveMails(locator.mailModel, mails, f)),
 								getFolderIcon(f)
 							).setType(ButtonType.Dropdown)
 						})
@@ -111,12 +112,7 @@ export class MultiMailViewer {
 		}))
 		actions.add(new Button('delete_action', () => {
 				let mails = this._mailView.mailList.list.getSelectedEntities()
-				showDeleteConfirmationDialog(mails).then((confirmed) => {
-					if (confirmed) {
-						this._mailView.mailList.list.selectNone()
-						locator.mailModel.deleteMails(mails)
-					}
-				})
+				promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
 			}, () => Icons.Trash
 		))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
