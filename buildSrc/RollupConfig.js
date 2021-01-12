@@ -34,7 +34,3 @@ export function rollupDebugPlugins(baseDir) {
 		}),
 	]
 }
-
-export const outConfig = {
-	output: {format: "esm"}
-}

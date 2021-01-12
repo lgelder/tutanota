@@ -1,6 +1,6 @@
 import options from "commander"
 import Promise from "bluebird"
-import fs_extra from "fs-extra"
+import fs from "fs-extra"
 import * as env from "./buildSrc/env.js"
 import {renderHtml} from "./buildSrc/LaunchHtml.js"
 import {spawnSync} from "child_process"
@@ -17,7 +17,6 @@ import {fileURLToPath} from "url"
 import {buildDesktop} from "./buildSrc/DesktopBuilder.js"
 
 const {babel} = pluginBabel
-const fs = fs_extra
 let start = Date.now()
 
 const DistDir = 'build/dist'
@@ -69,7 +68,10 @@ options
 	})
 	.parse(process.argv)
 
-doBuild()
+doBuild().catch(e => {
+	console.error(e)
+	process.exit(1)
+})
 
 async function doBuild() {
 	try {
@@ -107,7 +109,7 @@ async function buildWebapp(version) {
 	await clean()
 	console.log("started copying images", measure())
 	await fs.copy(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images'))
-	await fs.copy(path.join(__dirname, '/src/braintree.html', path.join(__dirname, '/build/dist/braintree.html')))
+	await fs.copy(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html'))
 	let bootstrap = await fs.readFile('src/api/worker/WorkerBootstrap.js', 'utf-8')
 	bootstrap = "importScripts('s.js', 'bluebird.js')\nvar dynamicImport = System.import.bind(System)\n" + bootstrap
 	await fs.writeFile('build/dist/WorkerBootstrap.js', bootstrap, 'utf-8')
@@ -139,8 +141,7 @@ async function buildWebapp(version) {
 			commonjs({
 				exclude: "src/**",
 			}),
-			// FIXME: uncomment me later
-			// terser(),
+			terser(),
 		],
 		perf: true,
 	})
@@ -184,7 +185,7 @@ async function buildWebapp(version) {
 	//               .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
 	//               .then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
 	//               .then(() => fs.copyAsync(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html')))
-	              .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
+	//               .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
 	// 	              let lines = bootstrap.split("\n")
 	// 	              lines[0] = `importScripts('libs.js')`
 	// 	              let code = babelCompile(lines.join("\n")).code
