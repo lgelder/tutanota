@@ -506,14 +506,15 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel): BubbleTextField
 			}, () => createBubbleContextButtons(recipientInfo.name, mailAddress))
 			const bubble = new Bubble(recipientInfo, buttonAttrs, mailAddress)
 			// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a seperate list.
-			Promise.resolve().then(() => {
-				if (viewModel.shouldShowInviteUnavailble()) {
-					showNotAvailableForFreeDialog(true)
-				} else {
-					viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
-				}
-				remove(invitePeopleValueTextField.bubbles, bubble)
-			})
+			viewModel.shouldShowInviteNotAvailable()
+			         .then(notAvailable => {
+				         if (notAvailable) {
+					         showNotAvailableForFreeDialog(false)
+				         } else {
+					         viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
+				         }
+				         remove(invitePeopleValueTextField.bubbles, bubble)
+			         })
 			return bubble
 		},
 
@@ -596,11 +597,14 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 					class: "",
 					selectionChangedHandler: (value) => {
 						if (value == null) return
-						if (viewModel.shouldShowInviteUnavailble()) {
-							showNotAvailableForFreeDialog(true)
-						} else {
-							viewModel.selectGoing(value)
-						}
+						viewModel.shouldShowInviteNotAvailable()
+						         .then(notAvailable => {
+							         if (notAvailable) {
+								         showNotAvailableForFreeDialog(false)
+							         } else {
+								         viewModel.selectGoing(value)
+							         }
+						         })
 					},
 				}))
 				: viewModel.canModifyGuests()

@@ -21,7 +21,7 @@ import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {buyAliases, buySharing, buyStorage, buyWhitelabel, SubscriptionType} from "./SubscriptionUtils"
+import {buyAliases, buyBusiness, buySharing, buyStorage, buyWhitelabel, subscriptions, SubscriptionType} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {createPlanPrices} from "../api/entities/sys/PlanPrices"
 import {neverNull} from "../api/common/utils/Utils"
@@ -29,49 +29,6 @@ import {getPriceFromPriceData, getPriceItem} from "./PriceUtils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
-
-type SubscriptionConfig = {
-	nbrOfAliases: number,
-	orderNbrOfAliases: number,
-	storageGb: number,
-	orderStorageGb: number,
-	sharing: boolean,
-	whitelabel: boolean,
-}
-
-let subscriptions: {[SubscriptionTypeEnum]: SubscriptionConfig} = {}
-subscriptions[SubscriptionType.Free] = {
-	nbrOfAliases: 0,
-	orderNbrOfAliases: 0,
-	storageGb: 1,
-	orderStorageGb: 0,
-	sharing: false,
-	whitelabel: false
-}
-subscriptions[SubscriptionType.Premium] = {
-	nbrOfAliases: 5,
-	orderNbrOfAliases: 0,
-	storageGb: 1,
-	orderStorageGb: 0,
-	sharing: false,
-	whitelabel: false
-}
-subscriptions[SubscriptionType.Teams] = {
-	nbrOfAliases: 5,
-	orderNbrOfAliases: 0,
-	storageGb: 10,
-	orderStorageGb: 10,
-	sharing: true,
-	whitelabel: false
-}
-subscriptions[SubscriptionType.Pro] = {
-	nbrOfAliases: 20,
-	orderNbrOfAliases: 20,
-	storageGb: 10,
-	orderStorageGb: 10,
-	sharing: true,
-	whitelabel: true
-}
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -84,10 +41,11 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
                                  includedStorage: number,
                                  includedAliases: number,
                                  currentlySharingOrdered: boolean,
+                                 currentlyBusinessOrdered: boolean,
                                  currentlyWhitelabelOrdered: boolean): Promise<void> {
 	let businessStream = stream(accountingInfo.business)
 
-	return showProgressDialog("pleaseWait_msg", getPrices(currentSubscription, currentNbrOfUsers, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered))
+	return showProgressDialog("pleaseWait_msg", getPrices(currentSubscription, currentNbrOfUsers, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered))
 		.then(prices => {
 			const cancelAction = () => {
 				dialog.close()
@@ -110,7 +68,9 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 					currentlyWhitelabelOrdered: currentlyWhitelabelOrdered,
 					isInitialUpgrade: false,
 					premiumPrices: prices.premiumPrices,
+					premiumBusinessPrices: prices.premiumBusinessPrices,
 					teamsPrices: prices.teamsPrices,
+					teamsBusinessPrices: prices.teamsBusinessPrices,
 					proPrices: prices.proPrices,
 					freeActionButton: {
 						view: () => {
@@ -122,6 +82,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 									includedAliases,
 									includedStorage,
 									currentlySharingOrdered,
+									currentlyBusinessOrdered,
 									currentlyWhitelabelOrdered),
 								type: ButtonType.Login,
 							})
@@ -132,7 +93,18 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 							return m(ButtonN, {
 								label: "pricing.select_action",
 								click: () => {
-									switchSubscription(SubscriptionType.Premium, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
+									switchSubscription(SubscriptionType.Premium, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					},
+					premiumBusinessActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									switchSubscription(SubscriptionType.PremiumBusiness, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
 								},
 								type: ButtonType.Login,
 							})
@@ -143,7 +115,18 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 							return m(ButtonN, {
 								label: "pricing.select_action",
 								click: () => {
-									switchSubscription(SubscriptionType.Teams, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
+									switchSubscription(SubscriptionType.Teams, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					},
+					teamsBusinessActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									switchSubscription(SubscriptionType.TeamsBusiness, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
 								},
 								type: ButtonType.Login,
 							})
@@ -154,7 +137,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 							return m(ButtonN, {
 								label: "pricing.select_action",
 								click: () => {
-									switchSubscription(SubscriptionType.Pro, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
+									switchSubscription(SubscriptionType.Pro, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
 								},
 								type: ButtonType.Login,
 							})
@@ -170,7 +153,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 		})
 }
 
-function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers: number, currentTotalStorage: number, currentTotalAliases: number, includedStorage: number, includedAliases: number, currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean): Promise<{premiumPrices: PlanPrices, teamsPrices: PlanPrices, proPrices: PlanPrices}> {
+function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers: number, currentTotalStorage: number, currentTotalAliases: number, includedStorage: number, includedAliases: number, currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean, currentlyBusinessOrdered: boolean): Promise<{premiumPrices: PlanPrices, premiumBusinessPrices: PlanPrices, teamsPrices: PlanPrices, teamsBusinessPrices: PlanPrices, proPrices: PlanPrices}> {
 	return Promise.join(
 		worker.getPrice(BookingItemFeatureType.Users, 1, false),
 		worker.getPrice(BookingItemFeatureType.Alias, 20, false),
@@ -179,18 +162,20 @@ function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers:
 		worker.getPrice(BookingItemFeatureType.Storage, 0, false),
 		worker.getPrice(BookingItemFeatureType.Sharing, 1, false),
 		worker.getPrice(BookingItemFeatureType.Sharing, 0, false),
+		worker.getPrice(BookingItemFeatureType.Business, 1, false),
+		worker.getPrice(BookingItemFeatureType.Business, 0, false),
 		worker.getPrice(BookingItemFeatureType.Whitelabel, 1, false),
 		worker.getPrice(BookingItemFeatureType.Whitelabel, 0, false),
 		worker.getPrice(BookingItemFeatureType.ContactForm, 1, false),
-
-		(addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice) => {
-			let additionalFactor = neverNull(addUserPrice.futurePriceNextPeriod).paymentInterval === "12" ? 1 / 10 : 1
-			const premiumPrices = getPrice(currentSubscription, SubscriptionType.Premium, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered)
-			const teamsPrices = getPrice(currentSubscription, SubscriptionType.Teams, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered)
-			const proPrices = getPrice(currentSubscription, SubscriptionType.Pro, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered)
-			return {premiumPrices, teamsPrices, proPrices}
-		}
-	)
+		      (addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice) => {
+		let additionalFactor = neverNull(addUserPrice.futurePriceNextPeriod).paymentInterval === "12" ? 1 / 10 : 1
+		const premiumPrices = getPrice(currentSubscription, SubscriptionType.Premium, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
+		const premiumBusinessPrices = getPrice(currentSubscription, SubscriptionType.PremiumBusiness, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
+		const teamsPrices = getPrice(currentSubscription, SubscriptionType.Teams, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
+		const teamsBusinessPrices = getPrice(currentSubscription, SubscriptionType.TeamsBusiness, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
+		const proPrices = getPrice(currentSubscription, SubscriptionType.Pro, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
+		return {premiumPrices, premiumBusinessPrices, teamsPrices, teamsBusinessPrices, proPrices}
+	})
 }
 
 function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription: SubscriptionTypeEnum,
@@ -198,12 +183,14 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
                   upgrade20AliasesPrice: PriceServiceReturn, downgrade5AliasesPrice: PriceServiceReturn,
                   upgrade10GbStoragePrice: PriceServiceReturn, downgrade1GbStoragePrice: PriceServiceReturn,
                   upgradeSharingPrice: PriceServiceReturn, downgradeSharingPrice: PriceServiceReturn,
+                  upgradeBusinessPrice: PriceServiceReturn, downgradeBusinessPrice: PriceServiceReturn,
                   upgradeWhitelabelPrice: PriceServiceReturn, downgradeWhitelabelPrice: PriceServiceReturn,
                   contactFormReturn: PriceServiceReturn,
                   paymentIntervalFactor: number,
                   currentTotalStorage: number, currentTotalAliases: number,
                   includedStorage: number, includedAliases: number,
-                  currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean): PlanPrices {
+                  currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean,
+                  currentlyBusinessOrdered: boolean): PlanPrices {
 	let prices = createPlanPrices()
 
 	let monthlyPrice = Number(neverNull(addUserReturn.currentPriceNextPeriod).price)
@@ -211,6 +198,7 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 	let contactFormPrice = getMonthlySinglePrice(contactFormReturn, BookingItemFeatureType.ContactForm, paymentIntervalFactor)
 	let singleUserPriceMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Users, paymentIntervalFactor)
 	let currentSharingPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Sharing, paymentIntervalFactor)
+	let currentBusinessPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Business, paymentIntervalFactor)
 	let currentWhitelabelPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Whitelabel, paymentIntervalFactor)
 
 	prices.contactFormPriceMonthly = subscriptions[targetSubscription].whitelabel ? String(contactFormPrice) : "0"
@@ -222,7 +210,8 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 		prices.includedStorage = String(currentTotalStorage)
 		prices.monthlyPrice = String(monthlyPrice)
 		prices.monthlyReferencePrice = String(monthlyPrice)
-		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly + currentSharingPerUserMonthly + currentWhitelabelPerUserMonthly)
+		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly + currentSharingPerUserMonthly + currentBusinessPerUserMonthly
+			+ currentWhitelabelPerUserMonthly)
 	} else if (isUpgrade(targetSubscription, currentSubscription)) {
 		// show the current price plus all features not ordered yet
 
@@ -233,6 +222,10 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 		if (isUpgradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
 			monthlyPrice += Number(neverNull(upgradeSharingPrice.futurePriceNextPeriod).price)
 				- Number(neverNull(upgradeSharingPrice.currentPriceNextPeriod).price)
+		}
+		if (isUpgradeBusinessNeeded(targetSubscription, currentlyBusinessOrdered)) {
+			monthlyPrice += Number(neverNull(upgradeBusinessPrice.futurePriceNextPeriod).price)
+				- Number(neverNull(upgradeBusinessPrice.currentPriceNextPeriod).price)
 		}
 		if (isUpgradeStorageNeeded(targetSubscription, currentTotalStorage)) {
 			monthlyPrice += Number(neverNull(upgrade10GbStoragePrice.futurePriceNextPeriod).price)
@@ -251,7 +244,8 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 		prices.monthlyReferencePrice = String(monthlyPrice)
 		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly
 			+ (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered) ? getMonthlySinglePrice(upgradeWhitelabelPrice, BookingItemFeatureType.Whitelabel, paymentIntervalFactor) : currentWhitelabelPerUserMonthly)
-			+ (isUpgradeSharingNeeded(targetSubscription, currentlySharingOrdered) ? getMonthlySinglePrice(upgradeSharingPrice, BookingItemFeatureType.Sharing, paymentIntervalFactor) : currentSharingPerUserMonthly))
+			+ (isUpgradeSharingNeeded(targetSubscription, currentlySharingOrdered) ? getMonthlySinglePrice(upgradeSharingPrice, BookingItemFeatureType.Sharing, paymentIntervalFactor) : currentSharingPerUserMonthly)
+			+ (isUpgradeBusinessNeeded(targetSubscription, currentlySharingOrdered) ? getMonthlySinglePrice(upgradeBusinessPrice, BookingItemFeatureType.Business, paymentIntervalFactor) : currentBusinessPerUserMonthly))
 	} else {
 		// downgrade. show the current prices minus all features not in the target subscription (keep users as is)
 		if (isDowngradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
@@ -261,6 +255,10 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 		if (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
 			monthlyPrice += Number(neverNull(downgradeSharingPrice.futurePriceNextPeriod).price)
 				- Number(neverNull(downgradeSharingPrice.currentPriceNextPeriod).price)
+		}
+		if (isDowngradeBusinessNeeded(targetSubscription, currentlySharingOrdered)) {
+			monthlyPrice += Number(neverNull(downgradeBusinessPrice.futurePriceNextPeriod).price)
+				- Number(neverNull(downgradeBusinessPrice.currentPriceNextPeriod).price)
 		}
 		if (isDowngradeStorageNeeded(targetSubscription, currentTotalStorage, includedStorage)) {
 			monthlyPrice += Number(neverNull(downgrade1GbStoragePrice.futurePriceNextPeriod).price)
@@ -279,7 +277,8 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 		prices.monthlyReferencePrice = String(monthlyPrice)
 		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly
 			+ (isDowngradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered) ? 0 : currentWhitelabelPerUserMonthly)
-			+ (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered) ? 0 : currentSharingPerUserMonthly))
+			+ (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered) ? 0 : currentSharingPerUserMonthly)
+			+ (isDowngradeBusinessNeeded(targetSubscription, currentlyBusinessOrdered) ? 0 : currentBusinessPerUserMonthly))
 	}
 	return prices
 }
@@ -302,6 +301,7 @@ function cancelSubscription(dialog: Dialog,
                             includedAliases: number,
                             includedStorage: number,
                             currentlySharingOrdered: boolean,
+                            currentlyBusinessOrdered: boolean,
                             currentlyWhitelabelOrdered: boolean) {
 	Dialog.confirm("unsubscribeConfirm_msg").then(ok => {
 		if (ok) {
@@ -316,6 +316,7 @@ function cancelSubscription(dialog: Dialog,
 					includedAliases,
 					includedStorage,
 					currentlySharingOrdered,
+					currentlyBusinessOrdered,
 					currentlyWhitelabelOrdered)
 					.then(failed => {
 						if (!failed) {
@@ -327,7 +328,7 @@ function cancelSubscription(dialog: Dialog,
 										return Dialog.error("unknownError_msg")
 									} else {
 										let detailMsg;
-										switch (reason) {
+										switch (reason) { // TODO add new reasons for business?
 											case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
 												detailMsg = lang.get("accountSwitchTooManyActiveUsers_msg")
 												break
@@ -365,8 +366,10 @@ function cancelSubscription(dialog: Dialog,
 }
 
 function isUpgrade(targetSubscription: SubscriptionTypeEnum, currentSubscription: SubscriptionTypeEnum): boolean {
-	return (currentSubscription === SubscriptionType.Premium)
-		|| (currentSubscription === SubscriptionType.Teams && targetSubscription === SubscriptionType.Pro)
+	// TODO how to handle change business <-> private
+	return (currentSubscription === SubscriptionType.Premium || currentSubscription === SubscriptionType.PremiumBusiness)
+		|| ((currentSubscription === SubscriptionType.Teams || currentSubscription === SubscriptionType.TeamsBusiness)
+			&& targetSubscription === SubscriptionType.Pro)
 }
 
 function isUpgradeAliasesNeeded(targetSubscription: SubscriptionTypeEnum, currentNbrOfAliases: number): boolean {
@@ -394,6 +397,14 @@ function isDowngradeSharingNeeded(targetSubscription: SubscriptionTypeEnum, curr
 	return currentlySharingOrdered && !subscriptions[targetSubscription].sharing
 }
 
+function isUpgradeBusinessNeeded(targetSubscription: SubscriptionTypeEnum, currentlyBusinessOrdered: boolean): boolean {
+	return !currentlyBusinessOrdered && subscriptions[targetSubscription].business
+}
+
+function isDowngradeBusinessNeeded(targetSubscription: SubscriptionTypeEnum, currentlyBusinessOrdered: boolean): boolean {
+	return currentlyBusinessOrdered && !subscriptions[targetSubscription].business
+}
+
 function isUpgradeWhitelabelNeeded(targetSubscription: SubscriptionTypeEnum, currentlyWhitelabelOrdered: boolean): boolean {
 	return !currentlyWhitelabelOrdered && subscriptions[targetSubscription].whitelabel
 }
@@ -411,8 +422,9 @@ function switchSubscription(
 	includedAliases: number,
 	includedStorage: number,
 	currentlySharingOrdered: boolean,
+	currentlyBusinessOrdered: boolean,
 	currentlyWhitelabelOrdered: boolean) {
-
+//TODO handle new subscriptionTypes
 	if (isUpgrade(targetSubscription, currentSubscription)) {
 		let msg = lang.get(targetSubscription === SubscriptionType.Pro ? "upgradePro_msg" : "upgradeTeams_msg")
 		if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases)
@@ -434,6 +446,10 @@ function switchSubscription(
 						return buySharing(true)
 					}
 				}).then(() => {
+					if (isUpgradeBusinessNeeded(targetSubscription, currentlyBusinessOrdered)) {
+						return buyBusiness(true)
+					}
+				}).then(() => {
 					if (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
 						return buyWhitelabel(true)
 					}
@@ -441,18 +457,23 @@ function switchSubscription(
 			}
 		})
 	} else {
-		Dialog.confirm(targetSubscription === SubscriptionType.Premium ? "downgradeToPremium_msg" : "downgradeToTeams_msg").then(ok => {
-			if (ok) {
-				return showProgressDialog("pleaseWait_msg", cancelAllAdditionalFeatures(targetSubscription,
-					currentNbrOfAliases,
-					currentAmountOfStorage,
-					includedAliases,
-					includedStorage,
-					currentlySharingOrdered,
-					currentlyWhitelabelOrdered))
-					.then(() => dialog.close())
-			}
-		})
+		// TODO check which message to show
+		Dialog.confirm(targetSubscription === SubscriptionType.Premium || targetSubscription === SubscriptionType.PremiumBusiness
+			? "downgradeToPremium_msg"
+			: "downgradeToTeams_msg")
+		      .then(ok => {
+			      if (ok) {
+				      return showProgressDialog("pleaseWait_msg", cancelAllAdditionalFeatures(targetSubscription,
+					      currentNbrOfAliases,
+					      currentAmountOfStorage,
+					      includedAliases,
+					      includedStorage,
+					      currentlySharingOrdered,
+					      currentlyBusinessOrdered,
+					      currentlyWhitelabelOrdered))
+					      .then(() => dialog.close())
+			      }
+		      })
 	}
 }
 
@@ -465,6 +486,7 @@ function cancelAllAdditionalFeatures(targetSubscription: SubscriptionTypeEnum,
                                      includedAliases: number,
                                      includedStorage: number,
                                      currentlySharingOrdered: boolean,
+                                     currentlyBusinessOrdered: boolean,
                                      currentlyWhitelabelOrdered: boolean): Promise<boolean> {
 	return Promise.resolve().then(() => {
 		if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases)) {
@@ -482,6 +504,12 @@ function cancelAllAdditionalFeatures(targetSubscription: SubscriptionTypeEnum,
 	}).then(previousFailed => {
 		if (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
 			return buySharing(false).then(thisFailed => thisFailed || previousFailed)
+		} else {
+			return previousFailed
+		}
+	}).then(previousFailed => {
+		if (isDowngradeBusinessNeeded(targetSubscription, currentlyBusinessOrdered)) {
+			return buyBusiness(false).then(thisFailed => thisFailed || previousFailed)
 		} else {
 			return previousFailed
 		}

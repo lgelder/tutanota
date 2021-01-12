@@ -1265,3 +1265,8 @@ export type TranslationKeyType = "about_label"
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	//TODO
+	| "businessDeletionWarning_msg"
+	| "businessFeature_label"
+	| "cancelBusinessBooking_label"
+	| "businessBooking_label"

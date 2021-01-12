@@ -1277,6 +1277,10 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"businessDeletionWarning_msg": "Business features (out of office notification, event invitations) of all users will be deactivated when you disable the business feature. You may only have one custom email domain when deactivating the business feature.",
+		"businessFeature_label": "Business",
+		"cancelBusinessBooking_label": "Cancel business feature for {1} users",
+		"businessBooking_label": "Business feature for {1} users"
 	}
 }

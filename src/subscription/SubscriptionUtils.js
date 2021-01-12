@@ -22,7 +22,7 @@ import {asyncImport} from "../api/common/utils/Utils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
-
+import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,
@@ -32,7 +32,9 @@ export type SubscriptionOptions = {
 export const SubscriptionType = Object.freeze({
 	Free: 'Free',
 	Premium: 'Premium',
+	PremiumBusiness: 'PremiumBusiness',
 	Teams: 'Teams',
+	TeamsBusiness: 'TeamsBusiness',
 	Pro: 'Pro'
 })
 export type SubscriptionTypeEnum = $Values<typeof SubscriptionType>;
@@ -55,6 +57,72 @@ export const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{name: lang.get("pricing.businessUse_label"), value: true}
 ]
 
+export type SubscriptionConfig = {
+	nbrOfAliases: number,
+	orderNbrOfAliases: number,
+	storageGb: number,
+	orderStorageGb: number,
+	sharing: boolean,
+	business: boolean,
+	whitelabel: boolean,
+}
+
+export const subscriptions: {[SubscriptionTypeEnum]: SubscriptionConfig} = {}
+subscriptions[SubscriptionType.Free] = {
+	nbrOfAliases: 0,
+	orderNbrOfAliases: 0,
+	storageGb: 1,
+	orderStorageGb: 0,
+	sharing: false,
+	business: false,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.Premium] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 1,
+	orderStorageGb: 0,
+	sharing: false,
+	business: false,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.PremiumBusiness] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 1,
+	orderStorageGb: 0,
+	sharing: false,
+	business: true,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.Teams] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 10,
+	orderStorageGb: 10,
+	sharing: true,
+	business: false,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.TeamsBusiness] = {
+	nbrOfAliases: 5,
+	orderNbrOfAliases: 0,
+	storageGb: 10,
+	orderStorageGb: 10,
+	sharing: true,
+	business: true,
+	whitelabel: false
+}
+subscriptions[SubscriptionType.Pro] = {
+	nbrOfAliases: 20,
+	orderNbrOfAliases: 20,
+	storageGb: 10,
+	orderStorageGb: 10,
+	sharing: true,
+	business: true,
+	whitelabel: true
+}
+
 // keep this function here because we also need it on the website
 export function formatPrice(value: number, includeCurrency: boolean): string {
 	// round to two digits first because small deviations may exist at far away decimal places
@@ -73,7 +141,9 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 export type SubscriptionData = {
 	options: SubscriptionOptions,
 	premiumPrices: PlanPrices,
+	premiumBusinessPrices: PlanPrices,
 	teamsPrices: PlanPrices,
+	teamsBusinessPrices: PlanPrices,
 	proPrices: PlanPrices
 }
 
@@ -86,34 +156,56 @@ export const UpgradePriceType = Object.freeze({
 })
 export type UpgradePriceTypeEnum = $Values<typeof UpgradePriceType>;
 
-export function getUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): number {
-	let prices = (subscription === SubscriptionType.Premium) ? attrs.premiumPrices :
-		((subscription === SubscriptionType.Teams) ? attrs.teamsPrices : attrs.proPrices)
-	let monthlyPriceString
-	let monthsFactor = (attrs.options.paymentInterval() === 12) ? 10 : 1
-	let discount = 0
-	if (type === UpgradePriceType.PlanReferencePrice) {
-		monthlyPriceString = prices.monthlyReferencePrice
-		if (attrs.options.paymentInterval() === 12) {
-			monthsFactor = 12
-		}
-	} else if (type === UpgradePriceType.PlanActualPrice) {
-		monthlyPriceString = prices.monthlyPrice
-		if (attrs.options.paymentInterval() === 12) {
-			discount = Number(prices.firstYearDiscount)
-		}
-	} else if (type === UpgradePriceType.PlanNextYearsPrice) {
-		monthlyPriceString = prices.monthlyPrice
-	} else if (type === UpgradePriceType.AdditionalUserPrice) {
-		monthlyPriceString = prices.additionalUserPriceMonthly
-	} else if (type === UpgradePriceType.ContactFormPrice) {
-		monthlyPriceString = prices.contactFormPriceMonthly
+export function getPlanPrices(data: SubscriptionData, subscription: SubscriptionTypeEnum,): ?PlanPrices {
+	switch (subscription) {
+		case SubscriptionType.Free:
+			return null
+		case SubscriptionType.Premium:
+			return data.premiumPrices
+		case SubscriptionType.PremiumBusiness:
+			return data.premiumBusinessPrices
+		case SubscriptionType.Teams:
+			return data.teamsPrices
+		case SubscriptionType.TeamsBusiness:
+			return data.teamsBusinessPrices
+		case SubscriptionType.Pro:
+			return data.proPrices
+		default:
+			throw new ProgrammingError("Plan is not valid")
 	}
-	return Number(monthlyPriceString) * monthsFactor - discount
 }
 
-export function getFormattedUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
-	return formatPrice(getUpgradePrice(attrs, subscription, type), true)
+export function getSubscriptionPrice(data: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): number {
+	const prices = getPlanPrices(data, subscription)
+	if (prices) {
+		let monthlyPriceString
+		let monthsFactor = (data.options.paymentInterval() === 12) ? 10 : 1
+		let discount = 0
+		if (type === UpgradePriceType.PlanReferencePrice) {
+			monthlyPriceString = prices.monthlyReferencePrice
+			if (data.options.paymentInterval() === 12) {
+				monthsFactor = 12
+			}
+		} else if (type === UpgradePriceType.PlanActualPrice) {
+			monthlyPriceString = prices.monthlyPrice
+			if (data.options.paymentInterval() === 12) {
+				discount = Number(prices.firstYearDiscount)
+			}
+		} else if (type === UpgradePriceType.PlanNextYearsPrice) {
+			monthlyPriceString = prices.monthlyPrice
+		} else if (type === UpgradePriceType.AdditionalUserPrice) {
+			monthlyPriceString = prices.additionalUserPriceMonthly
+		} else if (type === UpgradePriceType.ContactFormPrice) {
+			monthlyPriceString = prices.contactFormPriceMonthly
+		}
+		return Number(monthlyPriceString) * monthsFactor - discount
+	} else { // Free plan
+		return 0
+	}
+}
+
+export function getFormattedSubscriptionPrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
+	return formatPrice(getSubscriptionPrice(attrs, subscription, type), true)
 }
 
 /**
@@ -151,6 +243,10 @@ export function isWhitelabelActive(lastBooking: ?Booking): boolean {
 
 export function isSharingActive(lastBooking: ?Booking): boolean {
 	return getCurrentCount(BookingItemFeatureType.Sharing, lastBooking) !== 0
+}
+
+export function isBusinessActive(lastBooking: ?Booking): boolean {
+	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0
 }
 
 export function getIncludedAliases(customerInfo: CustomerInfo): number {
@@ -239,6 +335,13 @@ export function buySharing(enable: boolean): Promise<boolean> {
 }
 
 /**
+ * @returns True if it failed, false otherwise
+ */
+export function buyBusiness(enable: boolean): Promise<boolean> {
+	return bookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
+}
+
+/**
  * Shows the buy dialog to enable or disable the whitelabel package.
  * @param enable true if the whitelabel package should be enabled otherwise false.
  * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
@@ -256,6 +359,21 @@ export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
 	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
 		if (ok) {
 			return showBuyDialog(BookingItemFeatureType.Sharing, enable ? 1 : 0)
+		} else {
+			return true
+		}
+	})
+}
+
+/**
+ * Shows the buy dialog to enable or disable the business package.
+ * @param enable true if the business package should be enabled otherwise false.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
+	return (enable ? Promise.resolve(true) : Dialog.confirm("businessDeletionWarning_msg")).then(ok => {
+		if (ok) {
+			return showBuyDialog(BookingItemFeatureType.Business, enable ? 1 : 0)
 		} else {
 			return true
 		}

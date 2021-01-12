@@ -36,7 +36,7 @@ import {getLoginErrorMessage} from "../../misc/LoginUtils"
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {getPaymentMethodType, PaymentMethodType} from "../../api/common/TutanotaConstants"
-import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {formatPrice, getSubscriptionPrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {getPaymentMethodName} from "../PriceUtils"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
@@ -338,7 +338,9 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 				paymentInterval: () => 12
 			},
 			premiumPrices: prices.premiumPrices,
+			premiumBusinessPrices: prices.premiumBusinessPrices,
 			teamsPrices: prices.teamsPrices,
+			teamsBusinessPrices: prices.teamsBusinessPrices,
 			proPrices: prices.proPrices
 		}
 
@@ -350,7 +352,7 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 			giftCardInfo: giftCardInfo,
 			credentials: stream(null),
 			key,
-			premiumPrice: getUpgradePrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
+			premiumPrice: getSubscriptionPrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 		}
 
 

@@ -139,7 +139,9 @@ export const PaidSubscriptionType = Object.freeze({
 	Premium: '0',
 	Legacy_Pro: '1',
 	Pro: '2',
-	Teams: '3'
+	Teams: '3',
+	Premium_Business: '4',
+	Teams_Business: '5'
 })
 export type PaidSubscriptionTypeEnum = $Values<typeof PaidSubscriptionType>;
 
@@ -153,7 +155,8 @@ export const BookingItemFeatureType = Object.freeze({
 	WhitelabelChild: '6',
 	LocalAdminGroup: '7',
 	Discount: '8',
-	Sharing: '9'
+	Sharing: '9',
+	Business: '10'
 })
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 export const BookingItemFeatureByCode: {} = reverse(BookingItemFeatureType)

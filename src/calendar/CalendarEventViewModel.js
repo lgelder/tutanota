@@ -52,7 +52,6 @@ import type {RecipientInfo, RecipientInfoTypeEnum} from "../api/common/Recipient
 import {isExternal, RecipientInfoType} from "../api/common/RecipientInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {defaultSendMailModel, SendMailModel} from "../mail/SendMailModel"
-import {firstThrow} from "../api/common/utils/ArrayUtils"
 import {addMapEntry, deleteMapEntry} from "../api/common/utils/MapUtils"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 import {UserError} from "../api/common/error/UserError"
@@ -60,7 +59,11 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {cleanMatch} from "../api/common/utils/StringUtils"
+import {BookingTypeRef} from "../api/entities/sys/Booking"
+import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
+import {isBusinessActive} from "../subscription/SubscriptionUtils"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import type {Booking} from "../api/entities/sys/Booking"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -105,6 +108,7 @@ export class CalendarEventViewModel {
 	endTime: string;
 	+allDay: Stream<boolean>;
 	repeat: ?RepeatData
+	_lastBooking: LazyLoaded<?Booking>
 	calendars: Array<CalendarInfo>
 	+attendees: Stream<$ReadOnlyArray<Guest>>;
 	organizer: ?EncryptedMailAddress;
@@ -201,6 +205,21 @@ export class CalendarEventViewModel {
 			this.endDate = getStartOfDayWithZone(date, this._zone)
 		}
 
+		this._lastBooking = new LazyLoaded(() => {
+			return this._loadLastBooking()
+		}, null)
+		this._lastBooking.getAsync()
+
+	}
+
+	_loadLastBooking(): Promise<?Booking> {
+		return this._userController.loadCustomerInfo()
+		           .then(customerInfo => {
+			           return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+			                         .then(bookings => {
+				                         return bookings.length === 1 ? bookings[0] : null
+			                         })
+		           })
 	}
 
 	_applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): void {
@@ -375,50 +394,54 @@ export class CalendarEventViewModel {
 		// 3: if the attendee is yourself and you already exist as an attendee, remove yourself
 		// 4: add the attendee
 		// 5: add organizer if you are not already in the list
-		if (this.shouldShowInviteUnavailble()) {
-			throw new ProgrammingError("Not available for free account")
-		}
 
-		// We don't add a guest if they are already an attendee
-		// even though the SendMailModel handles deduplication, we need to check here because recipients shouldn't be duplicated across the 3 models either
-		if (this.attendees().some((a) => a.address.address === mailAddress)) {
-			return
-		}
+		this.shouldShowInviteNotAvailable()
+		    .then(notAvailable => {
+			    if (notAvailable) {
+				    throw new ProgrammingError("Not available for free account")
+			    }
+		    })
+		    .then(() => {
+			    // We don't add a guest if they are already an attendee
+			    // even though the SendMailModel handles deduplication, we need to check here because recipients shouldn't be duplicated across the 3 models either
+			    if (this.attendees().some((a) => a.address.address === mailAddress)) {
+				    return
+			    }
 
-		const isOwnAttendee = this._ownMailAddresses.includes(mailAddress)
+			    const isOwnAttendee = this._ownMailAddresses.includes(mailAddress)
 
-		// SendMailModel handles deduplication
-		// this.attendees will be updated when the model's recipients are updated
-		if (!isOwnAttendee) this._inviteModel.addOrGetRecipient("bcc", {address: mailAddress, contact, name: null})
+			    // SendMailModel handles deduplication
+			    // this.attendees will be updated when the model's recipients are updated
+			    if (!isOwnAttendee) this._inviteModel.addOrGetRecipient("bcc", {address: mailAddress, contact, name: null})
 
-		const status = isOwnAttendee ? CalendarAttendeeStatus.ACCEPTED : CalendarAttendeeStatus.ADDED
+			    const status = isOwnAttendee ? CalendarAttendeeStatus.ACCEPTED : CalendarAttendeeStatus.ADDED
 
 
-		// If we exist as an attendee and the added guest is also an attendee, then remove the existing ownAttendee
-		// and the new one will be added in the next step
-		if (isOwnAttendee) {
-			const ownAttendee = this.findOwnAttendee()
-			if (ownAttendee) {
-				this._guestStatuses(deleteMapEntry(this._guestStatuses(), ownAttendee.address.address))
-			}
-		}
+			    // If we exist as an attendee and the added guest is also an attendee, then remove the existing ownAttendee
+			    // and the new one will be added in the next step
+			    if (isOwnAttendee) {
+				    const ownAttendee = this.findOwnAttendee()
+				    if (ownAttendee) {
+					    this._guestStatuses(deleteMapEntry(this._guestStatuses(), ownAttendee.address.address))
+				    }
+			    }
 
-		// if this guy wasn't already an attendee with a status
-		if (!this._guestStatuses().has(mailAddress)) {
-			this._guestStatuses(addMapEntry(this._guestStatuses(), mailAddress, status))
-		}
+			    // if this guy wasn't already an attendee with a status
+			    if (!this._guestStatuses().has(mailAddress)) {
+				    this._guestStatuses(addMapEntry(this._guestStatuses(), mailAddress, status))
+			    }
 
-		// this duplicated condition check may or may not be redundant to do here
-		if (isOwnAttendee) {
-			const newOrganizer = this.possibleOrganizers.find(o => o.address === mailAddress)
-			if (newOrganizer) this.setOrganizer(newOrganizer)
-		}
+			    // this duplicated condition check may or may not be redundant to do here
+			    if (isOwnAttendee) {
+				    const newOrganizer = this.possibleOrganizers.find(o => o.address === mailAddress)
+				    if (newOrganizer) this.setOrganizer(newOrganizer)
+			    }
 
-		// Add organizer as attendee if not currenly in the list
-		if (this.attendees().length === 1 && this.findOwnAttendee() == null) {
-			this.selectGoing(CalendarAttendeeStatus.ACCEPTED)
-		}
-
+			    // Add organizer as attendee if not currenly in the list
+			    if (this.attendees().length === 1 && this.findOwnAttendee() == null) {
+				    this.selectGoing(CalendarAttendeeStatus.ACCEPTED)
+			    }
+		    })
 	}
 
 	getGuestPassword(guest: Guest): string {
@@ -549,8 +572,15 @@ export class CalendarEventViewModel {
 		return selectedCalendar != null && !selectedCalendar.shared && this._eventType !== EventType.INVITE
 	}
 
-	shouldShowInviteUnavailble(): boolean {
-		return this._userController.user.accountType === AccountType.FREE
+
+	shouldShowInviteNotAvailable(): Promise<boolean> {
+		if (this._userController.user.accountType === AccountType.FREE) {
+			return Promise.resolve(true)
+		}
+		if (this._userController.user.accountType === AccountType.EXTERNAL) { //TODO
+			return Promise.resolve(false)
+		}
+		return this._lastBooking.getAsync().then(lastBooking => !isBusinessActive(lastBooking))
 	}
 
 	removeAttendee(guest: Guest) {
@@ -781,21 +811,25 @@ export class CalendarEventViewModel {
 	}
 
 	selectGoing(going: CalendarAttendeeStatusEnum) {
-		if (this.shouldShowInviteUnavailble()) {
-			throw new ProgrammingError("Cannot select attendance")
-		} else {
-			if (this.canModifyOwnAttendance()) {
-				const ownAttendee = this._ownAttendee()
-				if (ownAttendee) {
-					this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
-				} else if (this._eventType === EventType.OWN) {
-					// use the default sender as the organizer
-					const newOwnAttendee = createEncryptedMailAddress({address: this._inviteModel.getSender()})
-					this._ownAttendee(newOwnAttendee)
-					this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
-				}
-			}
-		}
+		this.shouldShowInviteNotAvailable()
+		    .then(notAvailable => {
+			    if (notAvailable) {
+				    throw new ProgrammingError("Not available for free account")
+			    }
+		    })
+		    .then(() => {
+			    if (this.canModifyOwnAttendance()) {
+				    const ownAttendee = this._ownAttendee()
+				    if (ownAttendee) {
+					    this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
+				    } else if (this._eventType === EventType.OWN) {
+					    // use the default sender as the organizer
+					    const newOwnAttendee = createEncryptedMailAddress({address: this._inviteModel.getSender()})
+					    this._ownAttendee(newOwnAttendee)
+					    this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
+				    }
+			    }
+		    })
 	}
 
 	createRepeatRule(newEvent: CalendarEvent, repeat: RepeatData): RepeatRule {

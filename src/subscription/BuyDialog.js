@@ -144,6 +144,12 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 			} else {
 				return lang.get("cancelSharingBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Sharing)).count})
 			}
+		} else if (featureType === BookingItemFeatureType.Business) {
+			if (count > 0) {
+				return lang.get("businessBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Business)).count})
+			} else {
+				return lang.get("cancelBusinessBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Business)).count})
+			}
 		} else if (featureType === BookingItemFeatureType.ContactForm) {
 			if (count > 0) {
 				return count + " " + lang.get("contactForm_label")

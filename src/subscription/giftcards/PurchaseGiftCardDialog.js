@@ -21,7 +21,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {formatPrice, getPreconditionFailedPaymentMsg, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {formatPrice, getPreconditionFailedPaymentMsg, getSubscriptionPrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {
 	renderAcceptGiftCardTermsCheckbox,
 	showGiftCardToShare
@@ -225,7 +225,9 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 							      paymentInterval: () => 12
 						      },
 						      premiumPrices: prices.premiumPrices,
+						      premiumBusinessPrices: prices.premiumBusinessPrices,
 						      teamsPrices: prices.teamsPrices,
+						      teamsBusinessPrices: prices.teamsBusinessPrices,
 						      proPrices: prices.proPrices
 					      }
 					      let dialog
@@ -239,7 +241,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 							      ? getByAbbreviation(accountingInfo.invoiceCountry)
 							      : null,
 						      outerDialog: () => dialog,
-						      premiumPrice: getUpgradePrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
+						      premiumPrice: getSubscriptionPrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 					      };
 
 					      const headerBarAttrs: DialogHeaderBarAttrs = {

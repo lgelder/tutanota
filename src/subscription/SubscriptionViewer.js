@@ -51,13 +51,12 @@ import {
 	getNbrOfUsers,
 	getSubscriptionType,
 	getTotalAliases,
-	getTotalStorageCapacity,
+	getTotalStorageCapacity, isBusinessActive,
 	isSharingActive,
-	isWhitelabelActive, showServiceTerms,
+	isWhitelabelActive, showBusinessBuyDialog, showServiceTerms,
 	showSharingBuyDialog,
 	showWhitelabelBuyDialog
 } from "./SubscriptionUtils"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -72,8 +71,6 @@ import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
 import {Expandable} from "../settings/Expandable"
 import type {ExpandableAttrs} from "../settings/Expandable"
-import type {TranslationKey} from "../misc/LanguageViewModel.js"
-import type {ColumnWidthEnum, TableLineAttrs} from "../gui/base/TableN"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
 
@@ -97,6 +94,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_contactFormsFieldValue: Stream<string>;
 	_whitelabelFieldValue: Stream<string>;
 	_sharingFieldValue: Stream<string>;
+	_businessFieldValue: Stream<string>;
 	_periodEndDate: ?Date;
 	_nextPeriodPriceVisible: boolean;
 	_customer: ?Customer;
@@ -120,6 +118,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					getIncludedStorageCapacity(neverNull(this._customerInfo)),
 					getIncludedAliases(neverNull(this._customerInfo)),
 					isSharingActive(this._lastBooking),
+					isBusinessActive(this._lastBooking),
 					isWhitelabelActive(this._lastBooking))
 			}
 		}, () => Icons.Edit)
@@ -220,6 +219,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			label: "sharingFeature_label",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => showSharingBuyDialog(false), isPremiumPredicate),
+			icon: () => Icons.Cancel,
+		}
+		const enableBusinessActionAttrs = {
+			label: "businessFeature_label",
+			click: createNotAvailableForFreeClickHandler(false,
+				() => showBusinessBuyDialog(true), isPremiumPredicate),
+			icon: () => Icons.Edit,
+		}
+		const disableBusinessActionAttrs = {
+			label: "businessFeature_label",
+			click: createNotAvailableForFreeClickHandler(false,
+				() => showBusinessBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
 		}
 		const deleteButtonAttrs = {
@@ -368,6 +379,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					,
 				}),
 				m(TextFieldN, {
+					label: "businessFeature_label",
+					value: this._businessFieldValue,
+					disabled: true,
+					injectionsRight: () => (getCurrentCount(BookingItemFeatureType.Business, this._lastBooking) === 0)
+						? m(ButtonN, enableBusinessActionAttrs)
+						: m(ButtonN, disableBusinessActionAttrs)
+					,
+				}),
+				m(TextFieldN, {
 					label: "contactForms_label",
 					value: this._contactFormsFieldValue,
 					disabled: true,
@@ -406,6 +426,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._groupsFieldValue = stream(loadingString)
 		this._whitelabelFieldValue = stream(loadingString)
 		this._sharingFieldValue = stream(loadingString)
+		this._businessFieldValue = stream(loadingString)
 		this._contactFormsFieldValue = stream(loadingString)
 		this._selectedSubscriptionInterval = stream(null)
 		this._updatePriceInfo()
@@ -519,6 +540,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							                            this._updateGroupsField(),
 							                            this._updateWhitelabelField(),
 							                            this._updateSharingField(),
+							                            this._updateBusinessField(),
 							                            this._updateContactFormsField()
 						                            ]
 					                            ).then(() => m.redraw())
@@ -598,6 +620,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			this._sharingFieldValue(lang.get("active_label"))
 		} else {
 			this._sharingFieldValue(lang.get("deactivated_label"))
+		}
+		return Promise.resolve()
+	}
+
+	_updateBusinessField(): Promise<void> {
+		if (isBusinessActive(this._lastBooking)) {
+			this._businessFieldValue(lang.get("active_label"))
+		} else {
+			this._businessFieldValue(lang.get("deactivated_label"))
 		}
 		return Promise.resolve()
 	}

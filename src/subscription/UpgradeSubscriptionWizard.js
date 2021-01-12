@@ -55,7 +55,9 @@ export type UpgradeSubscriptionData = {
 	campaignInfoTextId: ?TranslationKey,
 	upgradeType: UpgradeTypeEnum,
 	premiumPrices: PlanPrices,
+	premiumBusinessPrices: PlanPrices,
 	teamsPrices: PlanPrices,
+	teamsBusinessPrices: PlanPrices,
 	proPrices: PlanPrices,
 	currentSubscription: ?SubscriptionTypeEnum,
 }
@@ -126,7 +128,9 @@ export function showUpgradeWizard(): void {
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 						upgradeType: UpgradeType.Initial,
 						premiumPrices: prices.premiumPrices,
+						premiumBusinessPrices: prices.premiumBusinessPrices,
 						teamsPrices: prices.teamsPrices,
+						teamsBusinessPrices: prices.teamsBusinessPrices,
 						proPrices: prices.proPrices,
 						currentSubscription: SubscriptionType.Free
 					}
@@ -176,7 +180,9 @@ export function loadSignupWizard(): Promise<Dialog> {
 			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 			upgradeType: UpgradeType.Signup,
 			premiumPrices: prices.premiumPrices,
+			premiumBusinessPrices: prices.premiumBusinessPrices,
 			teamsPrices: prices.teamsPrices,
+			teamsBusinessPrices: prices.teamsBusinessPrices,
 			proPrices: prices.proPrices,
 			currentSubscription: null
 		}
