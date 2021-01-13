@@ -7,7 +7,7 @@ import {getAllDayDateLocal, isAllDayEvent} from "../api/common/utils/CommonCalen
 import {CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {createFile} from "../api/entities/tutanota/File"
-import {createDataFile} from "../api/common/DataFile"
+import {convertToDataFile} from "../api/common/DataFile"
 import {pad} from "../api/common/utils/StringUtils"
 import {assertNotNull, downcast, neverNull} from "../api/common/utils/Utils"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
@@ -38,6 +38,51 @@ export function parseCalendarStringData(value: string, zone: string): ParsedCale
 	return parseCalendarEvents(tree, zone)
 }
 
+export function exportCalendar(
+	calendarName: string,
+	groupRoot: CalendarGroupRoot,
+	userAlarmInfos: Id,
+	now: Date,
+	zone: string
+) {
+	showProgressDialog("pleaseWait_msg", loadAllEvents(groupRoot)
+		.then((allEvents) => {
+			return Promise.map(allEvents, event => {
+				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
+				if (thisUserAlarms.length > 0) {
+					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
+						.then(alarms => ({event, alarms}))
+				} else {
+					return {event, alarms: []}
+				}
+			})
+		})
+		.then((eventsWithAlarms) => exportCalendarEvents(calendarName, eventsWithAlarms, now, zone)))
+}
+
+function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
+	return loadAll(CalendarEventTypeRef, groupRoot.longEvents)
+		.then((longEvents) =>
+			loadAll(CalendarEventTypeRef, groupRoot.shortEvents).then((shortEvents) => {
+				return shortEvents.concat(longEvents)
+			}))
+}
+
+function exportCalendarEvents(
+	calendarName: string,
+	events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>,
+	now: Date,
+	zone: string,
+) {
+	const stringValue = serializeCalendar(env.versionNumber, events, now, zone)
+	const data = stringToUtf8Uint8Array(stringValue)
+	const tmpFile = createFile()
+	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
+	tmpFile.mimeType = CALENDAR_MIME_TYPE
+	tmpFile.size = String(data.byteLength)
+	return fileController.open(convertToDataFile(tmpFile, data))
+}
+
 export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {
 	const eventSerialized = serializeEvent(event, [], now, zone)
 	return wrapIntoCalendar(versionNumber, method, eventSerialized)
@@ -52,7 +97,7 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: Calenda
 	tmpFile.name = `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`
 	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
-	return createDataFile(tmpFile, data)
+	return convertToDataFile(tmpFile, data)
 }
 
 function wrapIntoCalendar(versionNumber: string, method: string, contents: Array<string>): string {

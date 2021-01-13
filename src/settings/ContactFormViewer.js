@@ -24,7 +24,7 @@ import {DatePicker} from "../gui/base/DatePicker"
 import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
 import {stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
 import {createFile} from "../api/entities/tutanota/File"
-import {createDataFile} from "../api/common/DataFile"
+import {convertToDataFile} from "../api/common/DataFile"
 import {fileController} from "../file/FileController"
 import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
@@ -169,7 +169,7 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 					tmpFile.name = "report.csv"
 					tmpFile.mimeType = "text/csv"
 					tmpFile.size = String(data.byteLength)
-					return fileController.open(createDataFile(tmpFile, data))
+					return fileController.open(convertToDataFile(tmpFile, data))
 				}))
 		}
 	}
