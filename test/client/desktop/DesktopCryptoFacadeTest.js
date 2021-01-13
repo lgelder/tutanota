@@ -3,7 +3,7 @@ import n from "../nodemocker"
 import o from "ospec"
 
 o.spec("DesktopCryptoFacadeTest", () => {
-	n.startGroup({group: __filename})
+	n.startGroup({group: "DesktopCryptoFacadeTest"})
 
 	const fs = {
 		readFile: () => Promise.resolve("uint8_somedata"),

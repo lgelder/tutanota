@@ -6,10 +6,10 @@ import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"
 import {downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
 import * as url from "url"
 import * as querystring from "querystring"
-import {DesktopConfigKey} from "../../../../src/desktop/config/DesktopConfig"
 import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/MissedNotification"
 import {makeTimeoutMock} from "../../../api/TestUtils"
 import type {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
+import {DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys"
 
 const SUBJECT_LOCATION = '../../src/desktop/sse/DesktopSseClient.js'
 
@@ -185,7 +185,7 @@ o.spec("DesktopSseClient Test", function () {
 	let electronMock, confMock, notifierMock, wmMock, netMock, alarmSchedulerMock, cryptoMock, alarmStorageMock, timeoutMock, langMock
 
 	n.startGroup({
-		group: __filename,
+		group: "SSE",
 		allowables: [
 			'../api/Env',
 			"../DesktopConstants",
@@ -656,11 +656,13 @@ o.spec("DesktopSseClient Test", function () {
 
 		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
-		o(confMock.setVar.calls[2].args).deepEquals(['pushIdentifier', {
-			identifier,
-			sseOrigin: 'http://here.there',
-			userIds: ['id2'],
-		}])
+		o(confMock.setVar.calls[2].args).deepEquals([
+			'pushIdentifier', {
+				identifier,
+				sseOrigin: 'http://here.there',
+				userIds: ['id2'],
+			}
+		])
 		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(['id1'])
 		electronMock.app.callbacks['will-quit']()
 	})

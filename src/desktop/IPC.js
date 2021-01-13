@@ -9,7 +9,6 @@ import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfig} from "./config/DesktopConfig"
-import {DesktopConfigKey} from "./config/DesktopConfig"
 import {
 	disableAutoLaunch,
 	enableAutoLaunch,
@@ -28,6 +27,7 @@ import type {SseInfo} from "./sse/DesktopSseClient"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
 import {log} from "./DesktopUtils"
 import type {ElectronUpdater} from "./ElectronUpdater"
+import {DesktopConfigKey} from "./config/ConfigKeys";
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread

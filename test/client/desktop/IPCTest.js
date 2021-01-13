@@ -2,13 +2,13 @@
 import n from "../nodemocker"
 import o from "ospec"
 import {defer, noOp} from "../../../src/api/common/utils/Utils"
-import {DesktopConfigKey} from "../../../src/desktop/config/DesktopConfig"
+import {DesktopConfigKey} from "../../../src/desktop/config/ConfigKeys"
 
 o.spec("IPC tests", () => {
 	const CALLBACK_ID = "42"
 
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "IPC", allowables: [
 			"../Env",
 			'../api/common/utils/Utils.js',
 			'../TutanotaConstants',

@@ -29,27 +29,29 @@ import "./gui/ColorTest"
 import "./mail/SendMailModelTest"
 import o from "ospec"
 
-// FIXME: run desktop tests
-// node(() => {
-// 	require("./desktop/DesktopUtilsTest.js")
-// 	require("./desktop/DesktopConfigTest")
-// 	require("./desktop/config/migrations/DesktopConfigMigratorTest")
-// 	require("./desktop/ElectronUpdaterTest")
-// 	require("./desktop/DesktopNotifierTest")
-// 	require("./desktop/DesktopWindowManagerTest.js")
-// 	require("./desktop/DesktopTrayTest.js")
-// 	require("./desktop/ApplicationWindowTest.js")
-// 	require("./desktop/sse/DesktopSseClientTest.js")
-// 	require("./desktop/sse/DesktopAlarmStorageTest.js")
-// 	require("./desktop/sse/DesktopAlarmSchedulerTest.js")
-// 	require("./desktop/DesktopDownloadManagerTest.js")
-// 	require("./desktop/IPCTest.js")
-// 	require("./desktop/SocketeerTest.js")
-// 	require("./desktop/integration/DesktopIntegratorTest.js")
-// 	require("./desktop/DesktopCryptoFacadeTest.js")
-// 	require("./desktop/DesktopContextMenuTest.js")
-// })()
-o.run()
+(async () => {
+	if (typeof process != "undefined") {
+		await import("./desktop/DesktopUtilsTest.js")
+		await import("./desktop/config/migrations/DesktopConfigMigratorTest")
+		await import("./desktop/ElectronUpdaterTest")
+		// await import("./desktop/DesktopNotifierTest")
+		await import("./desktop/DesktopWindowManagerTest.js")
+		// await import("./desktop/DesktopTrayTest.js")
+		// await import("./desktop/ApplicationWindowTest.js")
+		// await import("./desktop/sse/DesktopSseClientTest.js")
+		// await import("./desktop/sse/DesktopAlarmStorageTest.js")
+		// await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
+		// await import("./desktop/DesktopDownloadManagerTest.js")
+		// await import("./desktop/IPCTest.js")
+		// await import("./desktop/SocketeerTest.js")
+		// await import("./desktop/integration/DesktopIntegratorTest.js")
+		// await import("./desktop/DesktopCryptoFacadeTest.js")
+		// await import("./desktop/DesktopContextMenuTest.js")
+	}
+
+	o.run()
+})()
+
 
 
 

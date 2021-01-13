@@ -11,9 +11,10 @@ if (process.argv.indexOf("api") !== -1) {
 	console.error("must provide 'api' or 'client' to run the tests")
 	process.exit(1)
 }
+const clean = process.argv.includes("-c")
 
 buildWithServer({
-	clean: false,
+	clean,
 	// relative to buildSrc
 	builder: "../test/TestBuilder.js",
 	// Test is executed from the test directory so it's relative to it

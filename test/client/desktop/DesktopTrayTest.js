@@ -4,7 +4,7 @@ import n from "../nodemocker"
 
 o.spec("DesktopTrayTest", () => {
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "DesktopTrayTest", allowables: [
 			'path',
 			'./TutanotaError',
 			'./StringUtils',

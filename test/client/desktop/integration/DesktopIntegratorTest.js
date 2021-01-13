@@ -9,7 +9,7 @@ const desktopEntry = '[Desktop Entry]\nName=Tutanota Desktop\nComment=The deskto
 
 o.spec("DesktopIntegrator Test", () => {
 	n.startGroup({
-		group: __filename,
+		group: "DesktopIntegrator",
 		allowables: [
 			'./DesktopIntegratorLinux.js',
 			'./DesktopIntegratorDarwin.js',

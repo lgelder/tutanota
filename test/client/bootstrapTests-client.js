@@ -78,6 +78,9 @@ globalThis.isBrowser = typeof window !== "undefined"
 		process.on("unhandledRejection", function (e) {
 			console.log("Uncaught (in promise) " + e.stack)
 		})
+		globalThis.electronMock = {
+			app: {}
+		}
 	}
 	window.tutao = {}
 

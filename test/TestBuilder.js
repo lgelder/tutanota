@@ -4,6 +4,7 @@ import * as env from "../buildSrc/env.js"
 import {promises as fs} from "fs"
 import path from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
+import nodeResolve from "@rollup/plugin-node-resolve"
 
 export async function build(options, log) {
 	log("Build")
@@ -16,6 +17,7 @@ export async function build(options, log) {
 		plugins: [
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
+			nodeResolve({preferBuiltins: true}),
 			...rollupDebugPlugins(".."),
 			// graph({output: "graph.dot", prune: true}),
 		],
@@ -31,7 +33,7 @@ export async function build(options, log) {
 
 				const start = Date.now()
 				log("Generating...")
-				const result = await bundle.generate({sourcemap: false, dir: "../build/test", format: "esm"})
+				const result = await bundle.generate({sourcemap: false, dir: "../build/test", format: "esm", chunkFileNames: "[name].js"})
 				log("Generated in", Date.now() - start)
 
 				const writingStart = Date.now()
@@ -58,15 +60,24 @@ function resolveTestLibsPlugin() {
 					return ("../node_modules/ospec/ospec.js")
 				case "bluebird":
 					return "../node_modules/bluebird/js/browser/bluebird.js"
-				case "util":
 				case "crypto":
 				case "xhr2":
 				case "express":
 				case "server-destroy":
 				case "body-parser":
+				case "electron":
+				case "mockery":
 					return false
+				// case "electron":
+				// 	// As we use classes which import parts of electron a lot, we make an electron stub
+				// 	return "\0electron-mock"
 			}
-		}
+		},
+		// load(id) {
+		// 	if (id === "\0electron-mock") {
+		// 		return "export const app  = globalThis.electronMock.app"
+		// 	}
+		// },
 	}
 }
 

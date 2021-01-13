@@ -4,7 +4,7 @@ import n from "../nodemocker"
 
 o.spec("Desktop Notifier Test", function (done, timeout) {
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "DesktopNotifier", allowables: [
 			'../api/common/utils/Utils', '.utils/Utils', './Utils',
 			'../TutanotaConstants',
 			"./DesktopConstants",

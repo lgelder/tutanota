@@ -2,7 +2,6 @@
 import o from "ospec"
 import n from '../../nodemocker'
 import {EndType, RepeatPeriod} from "../../../../src/api/common/TutanotaConstants"
-import {MAX_SAFE_DELAY} from "../../../../src/desktop/sse/DesktopAlarmScheduler"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 
 const START_DATE = new Date(2019, 9, 10, 14).getTime()
@@ -13,7 +12,7 @@ o.after(() => process.env.TZ = oldTimezone)
 
 o.spec("DesktopAlarmSchedulerTest", () => {
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "DesktopAlarmScheduler", allowables: [
 			"./DesktopConstants", "../DesktopConstants",
 			"../../api/common/TutanotaConstants", "../TutanotaConstants",
 			"./utils/Utils",
@@ -208,7 +207,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 
 	o("schedule intermediate timeout for events too far in the future", done => {
 		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
-		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
+		const {DesktopAlarmScheduler, MAX_SAFE_DELAY} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider()
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 

@@ -6,7 +6,8 @@ import {noOp} from "../../../src/api/common/utils/Utils"
 
 o.spec("Desktop Window Manager Test", () => {
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "DesktopWindowManager",
+		allowables: [
 			'../api/Env'
 		]
 	})
@@ -93,7 +94,7 @@ o.spec("Desktop Window Manager Test", () => {
 				},
 				showInactive: function () {
 				},
-				setContextMenuHandler: function(){}
+				setContextMenuHandler: function () {}
 			},
 			statics: {
 				lastId: 0
@@ -149,7 +150,7 @@ o.spec("Desktop Window Manager Test", () => {
 			getIcon: () => "this is a static icon"
 		},
 		update: () => {},
-		clearBadge: ()=>{}
+		clearBadge: () => {}
 	}
 
 	const ipc = {}
@@ -182,7 +183,7 @@ o.spec("Desktop Window Manager Test", () => {
 		}
 	}
 
-	o("construction", () => {
+	o("construction", async function() {
 		const {
 			applicationWindowMock,
 			dlMock,
@@ -192,14 +193,14 @@ o.spec("Desktop Window Manager Test", () => {
 			ipcMock
 		} = standardMocks()
 
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const {WindowManager} = await import('../../../src/desktop/DesktopWindowManager')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
 		wm.setIPC(ipcMock)
 		o(applicationWindowMock.ApplicationWindow.mockedInstances.length).equals(0)
 		o(wm.getIcon()).equals('this is a static icon')
 	})
 
-	o("create one window with showWhenReady=false, no lastBounds", () => {
+	o("create one window with showWhenReady=false, no lastBounds", async function () {
 		const {
 			applicationWindowMock,
 			dlMock,
@@ -209,7 +210,7 @@ o.spec("Desktop Window Manager Test", () => {
 			ipcMock
 		} = standardMocks()
 
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const {WindowManager} = await import('../../../src/desktop/DesktopWindowManager')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
 		wm.setIPC(ipcMock)
 
@@ -224,7 +225,7 @@ o.spec("Desktop Window Manager Test", () => {
 			'did-start-navigation',
 			'page-title-updated',
 			'ready-to-show'
-			])
+		])
 		win.callbacks["ready-to-show"]()
 		o(win.center.callCount).equals(1)
 		o(win.setBounds.callCount).equals(0)
@@ -236,7 +237,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(wm.get(0)).equals(win)
 	})
 
-	o("create one window with showWhenReady=true, with lastBounds", () => {
+	o("create one window with showWhenReady=true, with lastBounds", async function() {
 		const {
 			applicationWindowMock,
 			dlMock,
@@ -261,7 +262,7 @@ o.spec("Desktop Window Manager Test", () => {
 		                  .set()
 
 
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const {WindowManager} = await import('../../../src/desktop/DesktopWindowManager')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
 		wm.setIPC(ipcMock)
 
@@ -292,7 +293,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(desktopTrayMock.update.callCount).equals(1)
 	})
 
-	o("create window with noAutoLogin", () => {
+	o("create window with noAutoLogin", async function() {
 		const {
 			applicationWindowMock,
 			dlMock,
@@ -302,7 +303,7 @@ o.spec("Desktop Window Manager Test", () => {
 			ipcMock
 		} = standardMocks()
 
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const {WindowManager} = await import('../../../src/desktop/DesktopWindowManager')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
 		wm.setIPC(ipcMock)
 
@@ -319,7 +320,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(applicationWindowMock.ApplicationWindow.args[2]).equals(undefined)
 	})
 
-	o("getLastFocused returns the last focused window", () => {
+	o("getLastFocused returns the last focused window", async function () {
 		const {
 			dlMock,
 			confMock,
@@ -328,7 +329,7 @@ o.spec("Desktop Window Manager Test", () => {
 			ipcMock
 		} = standardMocks()
 
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const {WindowManager} = await import('../../../src/desktop/DesktopWindowManager')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
 		wm.setIPC(ipcMock)
 
@@ -352,7 +353,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(wm.getLastFocused(false).id).equals(w2.id)
 	})
 
-	o("wm is saving bounds to file when closing window", () => {
+	o("wm is saving bounds to file when closing window", async function() {
 		const {
 			dlMock,
 			confMock,
@@ -361,7 +362,7 @@ o.spec("Desktop Window Manager Test", () => {
 			ipcMock
 		} = standardMocks()
 
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const {WindowManager} = await import('../../../src/desktop/DesktopWindowManager')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
 		wm.setIPC(ipcMock)
 
@@ -377,7 +378,7 @@ o.spec("Desktop Window Manager Test", () => {
 		})
 	})
 
-	o("hide() hides all windows", () => {
+	o("hide() hides all windows", async function() {
 		const {
 			electronMock,
 			applicationWindowMock,
@@ -388,7 +389,7 @@ o.spec("Desktop Window Manager Test", () => {
 			ipcMock
 		} = standardMocks()
 
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
+		const {WindowManager} = await import('../../../src/desktop/DesktopWindowManager')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
 		wm.setIPC(ipcMock)
 

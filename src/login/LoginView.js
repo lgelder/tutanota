@@ -10,7 +10,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {defer, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {themeId} from "../gui/theme"
+import {setThemeId, themeId} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
@@ -178,9 +178,9 @@ export class LoginView {
 							click: () => {
 								switch (themeId()) {
 									case 'light':
-										return deviceConfig.setTheme('dark')
+										return setThemeId('dark')
 									case 'dark':
-										return deviceConfig.setTheme('light')
+										return setThemeId('light')
 								}
 							}
 						})

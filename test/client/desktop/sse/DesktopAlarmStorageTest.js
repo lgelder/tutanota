@@ -6,7 +6,7 @@ import {uint8ArrayToBitArray} from "../../../../src/api/worker/crypto/CryptoUtil
 
 o.spec("DesktopAlarmStorageTest", () => {
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "DesktopAlarmStorage", allowables: [
 			"./TutanotaError",
 			"../error/CryptoError",
 			"../../api/common/utils/Encoding",

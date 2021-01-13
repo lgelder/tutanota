@@ -2,26 +2,7 @@
 import o from "ospec"
 import n from "../nodemocker"
 
-o.spec("ElectronUpdater Test", function (done, timeout) {
-	n.startGroup({
-		group: __filename, allowables: [
-			'./utils/Utils', '../api/common/utils/Utils',
-			'./TutanotaError',
-			'../api/common/error/RestError',
-			'../api/common/error/UpdateError',
-			'./DesktopNotifier',
-			'../TutanotaConstants',
-			"./DesktopConstants",
-			'../EntityFunctions',
-			'./utils/Encoding',
-			'../error/CryptoError',
-			'./StringUtils',
-			'./EntityConstants',
-			'./utils/ArrayUtils',
-			'./Utils',
-			'./MapUtils'
-		], timeout: 2000
-	})
+o.spec("ElectronUpdater Test", function () {
 
 	const electron = {
 		app: {
@@ -151,9 +132,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		}
 	}
 
-	o("update is available", done => {
+	o("update is available", async function () {
 		//mock node modules
-		const fsMock = n.mock('fs-extra', fs).set()
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
 		const electronMock = n.mock('electron', electron).set()
@@ -166,7 +146,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const confMock = n.mock('__conf', conf).set()
 		const notifierMock = n.mock('__notifier', notifier).set()
 
-		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
+		const {ElectronUpdater} = await import('../../../src/desktop/ElectronUpdater.js')
 		const upd = new ElectronUpdater(confMock, notifierMock)
 
 		o(autoUpdaterMock.on.callCount).equals(6)
@@ -181,35 +161,33 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		o(confMock.removeListener.args[0]).equals('enableAutoUpdate')
 		o(confMock.on.callCount).equals(1)
 
-		setTimeout(() => {
-			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
+		await Promise.delay(190)
+		o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
 
-			// check signature
-			o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
+		// check signature
+		o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
 
-			o(n.spyify(rightKey).verify.callCount).equals(1)
-			o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(n.spyify(rightKey).verify.callCount).equals(1)
+		o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			o(n.spyify(wrongKey).verify.callCount).equals(1)
-			o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(n.spyify(wrongKey).verify.callCount).equals(1)
+		o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			// show notification
-			o(notifierMock.showOneShot.callCount).equals(1)
-			o(notifierMock.showOneShot.args[0]).deepEquals({
-				title: 'updateAvailable_label',
-				body: 'clickToUpdate_msg',
-				icon: 'this is an icon'
-			})
+		// show notification
+		o(notifierMock.showOneShot.callCount).equals(1)
+		o(notifierMock.showOneShot.args[0]).deepEquals({
+			title: 'updateAvailable_label',
+			body: 'clickToUpdate_msg',
+			icon: 'this is an icon'
+		})
 
-			o(electronMock.app.emit.callCount).equals(1)
-			o(electronMock.app.emit.args[0]).equals('enable-force-quit')
-			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
-			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
-			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
-			done()
-		}, 190)
+		o(electronMock.app.emit.callCount).equals(1)
+		o(electronMock.app.emit.args[0]).equals('enable-force-quit')
+		o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
+		o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
+		o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
 	})
 
 

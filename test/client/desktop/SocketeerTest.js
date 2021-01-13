@@ -3,9 +3,9 @@ import n from "../nodemocker"
 import o from "ospec"
 import {makeTimeoutMock} from "../../api/TestUtils"
 
-o.spec("Socketeer Test", function (done, timeout) {
+o.spec("Socketeer Test", function () {
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "Socketeer", allowables: [
 			'../api/common/utils/Utils',
 			'../TutanotaConstants',
 			'./utils/Utils',

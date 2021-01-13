@@ -5,6 +5,8 @@ import express from "express"
 import http from "http"
 import expressws from "express-ws"
 import fs from "fs"
+import {fileURLToPath} from "url"
+import {default as path} from "path"
 
 const logStream = createWriteStream("/tmp/build.log")
 
@@ -91,11 +93,12 @@ async function runServer() {
 									httpServer.messageAllSockets({changes: update.changes})
 								}
 							} catch (e) {
-								socket.write("err: " + String(e) + "\n")
+								socket.write("err: " + String(e) + e.stack + "\n")
 							}
 						}
 					})
-					chokidar.watch("buildSrc", {ignoreInitial: true})
+					const fullBUilderPath = path.join(path.dirname(fileURLToPath(import.meta.url)), builderPath)
+					chokidar.watch(["buildSrc", fullBUilderPath], {ignoreInitial: true})
 					        .on("all", () => {
 						        // If any build-related things have changed, we want to restart
 						        closeServer(httpServer)
@@ -105,8 +108,8 @@ async function runServer() {
 					socket.write("ok\n")
 				}
 			} catch (e) {
-				log("error:", e)
-				socket.write("err: " + String(e) + "\n")
+				log("error:", String(e), e.stack)
+				socket.write("err: " + String(e) + e.stack + "\n")
 			}
 		}).on("error", (e) => {
 			outerLog("socket error: ", e)

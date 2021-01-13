@@ -2,43 +2,12 @@
 import path from 'path'
 import {app, dialog} from 'electron'
 import {downcast, getChangedProps} from "../../api/common/utils/Utils"
+import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 import applyMigrations from "./migrations/DesktopConfigMigrator"
-import {existsSync, promises as fs, readFileSync, writeFileSync} from "fs"
+import {existsSync, promises as fs, writeFileSync} from "fs"
 import {readJSONSync} from "../DesktopUtils"
 import type {Config} from "./ConfigCommon"
-import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
-
-export const DesktopConfigKey = {
-	any: 'any',
-	heartbeatTimeoutInSeconds: 'heartbeatTimeoutInSeconds',
-	defaultDownloadPath: 'defaultDownloadPath',
-	enableAutoUpdate: 'enableAutoUpdate',
-	showAutoUpdateOption: 'showAutoUpdateOption',
-	pushIdentifier: 'pushIdentifier',
-	runAsTrayApp: 'runAsTrayApp',
-	lastBounds: 'lastBounds',
-	pushEncSessionKeys: 'pushEncSessionKeys',
-	scheduledAlarms: 'scheduledAlarms',
-	lastProcessedNotificationId: 'lastProcessedNotificationId',
-	lastMissedNotificationCheckTime: 'lastMissedNotificationCheckTime',
-	desktopConfigVersion: "desktopConfigVersion"
-}
-export type DesktopConfigKeyEnum = $Values<typeof DesktopConfigKey>
-
-export const BuildConfigKey = {
-	pollingInterval: "pollingInterval",
-	checkUpdateSignature: "checkUpdateSignature",
-	appUserModelId: "appUserModelId",
-	initialSseConnectTimeoutInSeconds: "initialSseConnectTimeoutInSeconds",
-	maxSseConnectTimeoutInSeconds: "maxSseConnectTimeoutInSeconds",
-	defaultDesktopConfig: "defaultDesktopConfig",
-	desktophtml: "desktophtml",
-	preloadjs: "preloadjs",
-	iconName: "iconName",
-	fileManagerTimeout: "fileManagerTimeout",
-	pubKeys: "pubKeys",
-}
-export type BuildConfigKeyEnum = $Values<typeof BuildConfigKey>
+import type {BuildConfigKeyEnum, DesktopConfigKeyEnum} from "./ConfigKeys"
 
 /**
  * manages build and user config
@@ -55,6 +24,7 @@ export class DesktopConfig {
 		try {
 			this._buildConfig = downcast<Config>(readJSONSync(path.join(app.getAppPath(), 'package.json'))['tutao-config'])
 		} catch (e) {
+			throw new Error("Could not load config", e)
 			app.once('ready', () => {
 				dialog.showMessageBox(null, {
 					type: 'error',

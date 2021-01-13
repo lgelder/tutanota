@@ -6,7 +6,7 @@ const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
 o.spec("DesktopDownloadManagerTest", () => {
 	n.startGroup({
-		group: __filename, allowables: [
+		group: "DesktopDownloadManagerTest", allowables: [
 			"../api/common/utils/Utils.js", './Utils',
 			"../api/common/utils/Utils",
 			"path",

@@ -5,7 +5,7 @@ import {defer} from "../../../src/api/common/utils/Utils"
 
 o.spec("ApplicationWindow Test", function () {
 	n.startGroup({
-		group: __filename,
+		group: "ApplicationWindow",
 		allowables: [
 			'../api/Env'
 		],

@@ -4,7 +4,7 @@ import n from "../nodemocker"
 
 o.spec("DesktopContextMenu Test", () => {
 	n.startGroup({
-		group: __filename,
+		group: "DesktopContextMenu",
 		allowables: [],
 	})
 
