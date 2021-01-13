@@ -28,6 +28,7 @@ declare module 'electron' {
 		createEmpty(): NativeImage;
 		createFromPath(string): NativeImage;
 		createFromBuffer(Buffer, opts?: {width: number, height: number, scaleFactor: number}): NativeImage;
+		createFromDataURL(string): NativeImage
 	};
 	declare export var shell: {
 		// Open the given external protocol URL in the desktop's default manner.

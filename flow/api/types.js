@@ -211,7 +211,7 @@ type NativeRequestType = 'init'
 	| 'isUpdateAvailable' // check if update is ready to install
 	| 'manualUpdate' // progress update process (check, dl, install)
 	| 'dragExport'
-
+	| 'makeMsgFile'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

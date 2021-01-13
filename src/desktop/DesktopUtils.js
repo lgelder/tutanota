@@ -267,3 +267,45 @@ export function delay(ms: number): Promise<void> {
 		setTimeout(resolve, ms)
 	})
 }
+export type MsgRecipient = Recipient
+
+export type MsgParams = {
+	subject: string,
+	body: string,
+	sender: MsgRecipient,
+	tos: Array<MsgRecipient>,
+	ccs: Array<MsgRecipient>,
+	bccs: Array<MsgRecipient>,
+	replyTos: Array<MsgRecipient>,
+	attachments?: Array<FileReference>,
+	sentOn?: number,
+	receivedOn?: number,
+	isDraft?: boolean,
+	isRead?: boolean
+}
+
+export function makeMsgFile(params: MsgParams): Email {
+	return new Email(!!params.isDraft, !!params.isRead)
+		.subject(params.subject)
+		.bodyText(params.body)
+		.sender(params.sender.address, params.sender.name)
+		.tos(params.tos)
+		.ccs(params.ccs)
+		.bccs(params.bccs)
+		.replyTos(params.replyTos)
+		.sentOn(params.sentOn ? new Date(params.sentOn) : null)
+		.receivedOn(params.receivedOn ? new Date(params.receivedOn) : null)
+}
+
+type LogFn = (...args: any) => void
+export const log: {debug: LogFn, warn: LogFn, error: LogFn} = (typeof env !== "undefined" && env.mode === Mode.Test)
+	? {
+		debug: noOp,
+		warn: noOp,
+		error: noOp,
+	}
+	: {
+		debug: console.log.bind(console),
+		warn: console.warn.bind(console),
+		error: console.error.bind(console)
+	}

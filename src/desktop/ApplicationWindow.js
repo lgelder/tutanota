@@ -104,7 +104,7 @@ export class ApplicationWindow {
 	center: (() => void) = () => this._browserWindow.center()
 	showInactive: (() => void) = () => this._browserWindow.showInactive()
 	isFocused: (() => boolean) = () => this._browserWindow.isFocused()
-	startDrag = (i: DragInfo) => this._browserWindow.webContents.startDrag(i)
+	startDrag: DragInfo => void = (i: DragInfo) => this._browserWindow.webContents.startDrag(i)
 
 	get browserWindow(): BrowserWindow {
 		return this._browserWindow

@@ -2,6 +2,7 @@
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import type {MsgParams} from "../desktop/DesktopUtils"
 
 
 export const fileApp = {
@@ -13,7 +14,9 @@ export const fileApp = {
 	deleteFile,
 	clearFileData,
 	readFile,
-	saveBlob
+	saveBlob,
+	makeMsgFile,
+	dragExport
 }
 
 
@@ -128,3 +131,10 @@ export function uriToFileRef(uri: string): Promise<FileReference> {
 	}))
 }
 
+function makeMsgFile(params: MsgParams): Promise<Base64> {
+	return nativeApp.invokeNative(new Request('makeMsgFile', [params]))
+}
+
+function dragExport(files: Array<{name: string, content: Base64}>): Promise<void> {
+	return nativeApp.invokeNative(new Request('dragExport', files))
+}

@@ -3,7 +3,7 @@ import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/En
 import {pad} from "../api/common/utils/StringUtils"
 import {createFile, FileTypeRef} from "../api/entities/tutanota/File"
 import {worker} from "../api/main/WorkerClient"
-import {createDataFile, getCleanedMimeType} from "../api/common/DataFile"
+import {convertToDataFile, createDataFile, getCleanedMimeType} from "../api/common/DataFile"
 import {getMailHeaders, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
@@ -11,6 +11,9 @@ import {formatSortableDateTime} from "../api/common/utils/DateUtils"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {fileController} from "../file/FileController"
 import {EntityClient} from "../api/common/EntityClient"
+import {fileApp} from "../native/FileApp"
+import type {MsgParams} from "../desktop/DesktopUtils"
+import {MailState} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -31,7 +34,7 @@ export function mailToEmlFile(entityClient: EntityClient, mail: Mail, sanitizedH
 		tmpFile.name = filename + ".eml"
 		tmpFile.mimeType = "message/rfc822"
 		tmpFile.size = String(data.byteLength)
-		return createDataFile(tmpFile, data)
+		return convertToDataFile(tmpFile, data)
 	})
 }
 
@@ -43,21 +46,25 @@ export function selectMsgFiles(): void {
 	})
 }
 
-export function mailToMsgFile(mail: Mail, sanitizedHtmlBody: string): Promise<DataFile> {
-	if (msgFiles.length === 0 || !msgFiles.find(f => f.name === mail.subject)) {
-		let tmpFile = createFile()
-		tmpFile.name = "unknown"
-		tmpFile.mimeType = "application/vnd.ms-outlook"
-		tmpFile.size = "0"
-		return Promise.resolve(createDataFile(tmpFile, new Uint8Array(0)))
-	} else {
-		let file = msgFiles.find(f => f.name === mail.subject)
-		let tmpFile = createFile()
-		tmpFile.name = file.name
-		tmpFile.mimeType = "application/vnd.ms-outlook"
-		tmpFile.size = String(file.data.byteLength)
-		console.log(file.data.byteLength)
-		return Promise.resolve(createDataFile(tmpFile, file.data))
+export function makeMsgFile(mail: Mail, body: string, attachments: Array<FileReference>): Promise<Base64> {
+	return fileApp.makeMsgFile(makeMsgParams(mail, body, attachments))
+}
+
+function makeMsgParams(mail: Mail, body: string, attachments: Array<FileReference>): MsgParams {
+	const mailAddressToMsgRecipient = addr => ({address: addr.address, name: addr.name})
+	return {
+		subject: mail.subject,
+		body: body,
+		sender: mailAddressToMsgRecipient(mail.sender),
+		tos: mail.toRecipients.map(mailAddressToMsgRecipient),
+		ccs: mail.ccRecipients.map(mailAddressToMsgRecipient),
+		bccs: mail.bccRecipients.map(mailAddressToMsgRecipient),
+		replyTos: mail.replyTos.map(mailAddressToMsgRecipient),
+		attachments: attachments,
+		sentOn: mail.sentDate.getTime(),
+		receivedOn: mail.receivedDate.getTime(),
+		isDraft: mail.state === MailState.DRAFT,
+		isRead: !mail.unread
 	}
 }
 

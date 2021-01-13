@@ -85,7 +85,9 @@ export class MailListView implements Component {
 					// interpret as an export drag to the file system
 					ev.preventDefault()
 					console.log("start drag")
-					fileController.exportMails(mails)
+					const body = "" // TODO
+					const attachments = [] // TODO
+					fileController.dragExportMails("msg", mails.map(mail => ({mail, body, attachments})))
 					return true
 				}
 				return false

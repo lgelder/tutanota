@@ -41,7 +41,7 @@ import {endsWith} from "../api/common/utils/StringUtils"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {mailToEmlFile, mailToMsgFile} from "./Exporter"
+import {mailToEmlFile} from "./Exporter"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
@@ -587,12 +587,6 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
 export function mailsToEmlDataFiles(entityClient: EntityClient, mails: Array<Mail>): Promise<Array<DataFile>> {
 	const mapper = mail => entityClient.load(MailBodyTypeRef, mail.body)
 	                                   .then(body => mailToEmlFile(entityClient, mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
-	return Promise.map(mails, mapper, {concurrency: 1})
-}
-
-export function mailsToMsgDataFiles(mails: Array<Mail>): Promise<Array<DataFile>> {
-	const mapper = mail => load(MailBodyTypeRef, mail.body)
-		.then(body => mailToMsgFile(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
 	return Promise.map(mails, mapper, {concurrency: 1})
 }
 
