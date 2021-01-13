@@ -12,6 +12,7 @@ dist.js
 
 [libs]
 flow
+oxmsg/flow
 
 [options]
 module.ignore_non_literal_requires=true
