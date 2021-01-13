@@ -256,8 +256,8 @@ export class FileController {
 		const file = new File([], name, {type: "application/zip"})
 		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
 		const zipPromise = import("jszip")
-		return Promise.join(dataFilesPromises, zipPromise, (dataFiles, JSZip) => {
-			const zip = JSZip()
+		return Promise.join(dataFilesPromises, zipPromise, (dataFiles, jsZip) => {
+			const zip = jsZip.default()
 
 			dataFiles.forEach(df => {
 				zip.file(sanitizeFilename(df.name), df.data, {binary: true})

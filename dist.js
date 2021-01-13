@@ -15,6 +15,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import analyze from "rollup-plugin-analyzer"
 import {fileURLToPath} from "url"
 import {buildDesktop} from "./buildSrc/DesktopBuilder.js"
+import nodeResolve from "@rollup/plugin-node-resolve"
 
 const {babel} = pluginBabel
 let start = Date.now()
@@ -107,14 +108,36 @@ async function buildWebapp(version) {
 	}
 	console.log("started cleaning", measure())
 	await clean()
+
+	console.log("bundling polyfill", measure())
+	const polyfillBundle = await rollup({
+		input: ["src/polyfill.js"],
+		plugins: [
+			terser(),
+			nodeResolve(),
+			commonjs(),
+			{
+				name: "append-libs",
+				async footer() {
+					const systemjs = await fs.readFile("libs/s.js")
+					const bluebird = await fs.readFile("libs/bluebird.js")
+					return systemjs + "\n" + bluebird
+				}
+			}
+		],
+	})
+	await polyfillBundle.write({sourcemap: false, format: "iife", file: "build/dist/polyfill.js"})
+
 	console.log("started copying images", measure())
 	await fs.copy(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images'))
 	await fs.copy(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html'))
 	let bootstrap = await fs.readFile('src/api/worker/WorkerBootstrap.js', 'utf-8')
-	bootstrap = "importScripts('s.js', 'bluebird.js')\nvar dynamicImport = System.import.bind(System)\n" + bootstrap
+	bootstrap = `importScripts('s.js', 'bluebird.js', 'polyfill.js')
+var dynamicImport = System.import.bind(System)
+${bootstrap}`
 	await fs.writeFile('build/dist/WorkerBootstrap.js', bootstrap, 'utf-8')
 
-	console.log("stared bundling")
+	console.log("stared bundling", measure())
 	const bundle = await rollup({
 		input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
 		plugins: [
@@ -125,15 +148,15 @@ async function buildWebapp(version) {
 					"@babel/plugin-transform-flow-strip-types",
 					"@babel/plugin-proposal-class-properties",
 					"@babel/plugin-syntax-dynamic-import",
-					// "@babel/plugin-transform-arrow-functions",
-					// "@babel/plugin-transform-classes",
-					// "@babel/plugin-transform-computed-properties",
-					// "@babel/plugin-transform-destructuring",
-					// "@babel/plugin-transform-for-of",
-					// "@babel/plugin-transform-parameters",
-					// "@babel/plugin-transform-shorthand-properties",
-					// "@babel/plugin-transform-spread",
-					// "@babel/plugin-transform-template-literals",
+					"@babel/plugin-transform-arrow-functions",
+					"@babel/plugin-transform-classes",
+					"@babel/plugin-transform-computed-properties",
+					"@babel/plugin-transform-destructuring",
+					"@babel/plugin-transform-for-of",
+					"@babel/plugin-transform-parameters",
+					"@babel/plugin-transform-shorthand-properties",
+					"@babel/plugin-transform-spread",
+					"@babel/plugin-transform-template-literals",
 				],
 				babelHelpers: "bundled",
 			}),
@@ -149,7 +172,7 @@ async function buildWebapp(version) {
 	for (let [k, v] of Object.entries(bundle.getTimings())) {
 		console.log(k, v[0])
 	}
-	console.log("started writing bundles")
+	console.log("started writing bundles", measure())
 	await bundle.write({sourcemap: true, format: "system", dir: "build/dist"})
 
 
@@ -177,76 +200,6 @@ async function buildWebapp(version) {
 			? createHtml(env.create(restUrl, version, "App", true), bundles)
 			: null,
 	])
-
-	// return Promise.resolve()
-	//               .then(() => console.log("started cleaning", measure()))
-	//               .then(() => clean())
-	//               .then(() => console.log("started copying images", measure()))
-	//               .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
-	//               .then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
-	//               .then(() => fs.copyAsync(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html')))
-	//               .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
-	// 	              let lines = bootstrap.split("\n")
-	// 	              lines[0] = `importScripts('libs.js')`
-	// 	              let code = babelCompile(lines.join("\n")).code
-	// 	              return fs.writeFileAsync('build/dist/WorkerBootstrap.js', code, 'utf-8')
-	//               }))
-	//               .then(() => {
-	// 	              console.log("started tracing", measure())
-	// 	              return Promise.all([
-	// 		              builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js + libs/polyfill.js'),
-	// 		              builder.trace('src/app.js + src/system-resolve.js'),
-	// 		              builder.trace('src/gui/theme.js - libs/stream.js'),
-	// 		              builder.trace(getAsyncImports('src/app.js')
-	// 			              .concat(getAsyncImports('src/native/NativeWrapper.js'))
-	// 			              .concat(getAsyncImports('src/native/NativeWrapperCommands.js'))
-	// 			              .concat([
-	// 				              "src/login/LoginViewController.js",
-	// 				              "src/gui/base/icons/Icons.js",
-	// 				              "src/search/SearchBar.js",
-	// 				              "src/subscription/terms.js"
-	// 			              ]).join(" + "))
-	// 	              ])
-	//               })
-	//               .then(([workerTree, bootTree, themeTree, mainTree]) => {
-	// 	              console.log("started bundling", measure())
-	// 	              let commonTree = builder.intersectTrees(workerTree, mainTree)
-	// 	              return Promise.all([
-	// 		              bundle(commonTree, distLoc("common.js"), bundles),
-	// 		              bundle(builder.subtractTrees(workerTree, commonTree), distLoc("worker.js"), bundles),
-	// 		              bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), distLoc("main.js"), bundles),
-	// 		              bundle(builder.subtractTrees(themeTree, commonTree), distLoc("theme.js"), bundles),
-	// 		              bundle(builder.subtractTrees(bootTree, themeTree), distLoc("main-boot.js"), bundles)
-	// 	              ])
-	//               })
-	//               .then(() => console.log("creating language bundles"))
-	//               .then(() => createLanguageBundles(bundles))
-	//               .then(() => {
-	// 	              let restUrl
-	// 	              if (options.stage === 'test') {
-	// 		              restUrl = 'https://test.tutanota.com'
-	// 	              } else if (options.stage === 'prod') {
-	// 		              restUrl = 'https://mail.tutanota.com'
-	// 	              } else if (options.stage === 'local') {
-	// 		              restUrl = "http://" + os.hostname().split(".")[0] + ":9000"
-	// 	              } else if (options.stage === 'release') {
-	// 		              restUrl = undefined
-	// 	              } else { // host
-	// 		              restUrl = options.host
-	// 	              }
-	// 	              return Promise.all([
-	// 		              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
-	// 			              (options.stage === 'release' || options.stage === 'local')
-	// 				              ? null
-	// 				              : restUrl, version, "Browser", true), bundles),
-	// 		              (options.stage !== 'release')
-	// 			              ? createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), restUrl, version, "App", true), bundles)
-	// 			              : null,
-	// 	              ])
-	//               })
-	//               .then(() => bundleServiceWorker(bundles))
-	//               .then(copyDependencies)
-	//               .then(() => _writeFile(path.join(__dirname, bundlesCache), JSON.stringify(bundles)))
 }
 
 async function buildDesktopClient(version) {
@@ -349,7 +302,7 @@ function createHtml(env) {
 			filenamePrefix = "desktop"
 	}
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
-	const imports = ["bluebird.js", "s.js", `index-${filenamePrefix}.js`]
+	const imports = [{src: "polyfill.js"}, {src: `index-${filenamePrefix}.js`}]
 	return Promise.all([
 		_writeFile(`./build/dist/index-${filenamePrefix}.js`, [
 			`window.whitelabelCustomizations = null`,
@@ -359,42 +312,6 @@ function createHtml(env) {
 		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${filenamePrefix}.html`, content))
 	])
 }
-
-// FIXME: languages?
-// function createLanguageBundles(bundles) {
-// 	const languageFiles = options.stage === 'release' || options.stage === 'prod'
-// 		? glob.sync('src/translations/*.js')
-// 		: ['src/translations/en.js', 'src/translations/de.js', 'src/translations/de_sie.js', 'src/translations/ru.js']
-// 	return Promise.all(languageFiles.map(translation => {
-// 		let filename = path.basename(translation)
-// 		return builder.bundle(translation, {
-// 			minify: false,
-// 			mangle: false,
-// 			runtime: false,
-// 			sourceMaps: false
-// 		}).then(function (output) {
-// 			const bundle = `${DistDir}/translations/${filename}`
-// 			bundles["translations/" + filename] = output.modules.sort()
-// 			fs.writeFileSync(bundle, output.source, 'utf-8')
-// 			console.log(`  > bundled ${bundle}`);
-// 		})
-// 	})).then(() => bundles)
-// }
-
-// FIXME: remove?
-// function createExtraLibBundle(bundles) {
-// 	return builder.bundle('libs/jszip.js', {
-// 		minify: false,
-// 		mangle: false,
-// 		runtime: false,
-// 		sourceMaps: false
-// 	}).then(function (output) {
-// 		const bundle = `${DistDir}/extra-libs.js`
-// 		bundles["extra-libs.js"] = output.modules.sort()
-// 		fs.writeFileSync(bundle, output.source, 'utf-8')
-// 		console.log(`  > bundled ${bundle}`);
-// 	}).then(() => bundles)
-// }
 
 function _writeFile(targetFile, content) {
 	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))

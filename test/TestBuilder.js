@@ -88,7 +88,7 @@ function envPlugin(env) {
 }
 
 async function createUnitTestHtml(watch, project, localEnv) {
-	let imports = [`test-${project}.js`]
+	let imports = [{src: `test-${project}.js`, type: "module"}]
 
 	const template = `import('./bootstrapTests-${project}.js')`
 	await _writeFile(`../build/test/test-${project}.js`, [

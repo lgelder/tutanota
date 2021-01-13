@@ -84,8 +84,8 @@ if (client.isIE()) {
 	         })
 }
 
-export const state: {prefix: ?string} = (module.hot && module.hot.data)
-	? downcast(module.hot.data.state) : {prefix: null}
+export const state: {prefix: ?string, prefixWithoutFile: ?string} = (module.hot && module.hot.data)
+	? downcast(module.hot.data.state) : {prefix: null, prefixWithoutFile: null}
 
 // Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
 window.tutao.appState = state
@@ -104,7 +104,6 @@ if (!isDesktop() && navigator.registerProtocolHandler) {
 }
 
 let initialized = lang.init(en).then(() => {
-	styles.init()
 	if (!client.isSupported()) {
 		if (isApp() && client.device === DeviceType.ANDROID) {
 
@@ -201,8 +200,10 @@ let initialized = lang.init(en).then(() => {
 
 	let start = "/"
 	if (state.prefix == null) {
-		state.prefix = location.pathname[location.pathname.length - 1] !== '/'
-			? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
+		const prefix = state.prefix = location.pathname[location.pathname.length - 1] !== '/'
+			? location.pathname
+			: location.pathname.substring(0, location.pathname.length - 1)
+		state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
@@ -221,6 +222,7 @@ let initialized = lang.init(en).then(() => {
 		start = target
 	}
 	m.route.prefix = neverNull(state.prefix)
+	styles.init()
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	m.route(neverNull(document.body), start, {

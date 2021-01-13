@@ -24,7 +24,12 @@ async function createHtml(env, watch) {
 		case "Desktop":
 			filenamePrefix = "desktop"
 	}
-	const imports = ['bluebird.js', `app.js`]
+	const imports = [{src: 'bluebird.js'}, {src: `${filenamePrefix}Bootstrap.js`}]
+	const template = `window.whitelabelCustomizations = null
+window.env = ${JSON.stringify(env, null, 2)}
+import('./app.js')
+	`
+	await _writeFile(`./build/${filenamePrefix}Bootstrap.js`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await _writeFile(`./build/${filenamePrefix}.html`, html)
 }
@@ -55,7 +60,6 @@ async function prepareAssets(watch, stage, host, version) {
 	let bootstrap = await fs.readFile('src/api/worker/WorkerBootstrap.js', 'utf-8')
 	bootstrap = "importScripts('bluebird.js')\nvar dynamicImport = (m) => import(m)\n" + bootstrap
 	await fs.writeFile('build/WorkerBootstrap.js', bootstrap, 'utf-8')
-	// await fs.copyFile(path.join(root, "/src/api/worker/WorkerBootstrap.js"), path.join(root, '/build/WorkerBootstrap.js'))
 
 
 	return Promise.all([
@@ -72,17 +76,11 @@ export async function build({watch, desktop, stage, host}, log) {
 	const nollup = (await import('nollup')).default
 
 	log("Bundling...")
+
 	const bundle = await nollup({
 		input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
 		plugins: rollupDebugPlugins(path.resolve("."))
 			.concat(watch ? hmr({bundleId: '', hmrHost: "localhost:9001", verbose: true}) : [])
-			.concat(preludeEnvPlugin(env)) // prepend env as global before the code
-			.concat({
-				name: "whitelabelCustomizations banner",
-				banner() {
-					return "globalThis.whitelabelCustomizations = null"
-				}
-			})
 	})
 	const generateBundle = async () => {
 		log("Generating")
