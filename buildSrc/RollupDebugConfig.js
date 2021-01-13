@@ -1,9 +1,9 @@
-import * as SystemConfig from "./SystemConfig.js"
 import pluginBabel from "@rollup/plugin-babel"
 import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
 import Promise from "bluebird"
 import fs from "fs-extra"
+import {dependencyMap} from "./RollupConfig.js";
 
 const {babel} = pluginBabel
 
@@ -11,7 +11,7 @@ function resolveLibs(baseDir = ".") {
 	return {
 		name: "resolve-libs",
 		resolveId(source) {
-			const resolved = SystemConfig.dependencyMap[source]
+			const resolved = dependencyMap[source]
 			return resolved && path.join(baseDir, resolved)
 		}
 	}

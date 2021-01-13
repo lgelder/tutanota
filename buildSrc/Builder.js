@@ -7,6 +7,7 @@ import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
+import {preludeEnvPlugin} from "./env.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
@@ -23,13 +24,7 @@ async function createHtml(env, watch) {
 		case "Desktop":
 			filenamePrefix = "desktop"
 	}
-	const imports = ['bluebird.js', `${filenamePrefix}Bootstrap.js`]
-	const template = fs.readFileSync("./buildSrc/bootstrap.template.js", "utf8")
-	await _writeFile(`./build/${filenamePrefix}Bootstrap.js`, [
-		`window.whitelabelCustomizations = null`,
-		`window.env = ${JSON.stringify(env, null, 2)}`,
-		"",
-	].join("\n") + "\n" + template)
+	const imports = ['bluebird.js', `app.js`]
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await _writeFile(`./build/${filenamePrefix}.html`, html)
 }
@@ -80,7 +75,14 @@ export async function build({watch, desktop, stage, host}, log) {
 	const bundle = await nollup({
 		input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
 		plugins: rollupDebugPlugins(path.resolve("."))
-			.concat(watch ? hmr({bundleId: '', hmrHost: "localhost:9001", verbose: true}) : []),
+			.concat(watch ? hmr({bundleId: '', hmrHost: "localhost:9001", verbose: true}) : [])
+			.concat(preludeEnvPlugin(env)) // prepend env as global before the code
+			.concat({
+				name: "whitelabelCustomizations banner",
+				banner() {
+					return "globalThis.whitelabelCustomizations = null"
+				}
+			})
 	})
 	const generateBundle = async () => {
 		log("Generating")

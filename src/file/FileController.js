@@ -254,8 +254,7 @@ export class FileController {
 	 */
 	zipDataFiles(dataFilesPromises: Promise<DataFile[]>, name: string): Promise<DataFile> {
 		const file = new File([], name, {type: "application/zip"})
-		// FIXME: resolve module
-		//$FlowFixMe[cannot-resolve-module]
+		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
 		const zipPromise = import("jszip")
 		return Promise.join(dataFilesPromises, zipPromise, (dataFiles, JSZip) => {
 			const zip = JSZip()
