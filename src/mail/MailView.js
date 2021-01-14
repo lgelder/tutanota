@@ -49,7 +49,6 @@ import type {MailboxDetail} from "./MailModel"
 import {getFolder, getInboxFolder} from "./MailModel";
 import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
-import {ActionBar} from "../gui/base/ActionBar";
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -70,6 +69,7 @@ import {showUserError} from "../misc/ErrorHandlerImpl"
 import {selectMsgFiles} from "./Exporter"
 import {getListId, isSameId} from "../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {ActionBarN} from "../gui/base/ActionBarN"
 
 assertMainOrNode()
 
@@ -97,7 +97,7 @@ export class MailView implements CurrentView {
 	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
 	_folderToUrl: {[folderId: Id]: string};
 	_multiMailViewer: MultiMailViewer;
-	_actionBar: lazy<ActionBar>;
+	_actionBarButtons: lazy<ButtonAttrs[]>;
 	_throttledRouteSet: (string) => void;
 	_countersStream: Stream<*>;
 
@@ -136,7 +136,7 @@ export class MailView implements CurrentView {
 		})
 
 		this._multiMailViewer = new MultiMailViewer(this)
-		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar())
+		this._actionBarButtons = lazyMemoized(() => this._multiMailViewer.getActionBarButtons())
 
 		const mailColumnTitle = () => {
 			let selectedEntities = this.mailList ? this.mailList.list.getSelectedEntities() : [];
@@ -809,7 +809,11 @@ export class MailView implements CurrentView {
 		&& this.mailList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
 			selectNoneHandler: () => this.mailList.list.selectNone(),
 			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-			content: this._actionBar()
+			content: {
+				view: () => {
+					m(ActionBarN, {buttons: this._actionBarButtons()})
+				}
+			}
 		}) : null
 	}
 }

@@ -1,9 +1,7 @@
 // @flow
 import m from "mithril"
-import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {MailView} from "./MailView"
-import {assertMainOrNode, Mode} from "../api/Env"
-import {ActionBar} from "../gui/base/ActionBar"
+import {assertMainOrNode, isDesktop, Mode} from "../api/Env"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
@@ -14,7 +12,6 @@ import {
 	getSortedCustomFolders,
 	getSortedSystemFolders,
 	markMails,
-	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {logins} from "../api/main/LoginController";
@@ -26,6 +23,10 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {locator} from "../api/main/MainLocator"
 import type {PosRect} from "../gui/base/Dropdown"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {showDragAndDropDialog} from "./MailViewer"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {attachDropdown} from "../gui/base/DropdownN"
+import {ActionBarN} from "../gui/base/ActionBarN"
 
 assertMainOrNode()
 
@@ -39,7 +40,6 @@ export class MultiMailViewer {
 
 	constructor(mailView: MailView) {
 		this._mailView = mailView
-		const actions = this.createActionBar(true)
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l", {
@@ -52,14 +52,16 @@ export class MultiMailViewer {
 							m(".button-height"), // just for the margin
 							m(".flex-space-between.mr-negative-s", [
 								m(".flex.items-center", this._getMailSelectionMessage(mailView)),
-								m(actions)
-							])
+								m(ActionBarN, {
+									buttons: this.getActionBarButtons(true)
+								}),
+							]),
 						]
 						: m(ColumnEmptyMessageBox, {
 							message: () => this._getMailSelectionMessage(mailView),
 							icon: BootIcons.Mail,
 							color: theme.content_message_bg,
-						}))
+						})),
 			]
 		}
 	}
@@ -79,52 +81,57 @@ export class MultiMailViewer {
 		}
 	}
 
-	createActionBar(prependCancel: boolean = false): ActionBar {
-		let actions = new ActionBar()
-
-		if (prependCancel) {
-			actions.add(new Button("cancel_action", () => this._mailView.mailList.list.selectNone(),
-				() => Icons.Cancel))
-		}
-
-		actions.add(createAsyncDropDownButton('move_action', () => Icons.Folder, () => {
-			return Promise.reduce(this._mailView.mailList.list.getSelectedEntities(), (set, mail) => {
-				return locator.mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
-					if (set.indexOf(mailBox) < 0) {
-						set.push(mailBox)
-					}
-					return set
-				})
-			}, ([]: MailboxDetail[])).then((sourceMailboxes) => {
-				if (sourceMailboxes.length !== 1) {
-					return []
-				} else {
-					return (getSortedSystemFolders(sourceMailboxes[0].folders).concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
-						.filter(f => f !== this._mailView.selectedFolder)
-						.map(f => {
-							return new Button(() => getFolderName(f),
-								this._actionBarAction((mails) => moveMails(locator.mailModel, mails, f)),
-								getFolderIcon(f)
-							).setType(ButtonType.Dropdown)
-						})
+	getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
+		return [
+			{
+				label: "cancel_action",
+				click: () => this._mailView.mailList.list.selectNone(),
+				icon: () => Icons.Cancel,
+				isVisible: () => prependCancel
+			},
+			attachDropdown({
+				label: "move_action",
+				icon: () => Icons.Folder,
+			}, () => this.makeMoveMailButtons()),
+			{
+				label: "delete_action",
+				click: () => {
+					let mails = this._mailView.mailList.list.getSelectedEntities()
+					promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
+				},
+				icon: () => Icons.Trash
+			},
+			{
+				label: () => "Drag and drop export",
+				click: () => showDragAndDropDialog(this._mailView.mailList.list.getSelectedEntities()),
+				icon: () => Icons.Archive,
+				isVisible: isDesktop
+			},
+			attachDropdown({
+				label: "more_label",
+				icon: () => Icons.More
+			}, () => [
+				{
+					label: "markUnread_action",
+					click: this._actionBarAction(mails => markMails(mails, true)),
+					icon: () => Icons.NoEye,
+					type: ButtonType.Dropdown
+				},
+				{
+					label: "markRead_action",
+					click: this._actionBarAction(mails => markMails(mails, false)),
+					icon: () => Icons.Eye,
+					type: ButtonType.Dropdown
+				},
+				{
+					label: "export_action",
+					click: this._actionBarAction((mails) => exportMails(locator.entityClient, mails)),
+					icon: () => Icons.Export,
+					type: ButtonType.Dropdown,
+					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)
 				}
-			})
-		}))
-		actions.add(new Button('delete_action', () => {
-				let mails = this._mailView.mailList.list.getSelectedEntities()
-				promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
-			}, () => Icons.Trash
-		))
-		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
-			let moreButtons = []
-			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => markMails(mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
-			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => markMails(mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
-			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
-				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => exportMails(locator.entityClient, mails)), () => Icons.Export).setType(ButtonType.Dropdown))
-			}
-			return moreButtons
-		}))
-		return actions
+			])
+		]
 	}
 
 	/**
@@ -141,4 +148,34 @@ export class MultiMailViewer {
 			action(mails)
 		}
 	}
+
+	/**
+	 * Generate buttons that will move the selected mails to respective folders
+	 * @returns {Promise<R>|Promise<ButtonAttrs[]>}
+	 */
+	makeMoveMailButtons(): Promise<ButtonAttrs[]> {
+		return Promise.reduce(this._mailView.mailList.list.getSelectedEntities(), (set, mail) => {
+			return locator.mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
+				if (set.indexOf(mailBox) < 0) {
+					set.push(mailBox)
+				}
+				return set
+			})
+		}, ([]: MailboxDetail[])).then((sourceMailboxes) => {
+			if (sourceMailboxes.length !== 1) {
+				return []
+			} else {
+				return (getSortedSystemFolders(sourceMailboxes[0].folders).concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
+					.filter(f => f !== this._mailView.selectedFolder)
+					.map(f => {
+						return {
+							label: () => getFolderName(f),
+							click: () => this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
+							icon: getFolderIcon(f)
+						}
+					})
+			}
+		})
+	}
 }
+
