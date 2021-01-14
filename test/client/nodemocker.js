@@ -67,7 +67,7 @@ function mock<T>(old: string, replacer: T): MockBuilder<T> {
 	return new MockBuilder(old, replacer)
 }
 
-function spyify<T>(obj: T): T {
+export function spyify<T>(obj: T): T {
 	const anyObj: any = obj
 	switch (typeof obj) {
 		case 'function':

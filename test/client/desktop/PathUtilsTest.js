@@ -1,7 +1,8 @@
 //@flow
 import o from "ospec"
 import path from 'path'
-import n from '../nodemocker'
+import n from "../nodemocker"
+import {nonClobberingFilename, pathToFileURL} from "../../../src/desktop/PathUtils"
 
 function setEnv(platform: string) {
 	let sep = ''
@@ -30,58 +31,51 @@ function setEnv(platform: string) {
 	})
 }
 
-o.spec("DesktopUtils", function () {
-	let DesktopUtils
-	o.before(async function () {
-		const electronMock = n.mock('electron', {}).set()
-		const cpMock = n.mock('child_process', {}).set()
-		const cryptoMock = n.mock('crypto', {}).set()
-		DesktopUtils = (await import("../../../src/desktop/DesktopUtils.js")).default
-	})
+o.spec("PathUtils", function () {
 	o.spec("nonClobberingFileName Test", function () {
 		o("noClash", function () {
-			o(DesktopUtils.nonClobberingFilename(['bye.txt'], "hello.ext")).equals('hello.ext')
+			o(nonClobberingFilename(['bye.txt'], "hello.ext")).equals('hello.ext')
 		})
 
 		o("emptyDir", function () {
-			o(DesktopUtils.nonClobberingFilename([], "hello.ext")).equals('hello.ext')
+			o(nonClobberingFilename([], "hello.ext")).equals('hello.ext')
 		})
 
 		o("emptyString", function () {
-			o(DesktopUtils.nonClobberingFilename([''], 'hello.ext')).equals('hello.ext')
+			o(nonClobberingFilename([''], 'hello.ext')).equals('hello.ext')
 		})
 
 		o('duplicateFileNonClashing', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hallo.txt',
 				'hallo.txt'
 			], 'hello.ext')).equals('hello.ext')
 		})
 
 		o('duplicateFileClashing', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext',
 				'hello.ext'
 			], 'hello.ext')).equals('hello-1.ext')
 		})
 
 		o('clashingFiles', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext'
 			], 'hello.ext')).equals('hello-1.ext')
 
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext',
 				'hello-1.ext'
 			], 'hello.ext')).equals('hello-2.ext')
 
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext',
 				'hello-1.ext',
 				'hello-2.ext'
 			], 'hello.ext')).equals('hello-3.ext')
 
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext', 'hello-1.ext',
 				'hello-2.ext', 'hello-3.ext',
 				'hello-4.ext', 'hello-5.ext',
@@ -94,19 +88,19 @@ o.spec("DesktopUtils", function () {
 		})
 
 		o('numberedFileNameNonClashing', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext'
 			], 'hello-1.ext')).equals('hello-1.ext')
 		})
 
 		o('numberedFileNameClashing', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello-1.ext'
 			], 'hello-1.ext')).equals('hello-1-1.ext')
 		})
 
 		o('intermediate value', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext',
 				'hello-3.ext',
 				'hello-1.ext',
@@ -114,14 +108,14 @@ o.spec("DesktopUtils", function () {
 				'hello-Infinity.ext'
 			], 'hello.ext')).equals('hello-2.ext')
 
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello-0.ext',
 				'hello.ext',
 				'hello-3.ext',
 				'hello-1.ext',
 			], 'hello.ext')).equals('hello-2.ext')
 
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello--2.ext',
 				'hello-0.ext',
 				'hello-3.ext',
@@ -130,7 +124,7 @@ o.spec("DesktopUtils", function () {
 		})
 
 		o('truncated clashes', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello-.ext',
 				'hello.',
 				'hello',
@@ -139,7 +133,7 @@ o.spec("DesktopUtils", function () {
 		})
 
 		o('almost clashes', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext',
 				'hello-a.ext',
 				'hello-01.ext',
@@ -148,101 +142,78 @@ o.spec("DesktopUtils", function () {
 		})
 
 		o('dotfiles', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'.ext', // unix dotfile w/o extension
 			], '.ext')).equals('.ext-1')
 
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'.ext.txt', // unix dotfile w/o extension
 			], '.ext.txt')).equals('.ext-1.txt')
 		})
 
 		o('malformedFilename', function () {
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'',
 			], '')).equals('-1')
 
-			o(DesktopUtils.nonClobberingFilename([
+			o(nonClobberingFilename([
 				'hello.ext',
 			], '')).equals('')
 		})
 
 		o('invalid/reserved filenames', function () {
-			o(DesktopUtils.nonClobberingFilename([], "\x00-\x1f\x80-\x9f.exe"))
+			o(nonClobberingFilename([], "\x00-\x1f\x80-\x9f.exe"))
 				.equals('_-__-_.exe')
 
 			n.setPlatform("win32")
-			o(DesktopUtils.nonClobberingFilename(["CON-1.exe"], "CON.exe"))
+			o(nonClobberingFilename(["CON-1.exe"], "CON.exe"))
 				.equals('CON-2.exe')
 
-			o(DesktopUtils.nonClobberingFilename([], "."))
+			o(nonClobberingFilename([], "."))
 				.equals("_")
 
-			o(DesktopUtils.nonClobberingFilename(["_"], ".."))
+			o(nonClobberingFilename(["_"], ".."))
 				.equals("_-1")
 
-			o(DesktopUtils.nonClobberingFilename([], "<>|?/\\.mp3"))
+			o(nonClobberingFilename([], "<>|?/\\.mp3"))
 				.equals("______.mp3")
 
-			o(DesktopUtils.nonClobberingFilename([], "CON<>|?/\\CON.mp3"))
+			o(nonClobberingFilename([], "CON<>|?/\\CON.mp3"))
 				.equals("CON______CON.mp3")
 
-			o(DesktopUtils.nonClobberingFilename([], "PRN.<p2."))
+			o(nonClobberingFilename([], "PRN.<p2."))
 				.equals("PRN-1._p2_")
 
-			o(DesktopUtils.nonClobberingFilename([], "LPT0"))
+			o(nonClobberingFilename([], "LPT0"))
 				.equals("LPT0-1")
 
-			o(DesktopUtils.nonClobberingFilename([], "COM9"))
+			o(nonClobberingFilename([], "COM9"))
 				.equals("COM9-1")
 
-			o(DesktopUtils.nonClobberingFilename([], "AUX.AUX"))
+			o(nonClobberingFilename([], "AUX.AUX"))
 				.equals("AUX-1.AUX")
 
-			o(DesktopUtils.nonClobberingFilename([], "NUL"))
+			o(nonClobberingFilename([], "NUL"))
 				.equals("NUL-1")
 
-			o(DesktopUtils.nonClobberingFilename([], "nul"))
+			o(nonClobberingFilename([], "nul"))
 				.equals("nul-1")
 
-			o(DesktopUtils.nonClobberingFilename([], "NULNUL"))
+			o(nonClobberingFilename([], "NULNUL"))
 				.equals("NULNUL")
 
-			o(DesktopUtils.nonClobberingFilename([], ".NUL"))
+			o(nonClobberingFilename([], ".NUL"))
 				.equals(".NUL")
 
-			o(DesktopUtils.nonClobberingFilename([], "<>|?/\\CON."))
+			o(nonClobberingFilename([], "<>|?/\\CON."))
 				.equals("______CON_")
 
 			n.setPlatform("linux")
-			o(DesktopUtils.nonClobberingFilename([], "nul"))
+			o(nonClobberingFilename([], "nul"))
 				.equals("nul")
 
-			o(DesktopUtils.nonClobberingFilename([], ".."))
+			o(nonClobberingFilename([], ".."))
 				.equals("_")
-		})
-	})
-
-	o.spec("touch test", function () {
-		n.startGroup({
-			group: "DesktopUtils", allowables: [
-				'../api/common/utils/Utils.js',
-				'../TutanotaConstants',
-				'./utils/Utils',
-				'../EntityFunctions',
-				'./utils/Encoding',
-				'../error/CryptoError',
-				'./TutanotaError',
-				'./StringUtils',
-				'./EntityConstants',
-				'./utils/Utils',
-				'./utils/ArrayUtils',
-				'./Utils',
-				'./MapUtils',
-				'./Utils',
-				'../api/common/error/JsonTypeError',
-				'./TutanotaError'
-			]
 		})
 	})
 
@@ -259,29 +230,29 @@ o.spec("DesktopUtils", function () {
 
 		o("emptyPath", function () {
 			setEnv('linux')
-			o(DesktopUtils.pathToFileURL(''))
+			o(pathToFileURL(''))
 				.equals('file://')
 
 			setEnv('darwin')
-			o(DesktopUtils.pathToFileURL(''))
+			o(pathToFileURL(''))
 				.equals('file://')
 
 			setEnv('win32')
-			o(DesktopUtils.pathToFileURL(''))
+			o(pathToFileURL(''))
 				.equals('file://')
 		})
 
 		o("normalPath", function () {
 			setEnv('win32')
-			o(DesktopUtils.pathToFileURL('C:\\home\\nig\\index.html'))
+			o(pathToFileURL('C:\\home\\nig\\index.html'))
 				.equals('file:///C%3A/home/nig/index.html')
 
 			setEnv('darwin')
-			o(DesktopUtils.pathToFileURL('/Users/nig/Library/Application Support/index.html'))
+			o(pathToFileURL('/Users/nig/Library/Application Support/index.html'))
 				.equals('file:///Users/nig/Library/Application%20Support/index.html')
 
 			setEnv('linux')
-			o(DesktopUtils.pathToFileURL('home/nig/index.html'))
+			o(pathToFileURL('home/nig/index.html'))
 				.equals('file://home/nig/index.html')
 		})
 	})

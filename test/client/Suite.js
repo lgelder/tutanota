@@ -31,11 +31,11 @@ import o from "ospec"
 
 (async () => {
 	if (typeof process != "undefined") {
-		await import("./desktop/DesktopUtilsTest.js")
+		await import("./desktop/PathUtilsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest")
 		await import("./desktop/ElectronUpdaterTest")
-		// await import("./desktop/DesktopNotifierTest")
-		await import("./desktop/DesktopWindowManagerTest.js")
+		await import("./desktop/DesktopNotifierTest")
+		// await import("./desktop/DesktopWindowManagerTest.js")
 		// await import("./desktop/DesktopTrayTest.js")
 		// await import("./desktop/ApplicationWindowTest.js")
 		// await import("./desktop/sse/DesktopSseClientTest.js")

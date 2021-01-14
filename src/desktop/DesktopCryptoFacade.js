@@ -6,6 +6,7 @@ import {aes128Decrypt, aes256Decrypt, aes256Encrypt} from "../api/worker/crypto/
 import crypto from "crypto"
 import {decrypt256Key} from "../api/worker/crypto/KeyCryptoUtils"
 import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
+import forge from "node-forge"
 
 export class DesktopCryptoFacade {
 	/**
@@ -49,6 +50,10 @@ export class DesktopCryptoFacade {
 
 	generateId(byteLength: number): string {
 		return base64ToBase64Url(crypto.randomBytes(byteLength).toString('base64'))
+	}
+
+	publicKeyFromPem(pem: string): {verify: (string, string) => boolean} {
+		return forge.pki.publicKeyFromPem(pem)
 	}
 
 	_decrypt256KeyToArray(encryptionKey: string, keyB64: string): Aes256Key {

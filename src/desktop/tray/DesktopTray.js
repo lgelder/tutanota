@@ -82,10 +82,10 @@ export class DesktopTray {
 	}
 
 	getIcon(): NativeImage {
-		return DesktopTray.getIcon(this._conf.getConst('iconName'))
+		return this.getIconByName(this._conf.getConst('iconName'))
 	}
 
-	static getIcon(iconName: string): NativeImage {
+	getIconByName(iconName: string): NativeImage {
 		return icon || (icon = nativeImage.createFromPath(platformTray.iconPath(iconName)))
 	}
 

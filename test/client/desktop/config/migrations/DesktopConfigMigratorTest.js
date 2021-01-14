@@ -5,7 +5,6 @@ import n from "../../../nodemocker"
 o.spec('desktop config migrator test', function () {
 	let migrator
 	o.before(async function () {
-		n.mock('electron', {})
 		migrator = (await import('../../../../../src/desktop/config/migrations/DesktopConfigMigrator')).default
 	})
 	o("migrations result in correct default config, client", function () {

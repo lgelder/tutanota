@@ -14,8 +14,8 @@ import type {Key, KeyPress} from "../misc/KeyManager"
 import {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {noOp} from "../api/common/utils/Utils"
-import {log} from "./DesktopUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
+import {log} from "./DesktopLog"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 

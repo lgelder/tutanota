@@ -20,7 +20,7 @@ import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopTray} from "./tray/DesktopTray"
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog";
 
 mp()
 
@@ -39,7 +39,7 @@ alarmStorage.init()
             .catch(e => {
 	            console.warn("alarm storage failed to initialize:", e)
             })
-const updater = new ElectronUpdater(conf, notifier)
+const updater = new ElectronUpdater(conf, notifier, crypto)
 const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier, dl)
 const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)

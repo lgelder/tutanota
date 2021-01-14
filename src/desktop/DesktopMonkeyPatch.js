@@ -6,7 +6,7 @@ import {execSync} from 'child_process'
 import {last} from '../api/common/utils/ArrayUtils'
 import {neverNull} from "../api/common/utils/Utils"
 import {Logger, replaceNativeLogger} from "../api/common/Logger"
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog";
 
 const logger = new Logger()
 replaceNativeLogger(global, logger, true)

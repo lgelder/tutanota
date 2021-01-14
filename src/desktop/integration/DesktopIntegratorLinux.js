@@ -4,7 +4,7 @@ import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
 import {execFile} from "child_process"
 import type {WindowManager} from "../DesktopWindowManager"
-import {log} from "../DesktopUtils"
+import {log} from "../DesktopLog"
 import fs from "fs"
 
 const DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")

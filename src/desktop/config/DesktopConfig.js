@@ -1,6 +1,5 @@
 // @flow
 import path from 'path'
-import {app, dialog} from 'electron'
 import {downcast, getChangedProps} from "../../api/common/utils/Utils"
 import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 import applyMigrations from "./migrations/DesktopConfigMigrator"
@@ -8,6 +7,7 @@ import {existsSync, promises as fs, writeFileSync} from "fs"
 import {readJSONSync} from "../DesktopUtils"
 import type {Config} from "./ConfigCommon"
 import type {BuildConfigKeyEnum, DesktopConfigKeyEnum} from "./ConfigKeys"
+import type {App} from "electron"
 
 /**
  * manages build and user config
@@ -18,25 +18,13 @@ export class DesktopConfig {
 	_desktopConfigPath: string;
 	_onValueSetListeners: {[DesktopConfigKeyEnum]: Array<(val: any)=>void>}
 
-	constructor() {
+	constructor(app: App) {
 		this._desktopConfigPath = path.join(app.getPath('userData'), 'conf.json')
 		this._onValueSetListeners = {}
 		try {
 			this._buildConfig = downcast<Config>(readJSONSync(path.join(app.getAppPath(), 'package.json'))['tutao-config'])
 		} catch (e) {
 			throw new Error("Could not load config", e)
-			app.once('ready', () => {
-				dialog.showMessageBox(null, {
-					type: 'error',
-					buttons: ['Ok'],
-					defaultId: 0,
-					// no lang yet
-					title: 'Oh No!',
-					message: `Couldn't load config: \n ${e.message}`
-				})
-				process.exit(1)
-			})
-			return
 		}
 		try {
 			const defaultConf: Config = downcast(this._buildConfig["defaultDesktopConfig"])

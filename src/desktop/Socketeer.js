@@ -5,7 +5,7 @@ import {app} from 'electron'
 import {neverNull} from "../api/common/utils/Utils"
 import type {WindowManager} from "./DesktopWindowManager"
 import {isMailAddress} from "../misc/FormatValidator"
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog";
 
 const SOCKET_PATH = '/tmp/tutadb.sock'
 

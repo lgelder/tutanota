@@ -1,5 +1,5 @@
 // @flow
-import {log} from "../../DesktopUtils"
+import {log} from "../../DesktopLog"
 /**
  * Should not import them all manually but we need make the whole thing async then.
  */

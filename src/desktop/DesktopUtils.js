@@ -1,73 +1,15 @@
 // @flow
-import * as url from 'url'
 import path from 'path'
 import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
-import {openSync, closeSync, unlinkSync, writeFileSync, readFileSync, promises as fs} from "fs"
+import {closeSync, openSync, promises as fs, readFileSync, unlinkSync, writeFileSync} from "fs"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
-import {neverNull, noOp} from "../api/common/utils/Utils"
-import {sanitizeFilename} from "../api/common/utils/FileUtils"
-import {Mode} from "../api/Env"
+import {noOp} from "../api/common/utils/Utils"
+import {log} from "./DesktopLog"
 
 export default class DesktopUtils {
-
-	/**
-	 * @param pathToConvert absolute Path to a file
-	 * @returns {string} file:// URL that can be extended with query parameters and loaded with BrowserWindow.loadURL()
-	 */
-	static pathToFileURL(pathToConvert: string): string {
-		pathToConvert = pathToConvert
-			.trim()
-			.split(path.sep)
-			.map((fragment) => encodeURIComponent(fragment))
-			.join("/")
-		const extraSlashForWindows = process.platform === "win32" && pathToConvert !== ''
-			? "/"
-			: ""
-		let urlFromPath = url.format({
-			pathname: extraSlashForWindows + pathToConvert.trim(),
-			protocol: 'file:'
-		})
-
-		return urlFromPath.trim()
-	}
-
-	/**
-	 * compares a filename to a list of filenames and finds the first number-suffixed
-	 * filename not already contained in the list.
-	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
-	 */
-	static nonClobberingFilename(files: Array<string>, filename: string): string {
-		filename = sanitizeFilename(filename)
-		const clashingFile = files.find(f => f === filename)
-		if (typeof clashingFile !== "string" && !_isReservedFilename(filename)) { // all is well
-			return filename
-		} else { // there are clashing file names or the file name is reserved
-			const ext = path.extname(filename)
-			const basename = path.basename(filename, ext)
-			const clashNumbers: Array<number> = files
-				.filter(f => f.startsWith(`${basename}-`))
-				.map(f => f.slice(0, f.length - ext.length))
-				.map(f => f.slice(basename.length + 1, f.length))
-				.map(f => !f.startsWith('0') ? parseInt(f, 10) : 0)
-				.filter(n => !isNaN(n) && n > 0)
-			const clashNumbersSet: Set<number> = new Set(clashNumbers)
-			clashNumbersSet.add(0)
-
-			// if a number is bigger than its index, there is room somewhere before that number
-			const firstGapMinusOne = Array
-				.from(clashNumbersSet)
-				.sort((a, b) => a - b)
-				.find((n, i, a) => a[i + 1] > i + 1)
-
-			return !isNaN(firstGapMinusOne)
-				? `${basename}-${neverNull(firstGapMinusOne) + 1}${ext}`
-				: `${basename}-${clashNumbersSet.size}${ext}`
-		}
-	}
-
 	static looksExecutable(file: string): boolean {
 		// only windows will happily execute a just downloaded program
 		if (process.platform === 'win32') {
@@ -303,34 +245,6 @@ async function _unregisterOnWin() {
 	const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys()
 	return _executeRegistryScript(tmpRegScript)
 }
-
-/**
- * checks if the given filename is a reserved filename on the current platform
- * @param filename
- * @returns {boolean}
- * @private
- */
-function _isReservedFilename(filename: string): boolean {
-	// CON, CON.txt, COM0 etc. (windows device files)
-	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
-	// .. and .
-	const reservedRe = /^\.{1,2}$/
-
-	return (process.platform === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
-}
-
-type LogFn = (...args: any) => void
-export const log: {debug: LogFn, warn: LogFn, error: LogFn} = (typeof env !== "undefined" && env.mode === Mode.Test)
-	? {
-		debug: noOp,
-		warn: noOp,
-		error: noOp,
-	}
-	: {
-		debug: console.log.bind(console),
-		warn: console.warn.bind(console),
-		error: console.error.bind(console)
-	}
 
 export function readJSONSync(absolutePath: string): {[string]: mixed} {
 	return JSON.parse(readFileSync(absolutePath, {encoding: "utf8"}))

@@ -25,9 +25,9 @@ import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
-import {log} from "./DesktopUtils"
 import type {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopConfigKey} from "./config/ConfigKeys";
+import {log} from "./DesktopLog";
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread

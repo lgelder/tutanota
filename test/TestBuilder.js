@@ -4,7 +4,6 @@ import * as env from "../buildSrc/env.js"
 import {promises as fs} from "fs"
 import path from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
-import nodeResolve from "@rollup/plugin-node-resolve"
 
 export async function build(options, log) {
 	log("Build")
@@ -17,7 +16,6 @@ export async function build(options, log) {
 		plugins: [
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
-			nodeResolve({preferBuiltins: true}),
 			...rollupDebugPlugins(".."),
 			// graph({output: "graph.dot", prune: true}),
 		],
@@ -67,6 +65,14 @@ function resolveTestLibsPlugin() {
 				case "body-parser":
 				case "electron":
 				case "mockery":
+				case "path":
+				case "fs":
+				case "url":
+				case "util":
+				case "node-forge":
+				case "os":
+				case "electron-updater":
+				case "child_process":
 					return false
 				// case "electron":
 				// 	// As we use classes which import parts of electron a lot, we make an electron stub

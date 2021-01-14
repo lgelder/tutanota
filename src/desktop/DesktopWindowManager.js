@@ -11,7 +11,7 @@ import {LOGIN_TITLE} from "../api/Env"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {IPC} from "./IPC"
 import {DesktopContextMenu} from "./DesktopContextMenu"
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog"
 
 export type WindowBounds = {|
 	rect: Rectangle,
