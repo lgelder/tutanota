@@ -284,8 +284,9 @@ export type MsgParams = {
 	isRead?: boolean
 }
 
-export function makeMsgFile(params: MsgParams): Email {
-	return new Email(!!params.isDraft, !!params.isRead)
+export function makeMsgFile(params: MsgParams): Promise<Uint8Array> {
+
+	const email = new Email(!!params.isDraft, !!params.isRead)
 		.subject(params.subject)
 		.bodyText(params.body)
 		.sender(params.sender.address, params.sender.name)
@@ -295,6 +296,13 @@ export function makeMsgFile(params: MsgParams): Email {
 		.replyTos(params.replyTos)
 		.sentOn(params.sentOn ? new Date(params.sentOn) : null)
 		.receivedOn(params.receivedOn ? new Date(params.receivedOn) : null)
+
+	return Promise.each(params.attachments || [], attachment => {
+		return fs.readFile(getTempDirectoryPath(attachment.name)).then((data: Buffer) => {
+			// TODO We could use ATTACH_BY_REF_ONLY but apparently that needs to be implemented still, see oxmsg::attachment.js
+			email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
+		})
+	}).then(() => email.msg())
 }
 
 type LogFn = (...args: any) => void

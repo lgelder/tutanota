@@ -13,6 +13,15 @@ import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
 import type {DownloadItem} from "electron"
 
+/**
+ * Get the path to the temporary directory for the app, with an optional filename to concatenate
+ * @param filename
+ * @returns {string}
+ */
+export function getTempDirectoryPath(filename: string = ""): string {
+	return path.join(app.getPath('temp'), '/tuta/', filename)
+}
+
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
 	_net: DesktopNetworkClient;
