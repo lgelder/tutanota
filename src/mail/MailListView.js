@@ -13,6 +13,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode, isDesktop} from "../api/Env"
 import {
+	collectMailContents,
 	getArchiveFolder,
 	getFolderName,
 	getSenderOrRecipientHeading,
@@ -38,6 +39,7 @@ import {locator} from "../api/main/MainLocator"
 import {getInboxFolder} from "./MailModel"
 import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 
 assertMainOrNode()
 
@@ -85,9 +87,11 @@ export class MailListView implements Component {
 					// interpret as an export drag to the file system
 					ev.preventDefault()
 					console.log("start drag")
-					const body = "" // TODO
-					const attachments = [] // TODO
-					fileController.dragExportMails("msg", mails.map(mail => ({mail, body, attachments})))
+
+					// TODO We probably want to have the bodies and the attachments ready before now
+					// because otherwise the user will have to keep holding down their mouse to wait for them
+					// all to download, which is not ideal
+					Promise.mapSeries(mails, collectMailContents).then(toExport => fileController.dragExportMails("msg", toExport))
 					return true
 				}
 				return false

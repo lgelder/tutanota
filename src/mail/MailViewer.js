@@ -61,7 +61,7 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	showDeleteConfirmationDialog
+	showDeleteConfirmationDialog, collectMailContents
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
@@ -667,6 +667,14 @@ export class MailViewer {
 							label: "reportEmail_action",
 							click: () => this._reportMail(),
 							icon: () => Icons.Warning,
+							type: ButtonType.Dropdown
+						})
+					}
+					if (isDesktop()) {
+						moreButtons.push({
+							label: () => "Drag and drop export",
+							click: () => showDragAndDropDialog([this.mail]),
+							icon: () => Icons.Archive,
 							type: ButtonType.Dropdown
 						})
 					}
@@ -1543,3 +1551,43 @@ export class MailViewer {
 		this._lastBodyTouchEndTime = now
 	}
 }
+
+export function showDragAndDropDialog(mails: Mail[]) {
+
+	Promise.mapSeries(mails, collectMailContents).then(contents => {
+		let dialog
+		let props = {
+			title: "export drag and drop",
+			child: () => m(".pt-xl.pb-xl.text-center", m(MailContentsDragger, {
+				contents: contents
+			})),
+			okAction: () => dialog.close(),
+			okActionTextId: "close_alt",
+			allowCancel: false
+		}
+
+		dialog = Dialog.showActionDialog(props).addShortcut({
+			key: Keys.ESC,
+			exec: () => dialog.close(),
+			help: "close_alt"
+		})
+	})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
