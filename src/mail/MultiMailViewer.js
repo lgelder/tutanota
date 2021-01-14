@@ -16,6 +16,7 @@ import {
 import type {MailboxDetail} from "./MailModel"
 import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
@@ -25,7 +26,7 @@ import type {PosRect} from "../gui/base/Dropdown"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {ActionBarN} from "../gui/base/ActionBarN"
+import {ActionBar} from "../gui/base/ActionBar"
 import {fileApp} from "../native/FileApp"
 
 assertMainOrNode()
@@ -52,7 +53,7 @@ export class MultiMailViewer {
 							m(".button-height"), // just for the margin
 							m(".flex-space-between.mr-negative-s", [
 								m(".flex.items-center", this._getMailSelectionMessage(mailView)),
-								m(ActionBarN, {
+								m(ActionBar, {
 									buttons: this.getActionBarButtons(true)
 								}),
 							]),

@@ -45,6 +45,7 @@ import {flat} from "../api/common/utils/ArrayUtils"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {isSameId} from "../api/common/utils/EntityUtils";
 import type {ContactModel} from "./ContactModel"
+import {ActionBar} from "../gui/base/ActionBar"
 
 assertMainOrNode()
 
@@ -486,7 +487,11 @@ export class ContactView implements CurrentView {
 		&& this._contactList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
 			selectNoneHandler: () => this._contactList.list.selectNone(),
 			selectedEntiesLength: this._contactList.list.getSelectedEntities().length,
-			content: this._multiContactViewer.createActionBar(() => this._contactList.list.selectNone(), true)
+			content: {
+				view: () => m(ActionBar, {
+					buttons: this._multiContactViewer.createActionBarButtons(() => this._contactList.list.selectNone(), true)
+				})
+			}
 		}) : null
 	}
 }

@@ -69,7 +69,7 @@ import {showUserError} from "../misc/ErrorHandlerImpl"
 import {selectMsgFiles} from "./Exporter"
 import {getListId, isSameId} from "../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
-import {ActionBarN} from "../gui/base/ActionBarN"
+import {ActionBar} from "../gui/base/ActionBar"
 
 assertMainOrNode()
 
@@ -811,7 +811,7 @@ export class MailView implements CurrentView {
 			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
 			content: {
 				view: () => {
-					m(ActionBarN, {buttons: this._actionBarButtons()})
+					m(ActionBar, {buttons: this._actionBarButtons()})
 				}
 			}
 		}) : null

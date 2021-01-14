@@ -64,6 +64,7 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {newMailEditor} from "../mail/MailEditor"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import {isSameTypeRef, TypeRef} from "../api/common/utils/EntityUtils";
+import {ActionBar} from "../gui/base/ActionBar"
 
 assertMainOrNode()
 
@@ -540,7 +541,9 @@ export class SearchView implements CurrentView {
 		&& this._searchList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
 			selectNoneHandler: () => this._searchList.selectNone(),
 			selectedEntiesLength: this._searchList.getSelectedEntities().length,
-			content: this._viewer.multiSearchActionBar()
+			content: {
+				view: () => m(ActionBar, {buttons: this._viewer.multiSearchActionBarButtons()})
+			}
 		}) : null
 	}
 
