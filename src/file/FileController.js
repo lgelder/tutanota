@@ -20,6 +20,7 @@ import {Request} from "../api/common/WorkerProtocol"
 import type {MsgParams} from "../desktop/DesktopUtils"
 import {MailState} from "../api/common/TutanotaConstants"
 import {makeMsgFile} from "../mail/Exporter"
+import type {MailContents} from "../mail/MailUtils"
 
 assertMainOrNode()
 
@@ -275,7 +276,7 @@ export class FileController {
 	/**
 	 * Export a list of entities mails to eml files
 	 */
-	dragExportMails(mode: MailExportMode, mails: Array<{mail: Mail, body: string, attachments?: Array<FileReference>}>,): void {
+	dragExportMails(mode: MailExportMode, mails: MailContents[],): void {
 		if (mails.length > 0) {
 			Promise.map(mails, mail =>
 				makeMsgFile(mail.mail, mail.body, mail.attachments || [])
