@@ -73,6 +73,7 @@ function resolveTestLibsPlugin() {
 				case "os":
 				case "electron-updater":
 				case "child_process":
+				case "querystring":
 					return false
 				// case "electron":
 				// 	// As we use classes which import parts of electron a lot, we make an electron stub

@@ -18,7 +18,7 @@ import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 import {remove} from "../../api/common/utils/ArrayUtils"
 import {handleRestError, NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
-import {log} from "../DesktopUtils"
+import {log} from "../DesktopLog"
 import {DesktopConfigKey} from "../config/ConfigKeys"
 
 export type SseInfo = {|

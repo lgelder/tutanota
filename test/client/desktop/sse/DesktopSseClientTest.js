@@ -8,15 +8,12 @@ import * as url from "url"
 import * as querystring from "querystring"
 import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/MissedNotification"
 import {makeTimeoutMock} from "../../../api/TestUtils"
-import type {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
+import {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
 import {DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys"
-
-const SUBJECT_LOCATION = '../../src/desktop/sse/DesktopSseClient.js'
 
 o.spec("DesktopSseClient Test", function () {
 	const identifier = 'identifier'
 	const userIds = ["id1", "id2"]
-	let DesktopSseClient: Class<DesktopSseClient>
 
 	const conf = {
 		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
@@ -215,7 +212,6 @@ o.spec("DesktopSseClient Test", function () {
 		],
 		timeout: 6000,
 		beforeEach() {
-			DesktopSseClient = n.subject(SUBJECT_LOCATION).DesktopSseClient
 			;({
 				electronMock,
 				confMock,
@@ -229,13 +225,6 @@ o.spec("DesktopSseClient Test", function () {
 				langMock
 			} = standardMocks())
 		}
-	})
-
-	o("construction", function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock, alarmStorageMock,
-			langMock)
-
-		o(electronMock.app.on.callCount).equals(1)
 	})
 
 	o("start, connect, shutdown", async function () {
