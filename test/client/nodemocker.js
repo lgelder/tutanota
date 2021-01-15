@@ -192,13 +192,14 @@ class MockBuilder<T> {
 
 	/**
 	 * register & get the actual mock module object
+	 * warning! This effectively returns any.
 	 * @returns {T} the mock with recursively o.spy()'d functions
 	 */
-	set(): T {
+	set<R>(): R {
 		const copy = spyify(this._mock)
 		mockery.deregisterMock(this._old)
 		mockery.registerMock(this._old, copy)
-		return copy
+		return downcast(copy)
 	}
 }
 

@@ -4,6 +4,9 @@ import n from '../../nodemocker'
 import {CryptoError} from "../../../../src/api/common/error/CryptoError"
 import {uint8ArrayToBitArray} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage"
+import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
+import {downcast} from "../../../../src/api/common/utils/Utils"
+import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade"
 
 o.spec("DesktopAlarmStorageTest", () => {
 	n.startGroup({
@@ -66,12 +69,11 @@ o.spec("DesktopAlarmStorageTest", () => {
 		const entityFunctionMock = n.mock("../EntityFunctions", entityFunctions).set()
 		n.mock('../../api/common/EntityFunctions', entityFunctions).set()
 		const aesMock = n.mock('../../api/worker/crypto/Aes', aes).set()
-		const cryptoMock = n.mock("../DesktopCryptoFacade", crypto).set()
-		const cryptoUtilsMock = n.mock("../../api/worker/crypto/CryptoUtils", cryptoUtils).set()
+		const cryptoMock = downcast<DesktopCryptoFacade>(n.mock("../DesktopCryptoFacade", crypto).set())
 
 		// instances
 		const wmMock = n.mock('__wm', wm).set()
-		const confMock = n.mock("__conf", conf).set()
+		const confMock: DesktopConfig = downcast(n.mock("__conf", conf).set())
 
 		const secretStorageMock = {
 			findPassword: () => Promise.resolve("password"),
@@ -110,10 +112,10 @@ o.spec("DesktopAlarmStorageTest", () => {
 
 	o("resolvePushIdentifierSessionKey with cached sessionKey", async function () {
 		const {cryptoMock, secretStorageMock} = standardMocks()
-		const confMock = n.mock("__conf", conf).with({
+		const confMock = downcast<DesktopConfig>(n.mock("__conf", conf).with({
 			getVar: key => {}
 		}).set()
-
+)
 		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, secretStorageMock)
 		await desktopStorage.init()
 		await desktopStorage.storePushIdentifierSessionKey("fourId", "user4pw=")

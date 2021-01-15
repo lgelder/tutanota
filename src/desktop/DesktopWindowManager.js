@@ -52,7 +52,7 @@ export class WindowManager {
 			this.saveBounds(w)
 		}).on('closed', ev => {
 			windows.splice(windows.indexOf(w), 1)
-			this._tray.update()
+			this._tray.update(this._notifier)
 		}).on('focus', ev => {
 			windows.splice(windows.indexOf(w), 1)
 			windows.push(w)
@@ -64,9 +64,9 @@ export class WindowManager {
 			if (w.getTitle() === LOGIN_TITLE) {
 				w.setUserInfo(null)
 			}
-			this._tray.update()
+			this._tray.update(this._notifier)
 		}).once('ready-to-show', () => {
-			this._tray.update()
+			this._tray.update(this._notifier)
 			const startingBounds: ?WindowBounds = this.getStartingBounds()
 			if (startingBounds) {
 				w.setBounds(startingBounds)
@@ -96,7 +96,7 @@ export class WindowManager {
 	}
 
 	getIcon(): NativeImage {
-		return DesktopTray.getIcon(this._conf.getConst('iconName'))
+		return this._tray.getIconByName(this._conf.getConst('iconName'))
 	}
 
 	get(id: number): ?ApplicationWindow {

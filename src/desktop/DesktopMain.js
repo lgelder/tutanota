@@ -21,17 +21,21 @@ import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopTray} from "./tray/DesktopTray"
 import {log} from "./DesktopLog";
+import {UpdaterWrapperImpl} from "./UpdaterWrapper"
+import {ElectronNotificationFactory} from "./NotificatonFactory"
+import {KeytarSecretStorage} from "./sse/SecretStorage"
 
 mp()
 
 lang.init(en)
-const conf = new DesktopConfig()
+const conf = new DesktopConfig(app)
 const net = new DesktopNetworkClient()
 const crypto = new DesktopCryptoFacade()
 const sock = new Socketeer()
-const notifier = new DesktopNotifier()
+const tray = new DesktopTray(conf)
+const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 const dl = new DesktopDownloadManager(conf, net)
-const alarmStorage = new DesktopAlarmStorage(conf, crypto)
+const alarmStorage = new DesktopAlarmStorage(conf, crypto, new KeytarSecretStorage())
 alarmStorage.init()
             .then(() => {
 	            log.debug("alarm storage initialized")
@@ -39,10 +43,11 @@ alarmStorage.init()
             .catch(e => {
 	            console.warn("alarm storage failed to initialize:", e)
             })
-const updater = new ElectronUpdater(conf, notifier, crypto)
-const tray = new DesktopTray(conf, notifier)
+const updater = new ElectronUpdater(conf, notifier, crypto, app, tray, new UpdaterWrapperImpl())
 const wm = new WindowManager(conf, tray, notifier, dl)
 const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
+alarmScheduler.rescheduleAll()
+
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, crypto, alarmStorage, lang)
 const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater)
@@ -118,7 +123,7 @@ function onAppReady() {
 }
 
 function main() {
-	tray.update()
+	tray.update(notifier)
 	if (process.argv.indexOf('-s') !== -1) {
 		sock.startServer()
 	}
@@ -130,7 +135,7 @@ function main() {
 		wm.getLastFocused(true)
 		tray.clearBadge()
 	})
-	notifier.start(tray, 2000)
+	notifier.start(2000)
 	updater.start()
 	runIntegration(wm)
 	handleArgv(process.argv)

@@ -111,7 +111,9 @@ export function makeCore(args?: {
 	return core
 }
 
-export function makeTimeoutMock(): typeof setTimeout & {next: () => void} {
+export type TimeoutMock = typeof setTimeout & {next: () => void}
+
+export function makeTimeoutMock(): TimeoutMock {
 	let deferred = defer()
 	let timeoutId = 1
 	const timeoutMock = function (fn: () => any): TimeoutID {

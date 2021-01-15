@@ -31,9 +31,8 @@ export class DesktopTray {
 
 	_tray: ?Tray;
 
-	constructor(config: DesktopConfig, notifier: DesktopNotifier) {
+	constructor(config: DesktopConfig) {
 		this._conf = config
-		this._notifier = notifier
 		this.getIcon()
 		app.on('will-quit', (e: Event) => {
 			if (this._tray) {
@@ -46,7 +45,7 @@ export class DesktopTray {
 		})
 	}
 
-	update(): void {
+	update(notifier: DesktopNotifier): void {
 		if (!this._conf.getVar("runAsTrayApp")) return
 		const m = new Menu()
 		m.append(new MenuItem({

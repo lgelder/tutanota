@@ -74,7 +74,7 @@ export class DesktopNotifier {
 				icon: this._tray.getIcon(),
 			}, onClick)
 			this._tray.setBadge()
-			this._tray.update()
+			this._tray.update(this)
 		}
 
 		if (this._canShow) {
@@ -87,7 +87,7 @@ export class DesktopNotifier {
 	resolveGroupedNotification(id: ?string) {
 		if ('function' === typeof this._notificationCloseFunctions[id]) {
 			this._notificationCloseFunctions[id]()
-			this._tray.update()
+			this._tray.update(this)
 		}
 		delete this._notificationCloseFunctions[id]
 	}

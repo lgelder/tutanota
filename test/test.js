@@ -1,6 +1,7 @@
 import Promise from "bluebird"
-import child_process from "child_process"
+import child_process, {spawn} from "child_process"
 import {buildWithServer} from "../buildSrc/BuildServerClient.js"
+import flow from "flow-bin"
 
 let project
 if (process.argv.indexOf("api") !== -1) {
@@ -12,6 +13,8 @@ if (process.argv.indexOf("api") !== -1) {
 	process.exit(1)
 }
 const clean = process.argv.includes("-c")
+
+spawn(flow, ["--quiet"], {stdio: "inherit"})
 
 buildWithServer({
 	clean,

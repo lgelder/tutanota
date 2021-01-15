@@ -12,7 +12,7 @@ import fs from "fs"
 import {log} from "./DesktopLog";
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {App} from "electron"
-import type {UpdaterImpl} from "./UpdaterImpl"
+import type {UpdaterWrapper} from "./UpdaterWrapper"
 
 
 /**
@@ -42,14 +42,14 @@ export class ElectronUpdater {
 	_logger: UpdaterLogger;
 	_app: App;
 	_tray: DesktopTray
-	_updater: UpdaterImpl
+	_updater: UpdaterWrapper
 
 	get updateInfo(): ?UpdateInfo {
 		return this._updateInfo
 	}
 
 	constructor(conf: DesktopConfig, notifier: DesktopNotifier, crypto: DesktopCryptoFacade, app: App, tray: DesktopTray,
-	            updater: UpdaterImpl, scheduler: typeof setInterval = setInterval) {
+	            updater: UpdaterWrapper, scheduler: typeof setInterval = setInterval) {
 		this._conf = conf
 		this._notifier = notifier
 		this._errorCount = 0

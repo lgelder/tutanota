@@ -16,6 +16,7 @@ import path from "path"
 import {noOp} from "../api/common/utils/Utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
+import {pathToFileURL} from "./PathUtils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -54,7 +55,7 @@ export class ApplicationWindow {
 	constructor(wm: WindowManager, conf: DesktopConfig, noAutoLogin?: boolean) {
 		this._userInfo = null
 		this._ipc = wm.ipc
-		this._startFile = DesktopUtils.pathToFileURL(path.join(app.getAppPath(), conf.getConst("desktophtml")),)
+		this._startFile = pathToFileURL(path.join(app.getAppPath(), conf.getConst("desktophtml")),)
 		this._lastSearchPromiseReject = noOp
 
 		const isMac = process.platform === 'darwin';

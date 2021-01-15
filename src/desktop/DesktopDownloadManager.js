@@ -12,6 +12,7 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {ApplicationWindow} from "./ApplicationWindow"
 import {EventEmitter} from 'events'
 import {log} from "./DesktopLog";
+import {nonClobberingFilename} from "./PathUtils"
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
@@ -116,7 +117,7 @@ export class DesktopDownloadManager {
 				const fileName = path.basename(item.getFilename())
 				const savePath = path.join(
 					defaultDownloadPath,
-					DesktopUtils.nonClobberingFilename(
+					nonClobberingFilename(
 						readdirSync(defaultDownloadPath),
 						fileName
 					)

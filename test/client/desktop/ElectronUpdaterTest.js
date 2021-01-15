@@ -5,7 +5,7 @@ import type {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade
 import {downcast} from "../../../src/api/common/utils/Utils";
 import {ElectronUpdater} from "../../../src/desktop/ElectronUpdater";
 import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray";
-import type {UpdaterImpl} from "../../../src/desktop/UpdaterImpl";
+import type {UpdaterWrapper} from "../../../src/desktop/UpdaterWrapper";
 import n from "../nodemocker"
 import type {DesktopConfig} from "../../../src/desktop/config/DesktopConfig";
 import type {DesktopNotifier} from "../../../src/desktop/DesktopNotifier";
@@ -24,7 +24,7 @@ o.spec("ElectronUpdater Test", function () {
 		getIconByName: () => ({})
 	})
 
-	let updaterImpl: UpdaterImpl
+	let updaterImpl: UpdaterWrapper
 	o.beforeEach(function () {
 		notifier = downcast({
 			showOneShot: o.spy((prop: { title: string, body: string, icon: any }) => Promise.resolve('click'))

@@ -24,7 +24,7 @@ export class DesktopConfig {
 		try {
 			this._buildConfig = downcast<Config>(readJSONSync(path.join(app.getAppPath(), 'package.json'))['tutao-config'])
 		} catch (e) {
-			throw new Error("Could not load config", e)
+			throw new Error("Could not load config: " + e)
 		}
 		try {
 			const defaultConf: Config = downcast(this._buildConfig["defaultDesktopConfig"])

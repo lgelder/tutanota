@@ -1,5 +1,5 @@
 // @flow
-import {log} from "../DesktopUtils"
+import {log} from "../DesktopLog"
 
 import type {WindowManager} from "../DesktopWindowManager"
 
