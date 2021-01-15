@@ -3,10 +3,27 @@ import {app, BrowserWindow} from "electron"
 import isAccelerator from "./IsAccelerator"
 import equals from "./KeyboardEventsAreEqual"
 import {toKeyEvent} from "./KeyboardeventFromElectronAccelerator"
-import type {WebContents} from "electron"
 
 const DEBUG = false
 const debug: (...any) => void = DEBUG ? console.log.bind(console) : () => {}
+
+export class LocalShortcutManager {
+	enableAll(win: BrowserWindow): void {
+		enableAll(win)
+	}
+
+	disableAll(win: BrowserWindow): void {
+		disableAll(win)
+	}
+
+	register(win: BrowserWindow, accelerator: Accelerator, callback: () => ?boolean): void {
+		register(win, accelerator, callback)
+	}
+
+	unregisterAll(win: BrowserWindow): void {
+		unregisterAll(win)
+	}
+}
 
 // A placeholder to register shortcuts
 // on any window of the app.

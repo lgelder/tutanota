@@ -27,17 +27,18 @@ import {KeytarSecretStorage} from "./sse/SecretStorage"
 import desktopUtils from "./DesktopUtils"
 import fs from "fs"
 import {integrator} from "./integration/DesktopIntegrator"
+import net from "net"
 
 mp()
 
 lang.init(en)
 const conf = new DesktopConfig(app)
-const net = new DesktopNetworkClient()
+const desktopNet = new DesktopNetworkClient()
 const crypto = new DesktopCryptoFacade()
-const sock = new Socketeer()
+const sock = new Socketeer(net, app)
 const tray = new DesktopTray(conf)
 const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
-const dl = new DesktopDownloadManager(conf, net, desktopUtils, fs, electron)
+const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, fs, electron)
 const alarmStorage = new DesktopAlarmStorage(conf, crypto, new KeytarSecretStorage())
 alarmStorage.init()
             .then(() => {
@@ -52,7 +53,7 @@ const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, cry
 alarmScheduler.rescheduleAll()
 
 tray.setWindowManager(wm)
-const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, crypto, alarmStorage, lang)
+const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, crypto, alarmStorage, lang)
 const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater, electron, desktopUtils, err, integrator)
 wm.setIPC(ipc)
 
