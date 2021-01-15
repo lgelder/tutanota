@@ -92,10 +92,10 @@ export class MultiMailViewer {
 				isVisible: () => prependCancel
 			},
 			{
-				label: () => "Drag and drop export",
+				label: "dragAndDropExport_action",
 				click: () => Promise.mapSeries(selectedEntities(), makeMailBundle).then(fileApp.mailBundleExport),
-				icon: () => Icons.Archive,
-				isVisible: isDesktop
+				icon: () => Icons.Open,
+				isVisible: () => isDesktop() /* && env.platformId === "win32" */ // TODO disable before release
 			},
 			attachDropdown({
 				label: "move_action",

@@ -247,7 +247,9 @@ export class IPC {
 				const bundle = args[0]
 				return Promise.map(bundle, DesktopUtils.makeMsgFile)
 				              .then(DesktopUtils.writeFilesToTmp)
-				              .then(shell.openPath)
+					// TODO: Are we able to select the files aswell?
+					// it's possible to do so with shell.showFileInFolder but that only works for one file
+					          .then(shell.openPath)
 			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))

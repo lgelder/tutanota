@@ -545,13 +545,7 @@ export class MailViewer {
 				colors
 			}))
 		} else {
-			if (isDesktop()) {
-				actions.push(m(ButtonN, {
-					label: () => "Drag and drop export",
-					click: () => makeMailBundle(mail).then(bundle => fileApp.mailBundleExport([bundle])),
-					icon: () => Icons.Archive,
-				}))
-			}
+
 			if (!this._isAnnouncement()) {
 				actions.push(m(ButtonN, {
 					label: "reply_action",
@@ -613,7 +607,13 @@ export class MailViewer {
 			icon: () => Icons.Trash,
 			colors,
 		}))
-
+		if (isDesktop() /* && env.platformId === "win32" */) { // TODO Switch properly before release
+			actions.push(m(ButtonN, {
+				label: "dragAndDropExport_action",
+				click: () => makeMailBundle(mail).then(bundle => fileApp.mailBundleExport([bundle])),
+				icon: () => Icons.Open,
+			}))
+		}
 		if (mail.state !== MailState.DRAFT) {
 			actions.push(m(ButtonN, {
 				label: "more_label",

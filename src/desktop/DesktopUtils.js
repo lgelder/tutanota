@@ -161,8 +161,9 @@ export class DesktopUtils {
 
 	static makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
 		const email = new Email(bundle.isDraft, bundle.isRead)
-			.subject(bundle.subject)
-			.bodyText(bundle.body)
+			.subject(`[Tutanota] ${bundle.subject}`)
+			.bodyHtml(bundle.body)
+			.bodyFormat(MessageEditorFormat.EDITOR_FORMAT_HTML)
 			.sender(bundle.sender.address, bundle.sender.name)
 			.tos(bundle.to)
 			.ccs(bundle.cc)
