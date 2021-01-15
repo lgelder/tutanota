@@ -139,26 +139,44 @@ export class DesktopUtils {
 	}
 
 	/**
-	 * Writes files to tmp and deletes them after 3 seconds
+	 * Writes files to a new dir in tmp
 	 * @param files Array of named content to write to tmp
-	 * @returns {Array<string>} Array of the resulting paths.
-	 */
-	static writeFilesToTmp(files: Array<{name: string, content: string}>): Promise<Array<string>> {
+	 * @returns {string} path to the directory in which the files were written
+	 * */
+	static writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
 		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
-		const dirPromise = fs.mkdirp(dirPath)
 		const legalNames = DesktopUtils.legalizeFilenames(files.map(f => f.name))
 		const legalFiles = files.map(f => ({
-			content: base64ToUint8Array(f.content),
+			content: f.content,
 			name: legalNames[f.name].shift()
 		}))
-		const writePromise = () => Promise.map(legalFiles, f => {
-			const p = path.join(dirPath, f.name)
-			return fs.writeFile(p, f.content)
-			         .then(() => setTimeout(() => fs.remove(dirPath), 3000))
-			         .then(() => p)
-		})
 
-		return dirPromise.then(writePromise)
+		return fs.mkdirp(dirPath)
+		         .then(() => Promise.map(legalFiles, f => fs.writeFile(path.join(dirPath, f.name), f.content)))
+		         .then(() => dirPath)
+	}
+
+	static makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
+		const email = new Email(bundle.isDraft, bundle.isRead)
+			.subject(bundle.subject)
+			.bodyText(bundle.body)
+			.sender(bundle.sender.address, bundle.sender.name)
+			.tos(bundle.to)
+			.ccs(bundle.cc)
+			.bccs(bundle.bcc)
+			.replyTos(bundle.replyTo)
+			.sentOn(new Date(bundle.sentOn))
+			.receivedOn(new Date(bundle.receivedOn))
+
+
+		//TODO: Include headers
+
+		return Promise.each(bundle.attachments, attachment => {
+			return fs.readFile(getTempDirectoryPath(attachment.name)).then((data: Buffer) => {
+				// TODO We could use ATTACH_BY_REF_ONLY but apparently that needs to be implemented still, see oxmsg::attachment.js
+				email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
+			})
+		}).then(() => ({name: bundle.subject, content: email.msg()}))
 	}
 }
 

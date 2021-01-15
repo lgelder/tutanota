@@ -2,7 +2,7 @@
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import type {MsgParams} from "../desktop/DesktopUtils"
+import type {MailBundle} from "../mail/MailUtils"
 
 
 export const fileApp = {
@@ -15,8 +15,8 @@ export const fileApp = {
 	clearFileData,
 	readFile,
 	saveBlob,
-	makeMsgFile,
-	dragExport
+	dragExport,
+	mailBundleExport
 }
 
 
@@ -131,10 +131,11 @@ export function uriToFileRef(uri: string): Promise<FileReference> {
 	}))
 }
 
-function makeMsgFile(params: MsgParams): Promise<Base64> {
-	return nativeApp.invokeNative(new Request('makeMsgFile', [params]))
-}
-
 function dragExport(files: Array<{name: string, content: Base64}>): Promise<void> {
 	return nativeApp.invokeNative(new Request('dragExport', files))
+}
+
+function mailBundleExport(bundles: MailBundle[]): Promise<void> {
+	return nativeApp.invokeNative(new Request("mailBundleExport", [bundles]))
+
 }

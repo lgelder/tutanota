@@ -65,6 +65,7 @@ import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperti
 import {worker} from "../api/main/WorkerClient"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {moveMails} from "./MailGuiUtils"
+import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 
 assertMainOrNode()
 
@@ -605,22 +606,56 @@ export function exportMails(mails: Mail[]): Promise<void> {
 		.then(zip => fileController.open(zip))
 }
 
-export type MailContents = {mail: Mail, body: string, attachments: FileReference[]}
+
+/**
+ * Used to pass all downloaded mail stuff to the desktop side to be exported as MSG
+ * Ideally this would just be {Mail, MailHeaders, MailBody, FileReference[]}
+ * but we can't send Dates over to the native side so we may as well just extract everything here
+ */
+type MailBundleRecipient = {address: string, name?: string}
+export type MailBundle = {
+	subject: string,
+	body: string,
+	sender: MailBundleRecipient,
+	to: MailBundleRecipient[],
+	cc: MailBundleRecipient[],
+	bcc: MailBundleRecipient[],
+	replyTo: MailBundleRecipient[],
+	isDraft: boolean,
+	isRead: boolean,
+	sentOn: number, // UNIX timestamp
+	receivedOn: number, // UNIX timestamp,
+	headers: ?string,
+	attachments: FileReference[]
+}
 
 /**
  * Downloads the mail body and the attachments for an email, to prepare for exporting
  * @param mail
  * @returns {Promise<*>}
  */
-export function collectMailContents(mail: Mail): Promise<MailContents> {
+export function makeMailBundle(mail: Mail): Promise<MailBundle> {
 	const mailBodyPromise = locator.entityClient.load(MailBodyTypeRef, mail.body)
 	const attachmentsPromise = Promise.mapSeries(mail.attachments,
 		fileId => locator.entityClient.load(FileTypeRef, fileId).then(worker.downloadFileContentNative.bind(worker)))
-
-	return Promise.all([mailBodyPromise, attachmentsPromise])
-	              .spread((mailBody, attachments) => ({
-		              mail: mail,
-		              body: mailBody.text || "",
+	const headersPromise = mail.headers
+		? locator.entityClient.load(MailHeadersTypeRef, mail.headers)
+		: Promise.resolve(null)
+	const recipientMapper = addr => ({address: addr.address, name: addr.name})
+	return Promise.all([mailBodyPromise, attachmentsPromise, headersPromise])
+	              .spread((mailBody, attachments, headers) => ({
+		              subject: mail.subject,
+		              body: mailBody.text,
+		              sender: recipientMapper(mail.sender),
+		              to: mail.toRecipients.map(recipientMapper),
+		              cc: mail.ccRecipients.map(recipientMapper),
+		              bcc: mail.bccRecipients.map(recipientMapper),
+		              replyTo: mail.replyTos.map(recipientMapper),
+		              isDraft: mail.state !== MailState.DRAFT,
+		              isRead: !mail.unread,
+		              sentOn: mail.sentDate.getTime(),
+		              receivedOn: mail.receivedDate.getTime(),
+		              headers: headers && headers.headers,
 		              attachments: attachments
 	              }))
 }

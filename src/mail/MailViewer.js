@@ -61,7 +61,7 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	showDeleteConfirmationDialog, collectMailContents
+	showDeleteConfirmationDialog, makeMailBundle
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
@@ -127,6 +127,7 @@ import {getFolder, MailModel} from "./MailModel"
 import type {ContactModel} from "../contacts/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../api/common/utils/EntityUtils"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {fileApp} from "../native/FileApp"
 
 assertMainOrNode()
 
@@ -544,6 +545,13 @@ export class MailViewer {
 				colors
 			}))
 		} else {
+			if (isDesktop()) {
+				actions.push(m(ButtonN, {
+					label: () => "Drag and drop export",
+					click: () => makeMailBundle(mail).then(bundle => fileApp.mailBundleExport([bundle])),
+					icon: () => Icons.Archive,
+				}))
+			}
 			if (!this._isAnnouncement()) {
 				actions.push(m(ButtonN, {
 					label: "reply_action",
@@ -670,14 +678,7 @@ export class MailViewer {
 							type: ButtonType.Dropdown
 						})
 					}
-					if (isDesktop()) {
-						moreButtons.push({
-							label: () => "Drag and drop export",
-							click: () => showDragAndDropDialog([this.mail]),
-							icon: () => Icons.Archive,
-							type: ButtonType.Dropdown
-						})
-					}
+
 					return moreButtons
 				}, /*width=*/300)
 			}))
@@ -1551,43 +1552,3 @@ export class MailViewer {
 		this._lastBodyTouchEndTime = now
 	}
 }
-
-export function showDragAndDropDialog(mails: Mail[]) {
-
-	Promise.mapSeries(mails, collectMailContents).then(contents => {
-		let dialog
-		let props = {
-			title: "export drag and drop",
-			child: () => m(".pt-xl.pb-xl.text-center", m(MailContentsDragger, {
-				contents: contents
-			})),
-			okAction: () => dialog.close(),
-			okActionTextId: "close_alt",
-			allowCancel: false
-		}
-
-		dialog = Dialog.showActionDialog(props).addShortcut({
-			key: Keys.ESC,
-			exec: () => dialog.close(),
-			help: "close_alt"
-		})
-	})
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

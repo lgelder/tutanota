@@ -46,28 +46,6 @@ export function selectMsgFiles(): void {
 	})
 }
 
-export function makeMsgFile(mail: Mail, body: string, attachments: Array<FileReference>): Promise<Base64> {
-	return fileApp.makeMsgFile(makeMsgParams(mail, body, attachments))
-}
-
-function makeMsgParams(mail: Mail, body: string, attachments: Array<FileReference>): MsgParams {
-	const mailAddressToMsgRecipient = addr => ({address: addr.address, name: addr.name})
-	return {
-		subject: mail.subject,
-		body: body,
-		sender: mailAddressToMsgRecipient(mail.sender),
-		tos: mail.toRecipients.map(mailAddressToMsgRecipient),
-		ccs: mail.ccRecipients.map(mailAddressToMsgRecipient),
-		bccs: mail.bccRecipients.map(mailAddressToMsgRecipient),
-		replyTos: mail.replyTos.map(mailAddressToMsgRecipient),
-		attachments: attachments,
-		sentOn: mail.sentDate.getTime(),
-		receivedOn: mail.receivedDate.getTime(),
-		isDraft: mail.state === MailState.DRAFT,
-		isRead: !mail.unread
-	}
-}
-
 /**
  * Converts a mail into the plain text EML format.
  */

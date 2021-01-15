@@ -14,7 +14,6 @@ import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {makeMsgFile} from "./DesktopUtils"
 import type {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopConfigKey} from "./config/ConfigKeys";
 import {log} from "./DesktopLog";
@@ -244,8 +243,11 @@ export class IPC {
 				}
 				return Promise.resolve()
 			}
-			case 'makeMsgFile': {
-				return makeMsgFile(...args).then(uint8ArrayToBase64)
+			case 'mailBundleExport': {
+				const bundle = args[0]
+				return Promise.map(bundle, DesktopUtils.makeMsgFile)
+				              .then(DesktopUtils.writeFilesToTmp)
+				              .then(shell.openPath)
 			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))

@@ -201,7 +201,6 @@ type NativeRequestType = 'init'
 	| 'sendGroupInvitation'
 	| 'calendarInvitationProgress_msg'
 	| 'shareGroup'
-	| 'sendGroupInvitation'
 	| 'integrateDesktop'
 	| 'unIntegrateDesktop'
 	| 'unscheduleAlarms'
@@ -211,7 +210,7 @@ type NativeRequestType = 'init'
 	| 'isUpdateAvailable' // check if update is ready to install
 	| 'manualUpdate' // progress update process (check, dl, install)
 	| 'dragExport'
-	| 'makeMsgFile'
+	| 'mailBundleExport'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

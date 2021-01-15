@@ -14,13 +14,6 @@ import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
-import type {Mail} from "../api/entities/tutanota/Mail"
-import {nativeApp} from "../native/NativeWrapper"
-import {Request} from "../api/common/WorkerProtocol"
-import type {MsgParams} from "../desktop/DesktopUtils"
-import {MailState} from "../api/common/TutanotaConstants"
-import {makeMsgFile} from "../mail/Exporter"
-import type {MailContents} from "../mail/MailUtils"
 
 assertMainOrNode()
 
@@ -271,21 +264,6 @@ export class FileController {
 			})
 			return zip.generateAsync({type: 'uint8array'})
 		}).then(zf => convertToDataFile(file, zf))
-	}
-
-	/**
-	 * Export a list of entities mails to eml files
-	 */
-	dragExportMails(mode: MailExportMode, mails: MailContents[],): void {
-		if (mails.length > 0) {
-			Promise.map(mails, mail =>
-				makeMsgFile(mail.mail, mail.body, mail.attachments || [])
-					.then(data => ({
-						name: mail.mail.subject + ".msg",
-						content: data
-					})))
-			       .then(fileApp.dragExport)
-		}
 	}
 }
 

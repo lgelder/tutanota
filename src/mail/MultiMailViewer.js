@@ -10,7 +10,7 @@ import {
 	getFolderIcon,
 	getFolderName,
 	getSortedCustomFolders,
-	getSortedSystemFolders,
+	getSortedSystemFolders, makeMailBundle,
 	markMails,
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
@@ -23,10 +23,10 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {locator} from "../api/main/MainLocator"
 import type {PosRect} from "../gui/base/Dropdown"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
-import {showDragAndDropDialog} from "./MailViewer"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {ActionBarN} from "../gui/base/ActionBarN"
+import {fileApp} from "../native/FileApp"
 
 assertMainOrNode()
 
@@ -82,12 +82,19 @@ export class MultiMailViewer {
 	}
 
 	getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
+		const selectedEntities = () => this._mailView.mailList.list.getSelectedEntities()
 		return [
 			{
 				label: "cancel_action",
 				click: () => this._mailView.mailList.list.selectNone(),
 				icon: () => Icons.Cancel,
 				isVisible: () => prependCancel
+			},
+			{
+				label: () => "Drag and drop export",
+				click: () => Promise.mapSeries(selectedEntities(), makeMailBundle).then(fileApp.mailBundleExport),
+				icon: () => Icons.Archive,
+				isVisible: isDesktop
 			},
 			attachDropdown({
 				label: "move_action",
@@ -96,17 +103,12 @@ export class MultiMailViewer {
 			{
 				label: "delete_action",
 				click: () => {
-					let mails = this._mailView.mailList.list.getSelectedEntities()
+					let mails = selectedEntities()
 					promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
 				},
 				icon: () => Icons.Trash
 			},
-			{
-				label: () => "Drag and drop export",
-				click: () => showDragAndDropDialog(this._mailView.mailList.list.getSelectedEntities()),
-				icon: () => Icons.Archive,
-				isVisible: isDesktop
-			},
+
 			attachDropdown({
 				label: "more_label",
 				icon: () => Icons.More

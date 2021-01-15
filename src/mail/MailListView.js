@@ -13,7 +13,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode, isDesktop} from "../api/Env"
 import {
-	collectMailContents,
+	makeMailBundle,
 	getArchiveFolder,
 	getFolderName,
 	getSenderOrRecipientHeading,
@@ -80,22 +80,6 @@ export class MailListView implements Component {
 			createVirtualRow: () => new MailRow(false),
 			showStatus: false,
 			className: className,
-			dragStart: (ev, virtualRow, mails) => {
-				console.log("dragstart", ev.altKey, isDesktop())
-				// alt + drag on desktop will attempt to export the mails to the OS.
-				if (ev.altKey && isDesktop()) {
-					// interpret as an export drag to the file system
-					ev.preventDefault()
-					console.log("start drag")
-
-					// TODO We probably want to have the bodies and the attachments ready before now
-					// because otherwise the user will have to keep holding down their mouse to wait for them
-					// all to download, which is not ideal
-					Promise.mapSeries(mails, collectMailContents).then(toExport => fileController.dragExportMails("msg", toExport))
-					return true
-				}
-				return false
-			},
 			swipe: ({
 				renderLeftSpacer: () => !logins.isInternalUserLoggedIn() ? [] : [
 					m(Icon, {icon: Icons.Folder}),
