@@ -26,8 +26,9 @@ import {ElectronNotificationFactory} from "./NotificatonFactory"
 import {KeytarSecretStorage} from "./sse/SecretStorage"
 import desktopUtils from "./DesktopUtils"
 import fs from "fs"
-import {integrator} from "./integration/DesktopIntegrator"
+import {DesktopIntegrator} from "./integration/DesktopIntegrator"
 import net from "net"
+import child_process from "child_process"
 
 mp()
 
@@ -54,6 +55,7 @@ alarmScheduler.rescheduleAll()
 
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, crypto, alarmStorage, lang)
+const integrator = new DesktopIntegrator(electron, fs, child_process)
 const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater, electron, desktopUtils, err, integrator)
 wm.setIPC(ipc)
 
