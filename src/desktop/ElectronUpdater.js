@@ -3,12 +3,9 @@ import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
 import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfig} from './config/DesktopConfig'
-import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
-import {UpdateError} from "../api/common/error/UpdateError"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import type {DesktopTray} from "./tray/DesktopTray"
-import path from 'path'
 import {Mode} from "../api/Env"
-import fs from "fs"
 import {log} from "./DesktopLog";
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {App} from "electron"

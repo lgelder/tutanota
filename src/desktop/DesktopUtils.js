@@ -9,25 +9,8 @@ import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {noOp} from "../api/common/utils/Utils"
 import {log} from "./DesktopLog"
 
-export default class DesktopUtils {
-	static looksExecutable(file: string): boolean {
-		// only windows will happily execute a just downloaded program
-		if (process.platform === 'win32') {
-			// taken from https://www.lifewire.com/list-of-executable-file-extensions-2626061
-			const ext = path.extname(file).toLowerCase().slice(1)
-			return [
-				'exe', 'bat', 'bin', 'cmd', 'com', 'cpl', 'gadget',
-				'inf', 'inx', 'ins', 'isu', 'job', 'jse', 'lnk', 'msc',
-				'msi', 'msp', 'mst', 'paf', 'pif', 'ps1', 'reg', 'rgs',
-				'scr', 'sct', 'shb', 'sct', 'shs', 'u3p', 'vb', 'vbe',
-				'vbs', 'vbscript', 'ws', 'wsf', 'wsh'
-			].includes(ext)
-		}
-
-		return false
-	}
-
-	static checkIsMailtoHandler(): Promise<boolean> {
+export class DesktopUtils {
+	checkIsMailtoHandler(): Promise<boolean> {
 		return Promise.resolve(app.isDefaultProtocolClient("mailto"))
 	}
 
@@ -35,11 +18,11 @@ export default class DesktopUtils {
 	 * open and close a file to make sure it exists
 	 * @param path: the file to touch
 	 */
-	static touch(path: string): void {
+	touch(path: string): void {
 		closeSync(openSync(path, 'a'))
 	}
 
-	static registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
+	registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
 		log.debug("trying to register...")
 		switch (process.platform) {
 			case "win32":
@@ -64,7 +47,7 @@ export default class DesktopUtils {
 		}
 	}
 
-	static unregisterAsMailtoHandler(tryToElevate: boolean): Promise<void> {
+	unregisterAsMailtoHandler(tryToElevate: boolean): Promise<void> {
 		log.debug("trying to unregister...")
 		switch (process.platform) {
 			case "win32":
@@ -93,7 +76,7 @@ export default class DesktopUtils {
 	 * reads the lockfile and then writes the own version into the lockfile
 	 * @returns {Promise<boolean>} whether the lock was overridden by another version
 	 */
-	static singleInstanceLockOverridden(): Promise<boolean> {
+	singleInstanceLockOverridden(): Promise<boolean> {
 		const lockfilePath = getLockFilePath()
 		return fs.readFile(lockfilePath, 'utf8')
 		         .then(version => {
@@ -114,7 +97,7 @@ export default class DesktopUtils {
 	 *
 	 * @returns {Promise<boolean>} whether the app was successful in getting the lock
 	 */
-	static makeSingleInstance(): Promise<boolean> {
+	makeSingleInstance(): Promise<boolean> {
 		const lockfilePath = getLockFilePath()
 		// first, put down a file in temp that contains our version.
 		// will overwrite if it already exists.
@@ -128,7 +111,7 @@ export default class DesktopUtils {
 			         return app.requestSingleInstanceLock()
 				         ? Promise.resolve(true)
 				         : delay(1500)
-					         .then(() => DesktopUtils.singleInstanceLockOverridden())
+					         .then(() => this.singleInstanceLockOverridden())
 					         .then(canStay => {
 						         if (canStay) {
 							         app.requestSingleInstanceLock()
@@ -145,7 +128,7 @@ export default class DesktopUtils {
 	 * registers it as an event listener otherwise
 	 * @param callback listener to call
 	 */
-	static callWhenReady(callback: ()=>void): void {
+	callWhenReady(callback: ()=>void): void {
 		if (app.isReady()) {
 			callback()
 		} else {
@@ -153,6 +136,10 @@ export default class DesktopUtils {
 		}
 	}
 }
+
+
+const singleton: DesktopUtils = new DesktopUtils()
+export default singleton
 
 /**
  * Checks if the user has admin privileges

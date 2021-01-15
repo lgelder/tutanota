@@ -63,10 +63,8 @@ function resolveTestLibsPlugin() {
 				case "express":
 				case "server-destroy":
 				case "body-parser":
-				case "electron":
 				case "mockery":
 				case "path":
-				case "fs":
 				case "url":
 				case "util":
 				case "node-forge":
@@ -74,17 +72,27 @@ function resolveTestLibsPlugin() {
 				case "electron-updater":
 				case "child_process":
 				case "querystring":
+				case "events":
+				case "fs":
+				case "electron":
 					return false
 				// case "electron":
 				// 	// As we use classes which import parts of electron a lot, we make an electron stub
 				// 	return "\0electron-mock"
+				// case "fs":
+				// case "electron":
+				// 	return `\0mocks/${source}`
 			}
 		},
-		// load(id) {
-		// 	if (id === "\0electron-mock") {
-		// 		return "export const app  = globalThis.electronMock.app"
-		// 	}
-		// },
+		load(id) {
+			if (id.startsWith("\0mocks/")) {
+				const realId = id.substring(7)
+				return `
+const ns = {}
+globalThis.mocks["${realId}"] = ns
+export default ns`
+			}
+		},
 	}
 }
 

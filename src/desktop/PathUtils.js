@@ -73,3 +73,20 @@ function _isReservedFilename(filename: string): boolean {
 
 	return (process.platform === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
+
+export function looksExecutable(file: string): boolean {
+	// only windows will happily execute a just downloaded program
+	if (process.platform === 'win32') {
+		// taken from https://www.lifewire.com/list-of-executable-file-extensions-2626061
+		const ext = path.extname(file).toLowerCase().slice(1)
+		return [
+			'exe', 'bat', 'bin', 'cmd', 'com', 'cpl', 'gadget',
+			'inf', 'inx', 'ins', 'isu', 'job', 'jse', 'lnk', 'msc',
+			'msi', 'msp', 'mst', 'paf', 'pif', 'ps1', 'reg', 'rgs',
+			'scr', 'sct', 'shb', 'sct', 'shs', 'u3p', 'vb', 'vbe',
+			'vbs', 'vbscript', 'ws', 'wsf', 'wsh'
+		].includes(ext)
+	}
+
+	return false
+}

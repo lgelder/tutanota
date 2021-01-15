@@ -9,6 +9,7 @@ Promise.config({
 })
 
 globalThis.isBrowser = typeof window !== "undefined"
+globalThis.mocks = {}
 
 ;(async function () {
 	const noOp = () => {}

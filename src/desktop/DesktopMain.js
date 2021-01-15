@@ -2,6 +2,7 @@
 import {mp} from './DesktopMonkeyPatch.js'
 import {err} from './DesktopErrorHandler.js'
 import {DesktopConfig} from './config/DesktopConfig'
+import * as electron from 'electron'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {IPC} from './IPC.js'
@@ -24,6 +25,8 @@ import {log} from "./DesktopLog";
 import {UpdaterWrapperImpl} from "./UpdaterWrapper"
 import {ElectronNotificationFactory} from "./NotificatonFactory"
 import {KeytarSecretStorage} from "./sse/SecretStorage"
+import desktopUtils from "./DesktopUtils"
+import fs from "fs"
 
 mp()
 
@@ -34,7 +37,7 @@ const crypto = new DesktopCryptoFacade()
 const sock = new Socketeer()
 const tray = new DesktopTray(conf)
 const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
-const dl = new DesktopDownloadManager(conf, net)
+const dl = new DesktopDownloadManager(conf, net, desktopUtils, fs, electron)
 const alarmStorage = new DesktopAlarmStorage(conf, crypto, new KeytarSecretStorage())
 alarmStorage.init()
             .then(() => {
