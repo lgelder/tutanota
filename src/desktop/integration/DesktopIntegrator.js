@@ -27,37 +27,41 @@ switch (process.platform) {
 		throw new Error('Invalid Platform')
 }
 
-export async function enableAutoLaunch(): Promise<void> {
-	return (await platformIntegrator).enableAutoLaunch().catch(e => {
-		log.debug("could not enable auto launch:", e)
-	})
+export class DesktopIntegrator {
+	async enableAutoLaunch(): Promise<void> {
+		return (await platformIntegrator).enableAutoLaunch().catch(e => {
+			log.debug("could not enable auto launch:", e)
+		})
+	}
+
+	async disableAutoLaunch(): Promise<void> {
+		return (await platformIntegrator).disableAutoLaunch().catch(e => {
+			log.debug("could not disable auto launch:", e)
+		})
+	}
+
+	async isAutoLaunchEnabled(): Promise<boolean> {
+		return (await platformIntegrator).isAutoLaunchEnabled().catch(e => {
+			console.error("could not check auto launch status:", e)
+			return false
+		})
+	}
+
+	async runIntegration(wm: WindowManager): Promise<void> {
+		return (await platformIntegrator).runIntegration(wm)
+	}
+
+	async isIntegrated(): Promise<boolean> {
+		return (await platformIntegrator).isIntegrated()
+	}
+
+	async integrate(): Promise<void> {
+		return (await platformIntegrator).integrate()
+	}
+
+	async unintegrate(): Promise<void> {
+		return (await platformIntegrator).unintegrate()
+	}
 }
 
-export async function disableAutoLaunch(): Promise<void> {
-	return (await platformIntegrator).disableAutoLaunch().catch(e => {
-		log.debug("could not disable auto launch:", e)
-	})
-}
-
-export async function isAutoLaunchEnabled(): Promise<boolean> {
-	return (await platformIntegrator).isAutoLaunchEnabled().catch(e => {
-		console.error("could not check auto launch status:", e)
-		return false
-	})
-}
-
-export async function runIntegration(wm: WindowManager): Promise<void> {
-	return (await platformIntegrator).runIntegration(wm)
-}
-
-export async function isIntegrated(): Promise<boolean> {
-	return (await platformIntegrator).isIntegrated()
-}
-
-export async function integrate(): Promise<void> {
-	return (await platformIntegrator).integrate()
-}
-
-export async function unintegrate(): Promise<void> {
-	return (await platformIntegrator).unintegrate()
-}
+export const integrator: DesktopIntegrator = new DesktopIntegrator()

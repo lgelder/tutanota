@@ -75,6 +75,7 @@ function resolveTestLibsPlugin() {
 				case "events":
 				case "fs":
 				case "electron":
+				case "winreg":
 					return false
 				// case "electron":
 				// 	// As we use classes which import parts of electron a lot, we make an electron stub

@@ -17,7 +17,7 @@ type ErrorLog = {|
 	version: string
 |}
 
-class DesktopErrorHandler {
+export class DesktopErrorHandler {
 	_wm: WindowManager
 	_ipc: IPC
 	_errorLogPath: string;

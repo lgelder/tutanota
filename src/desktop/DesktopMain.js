@@ -13,7 +13,6 @@ import {DesktopSseClient} from "./sse/DesktopSseClient"
 import {Socketeer} from "./Socketeer"
 import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
-import {runIntegration} from "./integration/DesktopIntegrator"
 import {lang} from "../misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../translations/en"
@@ -27,6 +26,7 @@ import {ElectronNotificationFactory} from "./NotificatonFactory"
 import {KeytarSecretStorage} from "./sse/SecretStorage"
 import desktopUtils from "./DesktopUtils"
 import fs from "fs"
+import {integrator} from "./integration/DesktopIntegrator"
 
 mp()
 
@@ -53,7 +53,7 @@ alarmScheduler.rescheduleAll()
 
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, crypto, alarmStorage, lang)
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater, electron, desktopUtils, err, integrator)
 wm.setIPC(ipc)
 
 app.setAppUserModelId(conf.getConst("appUserModelId"))
@@ -140,7 +140,7 @@ function main() {
 	})
 	notifier.start(2000)
 	updater.start()
-	runIntegration(wm)
+	integrator.runIntegration(wm)
 	handleArgv(process.argv)
 }
 
