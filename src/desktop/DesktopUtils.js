@@ -143,6 +143,9 @@ export class DesktopUtils {
 	 * @param files Array of named content to write to tmp
 	 * @returns {string} path to the directory in which the files were written
 	 * */
+	// TODO The files are no longer being deleted, as we need them to persist in order for the user to be able to presented them
+	// in their file explorer of choice. Do we need to set up some hook to delete it all later? or should we just count on the OS
+	// to do it's thing
 	static writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
 		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
 		const legalNames = DesktopUtils.legalizeFilenames(files.map(f => f.name))
@@ -167,9 +170,7 @@ export class DesktopUtils {
 			.replyTos(bundle.replyTo)
 			.sentOn(new Date(bundle.sentOn))
 			.receivedOn(new Date(bundle.receivedOn))
-
-
-		//TODO: Include headers
+			.headers(bundle.headers || "")
 
 		return Promise.each(bundle.attachments, attachment => {
 			return fs.readFile(getTempDirectoryPath(attachment.name)).then((data: Buffer) => {
