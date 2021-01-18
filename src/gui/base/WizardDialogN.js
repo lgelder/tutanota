@@ -68,6 +68,7 @@ class WizardDialogN<T> implements MComponent<WizardDialogAttrs<T>> {
 			vnode.attrs.closeAction()
 		}
 		this._showNextWizardDialogPageListener = (e: Event) => {
+			console.log("event caught", e)
 			e.stopPropagation()
 			if (vnode.attrs.currentPage) {
 				vnode.attrs.currentPage.attrs.nextAction(true).then((ready) => {

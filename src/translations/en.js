@@ -892,7 +892,6 @@ module.exports = {
 		"pricing.comparisonCalendarInvites_msg": "Calendar invites",
 		"pricing.comparisonContactFormPro_msg": "Contact forms ({price})",
 		"pricing.comparisonDomainFree_msg": "Tutanota domains only",
-		"pricing.comparisonDomainPremium_msg": "Custom domains",
 		"pricing.comparisonInboxRulesPremium_msg": "Inbox rules",
 		"pricing.comparisonLoginPro_msg": "Custom domain login",
 		"pricing.comparisonMultipleCalendars_msg": "Multiple calendars",
@@ -1281,6 +1280,10 @@ module.exports = {
 		"businessDeletionWarning_msg": "Business features (out of office notification, event invitations) of all users will be deactivated when you disable the business feature. You may only have one custom email domain when deactivating the business feature.",
 		"businessFeature_label": "Business",
 		"cancelBusinessBooking_label": "Cancel business feature for {1} users",
-		"businessBooking_label": "Business feature for {1} users"
+		"businessBooking_label": "Business feature for {1} users",
+		"pricing.comparisonDomainBusiness_msg": "Multiple custom domains",
+		"pricing.comparisonOutOfOffice_msg": "Out of office notifications",
+// TODO changed
+		"pricing.comparisonDomainPremium_msg": "1 custom domain"
 	}
 }

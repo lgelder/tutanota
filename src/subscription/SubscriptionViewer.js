@@ -384,7 +384,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () => (getCurrentCount(BookingItemFeatureType.Business, this._lastBooking) === 0)
 						? m(ButtonN, enableBusinessActionAttrs)
-						: m(ButtonN, disableBusinessActionAttrs)
+						// business feature cannot be canceled for business customers
+						: (!this._accountingInfo || !this._accountingInfo.business) ? m(ButtonN, disableBusinessActionAttrs) : null
 					,
 				}),
 				m(TextFieldN, {

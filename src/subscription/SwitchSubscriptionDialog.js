@@ -20,8 +20,17 @@ import {worker} from "../api/main/WorkerClient"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {buyAliases, buyBusiness, buySharing, buyStorage, buyWhitelabel, subscriptions, SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionPlanPrices, SubscriptionTypeEnum} from "./SubscriptionUtils"
+import {
+	buyAliases,
+	buyBusiness,
+	buySharing,
+	buyStorage,
+	buyWhitelabel,
+	addsMoreFeatures,
+	subscriptions,
+	SubscriptionType
+} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {createPlanPrices} from "../api/entities/sys/PlanPrices"
 import {neverNull} from "../api/common/utils/Utils"
@@ -29,6 +38,7 @@ import {getPriceFromPriceData, getPriceItem} from "./PriceUtils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
+import type {SubscriptionActionButtons} from "./SubscriptionSelector"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -50,7 +60,6 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 			const cancelAction = () => {
 				dialog.close()
 			}
-
 			const headerBarAttrs: DialogHeaderBarAttrs = {
 				left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
 				right: [],
@@ -65,95 +74,68 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 					boxHeight: 230,
 					currentlyActive: currentSubscription,
 					currentlySharingOrdered: currentlySharingOrdered,
+					currentlyBusinessOrdered: currentlyBusinessOrdered,
 					currentlyWhitelabelOrdered: currentlyWhitelabelOrdered,
 					isInitialUpgrade: false,
-					premiumPrices: prices.premiumPrices,
-					premiumBusinessPrices: prices.premiumBusinessPrices,
-					teamsPrices: prices.teamsPrices,
-					teamsBusinessPrices: prices.teamsBusinessPrices,
-					proPrices: prices.proPrices,
-					freeActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => cancelSubscription(dialog,
-									currentTotalAliases,
-									currentTotalStorage,
-									includedAliases,
-									includedStorage,
-									currentlySharingOrdered,
-									currentlyBusinessOrdered,
-									currentlyWhitelabelOrdered),
-								type: ButtonType.Login,
-							})
-						}
-					},
-					premiumActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.Premium, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					premiumBusinessActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.PremiumBusiness, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					teamsActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.Teams, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					teamsBusinessActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.TeamsBusiness, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					},
-					proActionButton: {
-						view: () => {
-							return m(ButtonN, {
-								label: "pricing.select_action",
-								click: () => {
-									switchSubscription(SubscriptionType.Pro, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
-								},
-								type: ButtonType.Login,
-							})
-						}
-					}
+					planPrices: prices,
+					actionButtons: subscriptionActionButtons
 				}))
 			}).addShortcut({
 				key: Keys.ESC,
 				exec: cancelAction,
 				help: "close_alt"
 			}).setCloseHandler(cancelAction)
-			                     .show()
+			const subscriptionActionButtons: SubscriptionActionButtons = {
+				Free: {
+					view: () => {
+						return m(ButtonN, {
+							label: "pricing.select_action",
+							click: () => cancelSubscription(dialog,
+								currentTotalAliases,
+								currentTotalStorage,
+								includedAliases,
+								includedStorage,
+								currentlySharingOrdered,
+								currentlyBusinessOrdered,
+								currentlyWhitelabelOrdered),
+							type: ButtonType.Login,
+						})
+					}
+				},
+				Premium: createSubscriptionPlanButton(SubscriptionType.Premium, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered),
+				PremiumBusiness: createSubscriptionPlanButton(SubscriptionType.PremiumBusiness, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered),
+				Teams: createSubscriptionPlanButton(SubscriptionType.Teams, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered),
+				TeamsBusiness: createSubscriptionPlanButton(SubscriptionType.TeamsBusiness, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered),
+				Pro: createSubscriptionPlanButton(SubscriptionType.Pro, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
+			}
+			dialog.show()
 		})
 }
 
-function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers: number, currentTotalStorage: number, currentTotalAliases: number, includedStorage: number, includedAliases: number, currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean, currentlyBusinessOrdered: boolean): Promise<{premiumPrices: PlanPrices, premiumBusinessPrices: PlanPrices, teamsPrices: PlanPrices, teamsBusinessPrices: PlanPrices, proPrices: PlanPrices}> {
+function createSubscriptionPlanButton(targetSubscription: SubscriptionTypeEnum,
+                                      currentSubscription: SubscriptionTypeEnum,
+                                      dialog: Dialog,
+                                      currentTotalAliases: number,
+                                      currentTotalStorage: number,
+                                      includedAliases: number,
+                                      includedStorage: number,
+                                      currentlySharingOrdered: boolean,
+                                      currentlyBusinessOrdered: boolean,
+                                      currentlyWhitelabelOrdered: boolean): Component {
+	return {
+		view: () => {
+			return m(ButtonN, {
+				label: "pricing.select_action",
+				click: () => {
+					switchSubscription(targetSubscription, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyBusinessOrdered, currentlyWhitelabelOrdered)
+				},
+				type: ButtonType.Login,
+			})
+		}
+	}
+}
+
+function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers: number, currentTotalStorage: number, currentTotalAliases: number, includedStorage: number, includedAliases: number, currentlyWhitelabelOrdered: boolean, currentlySharingOrdered: boolean, currentlyBusinessOrdered: boolean): Promise<SubscriptionPlanPrices> {
 	return Promise.join(
 		worker.getPrice(BookingItemFeatureType.Users, 1, false),
 		worker.getPrice(BookingItemFeatureType.Alias, 20, false),
@@ -167,15 +149,16 @@ function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers:
 		worker.getPrice(BookingItemFeatureType.Whitelabel, 1, false),
 		worker.getPrice(BookingItemFeatureType.Whitelabel, 0, false),
 		worker.getPrice(BookingItemFeatureType.ContactForm, 1, false),
-		      (addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice) => {
-		let additionalFactor = neverNull(addUserPrice.futurePriceNextPeriod).paymentInterval === "12" ? 1 / 10 : 1
-		const premiumPrices = getPrice(currentSubscription, SubscriptionType.Premium, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
-		const premiumBusinessPrices = getPrice(currentSubscription, SubscriptionType.PremiumBusiness, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
-		const teamsPrices = getPrice(currentSubscription, SubscriptionType.Teams, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
-		const teamsBusinessPrices = getPrice(currentSubscription, SubscriptionType.TeamsBusiness, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
-		const proPrices = getPrice(currentSubscription, SubscriptionType.Pro, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
-		return {premiumPrices, premiumBusinessPrices, teamsPrices, teamsBusinessPrices, proPrices}
-	})
+		(addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice) => {
+			let additionalFactor = neverNull(addUserPrice.futurePriceNextPeriod).paymentInterval === "12" ? 1 / 10 : 1
+			return {
+				Premium: getPrice(currentSubscription, SubscriptionType.Premium, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered),
+				PremiumBusiness: getPrice(currentSubscription, SubscriptionType.PremiumBusiness, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered),
+				Teams: getPrice(currentSubscription, SubscriptionType.Teams, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered),
+				TeamsBusiness: getPrice(currentSubscription, SubscriptionType.TeamsBusiness, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered),
+				Pro: getPrice(currentSubscription, SubscriptionType.Pro, addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice, additionalFactor, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered, currentlyBusinessOrdered)
+			}
+		})
 }
 
 function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription: SubscriptionTypeEnum,
@@ -212,7 +195,7 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 		prices.monthlyReferencePrice = String(monthlyPrice)
 		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly + currentSharingPerUserMonthly + currentBusinessPerUserMonthly
 			+ currentWhitelabelPerUserMonthly)
-	} else if (isUpgrade(targetSubscription, currentSubscription)) {
+	} else if (addsMoreFeatures(targetSubscription, currentSubscription)) {
 		// show the current price plus all features not ordered yet
 
 		if (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
@@ -328,7 +311,7 @@ function cancelSubscription(dialog: Dialog,
 										return Dialog.error("unknownError_msg")
 									} else {
 										let detailMsg;
-										switch (reason) { // TODO add new reasons for business?
+										switch (reason) {
 											case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
 												detailMsg = lang.get("accountSwitchTooManyActiveUsers_msg")
 												break
@@ -363,13 +346,6 @@ function cancelSubscription(dialog: Dialog,
 					})).finally(() => dialog.close())
 		}
 	})
-}
-
-function isUpgrade(targetSubscription: SubscriptionTypeEnum, currentSubscription: SubscriptionTypeEnum): boolean {
-	// TODO how to handle change business <-> private
-	return (currentSubscription === SubscriptionType.Premium || currentSubscription === SubscriptionType.PremiumBusiness)
-		|| ((currentSubscription === SubscriptionType.Teams || currentSubscription === SubscriptionType.TeamsBusiness)
-			&& targetSubscription === SubscriptionType.Pro)
 }
 
 function isUpgradeAliasesNeeded(targetSubscription: SubscriptionTypeEnum, currentNbrOfAliases: number): boolean {
@@ -424,10 +400,9 @@ function switchSubscription(
 	currentlySharingOrdered: boolean,
 	currentlyBusinessOrdered: boolean,
 	currentlyWhitelabelOrdered: boolean) {
-//TODO handle new subscriptionTypes
-	if (isUpgrade(targetSubscription, currentSubscription)) {
+	if (addsMoreFeatures(targetSubscription, currentSubscription)) {
 		let msg = lang.get(targetSubscription === SubscriptionType.Pro ? "upgradePro_msg" : "upgradeTeams_msg")
-		if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases)
+		if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases) // TODO currentNbrOfAliases always larger than includedAliases?! -> storage?!
 			|| isDowngradeStorageNeeded(targetSubscription, currentAmountOfStorage, includedStorage)) {
 			msg = msg + "\n\n" + lang.get("upgradeProNoReduction_msg")
 		}
@@ -457,7 +432,6 @@ function switchSubscription(
 			}
 		})
 	} else {
-		// TODO check which message to show
 		Dialog.confirm(targetSubscription === SubscriptionType.Premium || targetSubscription === SubscriptionType.PremiumBusiness
 			? "downgradeToPremium_msg"
 			: "downgradeToTeams_msg")

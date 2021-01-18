@@ -15,7 +15,7 @@ import {UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs} from "./UpgradeSu
 import {formatNameAndAddress} from "../misc/Formatter"
 import {client} from "../misc/ClientDetector"
 import m from "mithril"
-import type {SubscriptionOptions, SubscriptionTypeEnum, UpgradeTypeEnum} from "./SubscriptionUtils"
+import type {SubscriptionOptions, SubscriptionPlanPrices, SubscriptionTypeEnum, UpgradeTypeEnum} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import stream from "mithril/stream/stream.js"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -25,7 +25,6 @@ import type {UpgradePriceServiceReturn} from "../api/entities/sys/UpgradePriceSe
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {assertTranslation} from "../misc/LanguageViewModel"
-import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 import {createWizardDialog} from "../gui/base/WizardDialogN"
 import {Dialog} from "../gui/base/Dialog"
 import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
@@ -54,11 +53,7 @@ export type UpgradeSubscriptionData = {
 	campaign: ?string,
 	campaignInfoTextId: ?TranslationKey,
 	upgradeType: UpgradeTypeEnum,
-	premiumPrices: PlanPrices,
-	premiumBusinessPrices: PlanPrices,
-	teamsPrices: PlanPrices,
-	teamsBusinessPrices: PlanPrices,
-	proPrices: PlanPrices,
+	planPrices: SubscriptionPlanPrices,
 	currentSubscription: ?SubscriptionTypeEnum,
 }
 
@@ -105,6 +100,13 @@ export function showUpgradeWizard(): void {
 	loadCustomerAndInfo()
 		.then(({customerInfo, accountingInfo}) => {
 				return loadUpgradePrices().then(prices => {
+					const planPrices: SubscriptionPlanPrices = {
+						Premium: prices.premiumPrices,
+						PremiumBusiness: prices.premiumBusinessPrices,
+						Teams: prices.teamsPrices,
+						TeamsBusiness: prices.teamsBusinessPrices,
+						Pro: prices.proPrices
+					}
 					const upgradeData: UpgradeSubscriptionData = {
 						options: {
 							businessUse: stream(prices.business),
@@ -127,11 +129,7 @@ export function showUpgradeWizard(): void {
 						campaign: getCampaign(),
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 						upgradeType: UpgradeType.Initial,
-						premiumPrices: prices.premiumPrices,
-						premiumBusinessPrices: prices.premiumBusinessPrices,
-						teamsPrices: prices.teamsPrices,
-						teamsBusinessPrices: prices.teamsBusinessPrices,
-						proPrices: prices.proPrices,
+						planPrices: planPrices,
 						currentSubscription: SubscriptionType.Free
 					}
 					const wizardPages = [
@@ -157,6 +155,13 @@ export function showUpgradeWizard(): void {
 
 export function loadSignupWizard(): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
+		const planPrices: SubscriptionPlanPrices = {
+			Premium: prices.premiumPrices,
+			PremiumBusiness: prices.premiumBusinessPrices,
+			Teams: prices.teamsPrices,
+			TeamsBusiness: prices.teamsBusinessPrices,
+			Pro: prices.proPrices
+		}
 		const signupData: UpgradeSubscriptionData = {
 			options: {
 				businessUse: stream(prices.business),
@@ -179,11 +184,7 @@ export function loadSignupWizard(): Promise<Dialog> {
 			campaign: getCampaign(),
 			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 			upgradeType: UpgradeType.Signup,
-			premiumPrices: prices.premiumPrices,
-			premiumBusinessPrices: prices.premiumBusinessPrices,
-			teamsPrices: prices.teamsPrices,
-			teamsBusinessPrices: prices.teamsBusinessPrices,
-			proPrices: prices.proPrices,
+			planPrices: planPrices,
 			currentSubscription: null
 		}
 		const wizardPages = [
@@ -221,7 +222,6 @@ export function loadSignupWizard(): Promise<Dialog> {
 			})
 		})
 		const wizard = wizardBuilder.dialog
-		const wizardAttrs = wizardBuilder.attrs
 		//we only return the dialog so that it can be shown
 		return wizard
 	})

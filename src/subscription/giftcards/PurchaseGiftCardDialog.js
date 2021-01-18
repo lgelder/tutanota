@@ -39,6 +39,7 @@ import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 import {client} from "../../misc/ClientDetector"
 import {noOp} from "../../api/common/utils/Utils"
 import {isIOSApp} from "../../api/Env"
+import type {SubscriptionData, SubscriptionPlanPrices} from "../SubscriptionUtils"
 
 export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number,
@@ -219,16 +220,20 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 				      }
 
 				      return logins.getUserController().loadAccountingInfo().then((accountingInfo: AccountingInfo) => {
-					      const priceData = {
+
+					      const priceData: SubscriptionPlanPrices = {
+						      Premium: prices.premiumPrices,
+						      PremiumBusiness: prices.premiumBusinessPrices,
+						      Teams: prices.teamsPrices,
+						      TeamsBusiness: prices.teamsBusinessPrices,
+						      Pro: prices.proPrices
+					      }
+					      const subscriptionData: SubscriptionData = {
 						      options: {
 							      businessUse: () => false,
 							      paymentInterval: () => 12
 						      },
-						      premiumPrices: prices.premiumPrices,
-						      premiumBusinessPrices: prices.premiumBusinessPrices,
-						      teamsPrices: prices.teamsPrices,
-						      teamsBusinessPrices: prices.teamsBusinessPrices,
-						      proPrices: prices.proPrices
+						      planPrices: priceData
 					      }
 					      let dialog
 					      const attrs: GiftCardPurchaseViewAttrs = {
@@ -241,7 +246,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 							      ? getByAbbreviation(accountingInfo.invoiceCountry)
 							      : null,
 						      outerDialog: () => dialog,
-						      premiumPrice: getSubscriptionPrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
+						      premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 					      };
 
 					      const headerBarAttrs: DialogHeaderBarAttrs = {

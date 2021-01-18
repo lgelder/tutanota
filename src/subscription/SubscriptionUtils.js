@@ -23,6 +23,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import type {SubscriptionActionButtons} from "./SubscriptionSelector"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,
@@ -57,7 +58,7 @@ export const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{name: lang.get("pricing.businessUse_label"), value: true}
 ]
 
-export type SubscriptionConfig = {
+export type SubscriptionConfig = {|
 	nbrOfAliases: number,
 	orderNbrOfAliases: number,
 	storageGb: number,
@@ -65,7 +66,7 @@ export type SubscriptionConfig = {
 	sharing: boolean,
 	business: boolean,
 	whitelabel: boolean,
-}
+|}
 
 export const subscriptions: {[SubscriptionTypeEnum]: SubscriptionConfig} = {}
 subscriptions[SubscriptionType.Free] = {
@@ -123,6 +124,43 @@ subscriptions[SubscriptionType.Pro] = {
 	whitelabel: true
 }
 
+/**
+ * Only check if there are additional features (not if a feature is removed/reduced)
+ * @returns {boolean} true if new features are included in the targetSubscription missing in the currentSubscription
+ */
+export function addsMoreFeatures(targetSubscription: SubscriptionTypeEnum, currentSubscription: SubscriptionTypeEnum): boolean {
+	const targetFeatures = subscriptions[targetSubscription]
+	const currentFeatures = subscriptions[currentSubscription]
+	return Object.keys(targetFeatures).some((feature) => {
+		if (typeof targetFeatures[feature] === "boolean" && typeof currentFeatures[feature] === "boolean") {
+			return !!(targetFeatures[feature] && !currentFeatures[feature])
+		} else if (typeof targetFeatures[feature] === "number" && typeof currentFeatures[feature] === "number") {
+			return targetFeatures[feature] > currentFeatures[feature]
+		} else {
+			throw new ProgrammingError("Features have incompatible types")
+		}
+	})
+}
+
+export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionTypeEnum): Component {
+	switch (subscription) {
+		case SubscriptionType.Free:
+			return actionButtons.Free
+		case SubscriptionType.Premium:
+			return actionButtons.Premium
+		case SubscriptionType.PremiumBusiness:
+			return actionButtons.PremiumBusiness
+		case SubscriptionType.Teams:
+			return actionButtons.Teams
+		case SubscriptionType.TeamsBusiness:
+			return actionButtons.TeamsBusiness
+		case SubscriptionType.Pro:
+			return actionButtons.Pro
+		default:
+			throw new ProgrammingError("Plan is not valid")
+	}
+}
+
 // keep this function here because we also need it on the website
 export function formatPrice(value: number, includeCurrency: boolean): string {
 	// round to two digits first because small deviations may exist at far away decimal places
@@ -138,13 +176,17 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 	}
 }
 
+export type SubscriptionPlanPrices = {|
+	Premium: PlanPrices,
+	PremiumBusiness: PlanPrices,
+	Teams: PlanPrices,
+	TeamsBusiness: PlanPrices,
+	Pro: PlanPrices,
+|}
+
 export type SubscriptionData = {
 	options: SubscriptionOptions,
-	premiumPrices: PlanPrices,
-	premiumBusinessPrices: PlanPrices,
-	teamsPrices: PlanPrices,
-	teamsBusinessPrices: PlanPrices,
-	proPrices: PlanPrices
+	planPrices: SubscriptionPlanPrices
 }
 
 export const UpgradePriceType = Object.freeze({
@@ -156,27 +198,27 @@ export const UpgradePriceType = Object.freeze({
 })
 export type UpgradePriceTypeEnum = $Values<typeof UpgradePriceType>;
 
-export function getPlanPrices(data: SubscriptionData, subscription: SubscriptionTypeEnum,): ?PlanPrices {
+export function getPlanPrices(prices: SubscriptionPlanPrices, subscription: SubscriptionTypeEnum,): ?PlanPrices {
 	switch (subscription) {
 		case SubscriptionType.Free:
 			return null
 		case SubscriptionType.Premium:
-			return data.premiumPrices
+			return prices.Premium
 		case SubscriptionType.PremiumBusiness:
-			return data.premiumBusinessPrices
+			return prices.PremiumBusiness
 		case SubscriptionType.Teams:
-			return data.teamsPrices
+			return prices.Teams
 		case SubscriptionType.TeamsBusiness:
-			return data.teamsBusinessPrices
+			return prices.TeamsBusiness
 		case SubscriptionType.Pro:
-			return data.proPrices
+			return prices.Pro
 		default:
 			throw new ProgrammingError("Plan is not valid")
 	}
 }
 
 export function getSubscriptionPrice(data: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): number {
-	const prices = getPlanPrices(data, subscription)
+	const prices = getPlanPrices(data.planPrices, subscription)
 	if (prices) {
 		let monthlyPriceString
 		let monthsFactor = (data.options.paymentInterval() === 12) ? 10 : 1
@@ -344,7 +386,7 @@ export function buyBusiness(enable: boolean): Promise<boolean> {
 /**
  * Shows the buy dialog to enable or disable the whitelabel package.
  * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
  */
 export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
 	return showBuyDialog(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
@@ -353,7 +395,7 @@ export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
 /**
  * Shows the buy dialog to enable or disable the sharing package.
  * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
  */
 export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
 	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {

@@ -4,39 +4,41 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
-import type {SubscriptionConfig, SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
+import type {SubscriptionOptions, SubscriptionPlanPrices, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
 	BusinessUseItems,
 	formatPrice,
-	getFormattedSubscriptionPrice, getPlanPrices,
-	getSubscriptionPrice, subscriptions,
+	getActionButtonBySubscription,
+	getFormattedSubscriptionPrice,
+	getPlanPrices,
+	subscriptions,
 	SubscriptionType,
 	UpgradePriceType
 } from "./SubscriptionUtils"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import type {PlanPrices} from "../api/entities/sys/PlanPrices"
+
+export type SubscriptionActionButtons = {|
+	Free: Component,
+	Premium: Component,
+	PremiumBusiness: Component,
+	Teams: Component,
+	TeamsBusiness: Component,
+	Pro: Component,
+|}
 
 export type SubscriptionSelectorAttr = {|
 	options: SubscriptionOptions,
 	campaignInfoTextId: ?TranslationKey,
-	freeActionButton: Component,
-	premiumActionButton: Component,
-	premiumBusinessActionButton: Component,
-	teamsActionButton: Component,
-	teamsBusinessActionButton: Component,
-	proActionButton: Component,
+	actionButtons: SubscriptionActionButtons,
 	boxWidth: number,
 	boxHeight: number,
 	highlightPremium?: boolean,
 	currentlyActive?: ?SubscriptionTypeEnum,
 	currentlySharingOrdered: boolean,
+	currentlyBusinessOrdered: boolean,
 	currentlyWhitelabelOrdered: boolean,
 	isInitialUpgrade: boolean,
-	premiumPrices: PlanPrices,
-	premiumBusinessPrices: PlanPrices,
-	teamsPrices: PlanPrices,
-	teamsBusinessPrices: PlanPrices,
-	proPrices: PlanPrices,
+	planPrices: SubscriptionPlanPrices
 |}
 
 export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr> {
@@ -46,9 +48,9 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 		let buyBoxesViewPlacement
 		if (vnode.attrs.options.businessUse()) {
 			buyBoxesViewPlacement = [
-				m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
-				m(BuyOptionBox, this._createTeamsUpgradeBoxAttr(vnode.attrs)),
-				m(BuyOptionBox, this._createProUpgradeBoxAttr(vnode.attrs)),
+				m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)),
+				m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)),
+				m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.Pro)),
 				m(".smaller.mb", lang.get("downgradeToPrivateNotAllowed_msg")) //only displayed when business options are shown
 			]
 		} else {
@@ -57,15 +59,15 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 			// Changes order of BuyBoxes to Premium Pro Free, needed for mobile view (one column layout)
 			if (this._containerDOM && this._containerDOM.clientWidth < columnWidth * 2) {
 				buyBoxesViewPlacement = [
-					m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
-					m(BuyOptionBox, this._createTeamsUpgradeBoxAttr(vnode.attrs)),
-					m(BuyOptionBox, this._createFreeUpgradeBoxAttr(vnode.attrs))
+					m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.Premium)),
+					m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.Teams)),
+					m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.Free))
 				]
 			} else {
 				buyBoxesViewPlacement = [
-					m(BuyOptionBox, this._createFreeUpgradeBoxAttr(vnode.attrs)),
-					m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
-					m(BuyOptionBox, this._createTeamsUpgradeBoxAttr(vnode.attrs))
+					m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.Free)),
+					m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.Premium)),
+					m(BuyOptionBox, this._createUpgradeBoxAttr(vnode.attrs, SubscriptionType.Teams))
 				]
 			}
 		}
@@ -91,7 +93,7 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 			heading: 'Free',
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Free
 				? getActiveSubscriptionActionButtonReplacement()
-				: selectorAttrs.freeActionButton,
+				: selectorAttrs.actionButtons.Free,
 			price: formatPrice(0, true),
 			originalPrice: formatPrice(0, true),
 			helpLabel: "pricing.upgradeLater_msg",
@@ -109,187 +111,56 @@ export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr
 		}
 	}
 
-	_createPremiumUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
-		let sharingFeatureArray = (selectorAttrs.currentlyActive === SubscriptionType.Premium
-			&& selectorAttrs.currentlySharingOrdered) ? [lang.get("pricing.comparisonSharingCalendar_msg")] : []
-		let whitelabelFeatureArray = (selectorAttrs.currentlyActive === SubscriptionType.Premium
-			&& selectorAttrs.currentlyWhitelabelOrdered) ? [
-			lang.get("pricing.comparisonLoginPro_msg"),
-			lang.get("pricing.comparisonThemePro_msg"),
-			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
-		] : []
-		return {
-			heading: 'Premium',
-			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Premium
-				? getActiveSubscriptionActionButtonReplacement()
-				: selectorAttrs.premiumActionButton,
-			price: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
-			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
-			features: () => [
-				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)}),
-				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.premiumPrices.includedStorage}),
-				lang.get("pricing.comparisonDomainPremium_msg"),
-				lang.get("pricing.comparisonSearchPremium_msg"),
-				lang.get("pricing.comparisonMultipleCalendars_msg"),
-				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.premiumPrices.includedAliases}),
-				lang.get("pricing.comparisonInboxRulesPremium_msg"),
-				lang.get("pricing.comparisonSupportPremium_msg"),
-			].concat(sharingFeatureArray).concat(whitelabelFeatureArray),
-			width: selectorAttrs.boxWidth,
-			height: selectorAttrs.boxHeight,
-			paymentInterval: selectorAttrs.isInitialUpgrade ? selectorAttrs.options.paymentInterval : null,
-			highlighted: !selectorAttrs.options.businessUse() && selectorAttrs.highlightPremium,
-			showReferenceDiscount: selectorAttrs.isInitialUpgrade
-		}
-	}
-
 	_createUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr, subscription: SubscriptionTypeEnum): BuyOptionBoxAttr {
-		const planPrices = getPlanPrices(selectorAttrs, subscription)
-		if (!planPrices){
+		const planPrices = getPlanPrices(selectorAttrs.planPrices, subscription)
+		if (!planPrices) { // no prices for the plan means subscription === SubscriptionType.Free (special case)
 			return this._createFreeUpgradeBoxAttr(selectorAttrs)
 		}
 		const subscriptionConfig = subscriptions[subscription]
 
-		/* TODO
-		let sharingFeatureArray = (selectorAttrs.currentlyActive === SubscriptionType.Premium
-			&& selectorAttrs.currentlySharingOrdered) ? [lang.get("pricing.comparisonSharingCalendar_msg")] : []
-		let whitelabelFeatureArray = (selectorAttrs.currentlyActive === SubscriptionType.Premium
-			&& selectorAttrs.currentlyWhitelabelOrdered) ? [
-			lang.get("pricing.comparisonLoginPro_msg"),
-			lang.get("pricing.comparisonThemePro_msg"),
-			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
-		] : []
-		 */
-/*
-FREE
-			lang.get("pricing.comparisonUsersFree_msg"),
-				lang.get("pricing.comparisonStorage_msg", {"{amount}": 1}),
-				lang.get("pricing.comparisonDomainFree_msg"),
-				lang.get("pricing.comparisonSearchFree_msg"),
-				lang.get("pricing.comparisonOneCalendar_msg"),
-PRO
-		lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)}),
-			lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.proPrices.includedStorage}),
-			lang.get("pricing.comparisonDomainPremium_msg"),
+		const premiumFeatures = [
+			lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, subscription, UpgradePriceType.AdditionalUserPrice)}),
+			lang.get("pricing.comparisonStorage_msg", {"{amount}": planPrices.includedStorage}),
+			lang.get(subscriptionConfig.business || selectorAttrs.currentlyBusinessOrdered
+				? "pricing.comparisonDomainBusiness_msg"
+				: "pricing.comparisonDomainPremium_msg"),
 			lang.get("pricing.comparisonSearchPremium_msg"),
 			lang.get("pricing.comparisonMultipleCalendars_msg"),
-			lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.proPrices.includedAliases}),
+			lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": planPrices.includedAliases}),
 			lang.get("pricing.comparisonInboxRulesPremium_msg"),
-			lang.get("pricing.comparisonSupportPro_msg"),
-			lang.get("pricing.comparisonSharingCalendar_msg"),
+			lang.get(subscription === SubscriptionType.Pro
+				? "pricing.comparisonSupportPro_msg"
+				: "pricing.comparisonSupportPremium_msg")
+		]
+		const sharingFeature = [lang.get("pricing.comparisonSharingCalendar_msg")]
+		const businessFeatures = [
+			lang.get("pricing.comparisonOutOfOffice_msg"),
+			lang.get("pricing.comparisonCalendarInvites_msg")
+		]
+		const whitelabelFeatures = [
 			lang.get("pricing.comparisonLoginPro_msg"),
 			lang.get("pricing.comparisonThemePro_msg"),
-			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)}),
-*/
+			// TODO correct prices should also be available for other subscriptions but Pro
+			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
+		]
+		const featuresToBeBought = premiumFeatures
+			.concat(subscriptionConfig.business || selectorAttrs.currentlyBusinessOrdered ? businessFeatures : [])
+			.concat(subscriptionConfig.sharing || selectorAttrs.currentlySharingOrdered ? sharingFeature : [])
+			.concat(subscriptionConfig.whitelabel || selectorAttrs.currentlyWhitelabelOrdered ? whitelabelFeatures : [])
 
 		return {
-			heading: 'Premium',
-			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Premium
+			heading: subscription.replace("Business", ""),
+			actionButton: selectorAttrs.currentlyActive === subscription
 				? getActiveSubscriptionActionButtonReplacement()
-				: selectorAttrs.premiumActionButton,
-			price: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
+				: getActionButtonBySubscription(selectorAttrs.actionButtons, subscription),
+			price: getFormattedSubscriptionPrice(selectorAttrs, subscription, UpgradePriceType.PlanActualPrice),
+			originalPrice: getFormattedSubscriptionPrice(selectorAttrs, subscription, UpgradePriceType.PlanReferencePrice),
 			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
-			features: () => [
-				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, subscription, UpgradePriceType.AdditionalUserPrice)}),
-				lang.get("pricing.comparisonStorage_msg", {"{amount}": planPrices.includedStorage}),
-				lang.get("pricing.comparisonDomainPremium_msg"), // TODO multiple domains
-				lang.get("pricing.comparisonSearchPremium_msg"),
-				lang.get("pricing.comparisonMultipleCalendars_msg"),
-				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": planPrices.includedAliases}),
-				lang.get("pricing.comparisonInboxRulesPremium_msg"),
-				subscription === SubscriptionType.Pro ? lang.get("pricing.comparisonSupportPro_msg") : lang.get("pricing.comparisonSupportPremium_msg"),
-			].concat(sharingFeatureArray).concat(whitelabelFeatureArray),
+			features: () => featuresToBeBought,
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
 			paymentInterval: selectorAttrs.isInitialUpgrade ? selectorAttrs.options.paymentInterval : null,
 			highlighted: !selectorAttrs.options.businessUse() && selectorAttrs.highlightPremium,
-			showReferenceDiscount: selectorAttrs.isInitialUpgrade
-		}
-	}
-
-
-
-/*
-			[
-			lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)}),
-				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.proPrices.includedStorage}),
-				lang.get("pricing.comparisonDomainPremium_msg"),
-				lang.get("pricing.comparisonSearchPremium_msg"),
-				lang.get("pricing.comparisonMultipleCalendars_msg"),
-				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.proPrices.includedAliases}),
-				lang.get("pricing.comparisonInboxRulesPremium_msg"),
-				lang.get("pricing.comparisonSupportPro_msg"),
-				lang.get("pricing.comparisonSharingCalendar_msg"),
-				lang.get("pricing.comparisonLoginPro_msg"),
-				lang.get("pricing.comparisonThemePro_msg"),
-				lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)}),
-			]
-*/
-
-
-
-	_createTeamsUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
-		let whitelabelFeatureArray = ((selectorAttrs.currentlyActive === SubscriptionType.Premium
-			|| selectorAttrs.currentlyActive === SubscriptionType.Teams)
-			&& selectorAttrs.currentlyWhitelabelOrdered) ? [
-			lang.get("pricing.comparisonLoginPro_msg"),
-			lang.get("pricing.comparisonThemePro_msg"),
-			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
-		] : []
-		return {
-			heading: 'Teams',
-			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Teams
-				? getActiveSubscriptionActionButtonReplacement()
-				: selectorAttrs.teamsActionButton,
-			price: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.PlanReferencePrice),
-			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
-			features: () => [
-				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.AdditionalUserPrice)}),
-				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.teamsPrices.includedStorage}),
-				lang.get("pricing.comparisonDomainPremium_msg"),
-				lang.get("pricing.comparisonSearchPremium_msg"),
-				lang.get("pricing.comparisonMultipleCalendars_msg"),
-				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.teamsPrices.includedAliases}),
-				lang.get("pricing.comparisonInboxRulesPremium_msg"),
-				lang.get("pricing.comparisonSupportPremium_msg"),
-				lang.get("pricing.comparisonSharingCalendar_msg"),
-			].concat(whitelabelFeatureArray),
-			width: selectorAttrs.boxWidth,
-			height: selectorAttrs.boxHeight,
-			paymentInterval: selectorAttrs.isInitialUpgrade ? selectorAttrs.options.paymentInterval : null,
-			showReferenceDiscount: selectorAttrs.isInitialUpgrade
-		}
-	}
-
-	_createProUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
-		return {
-			heading: 'Pro',
-			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Pro
-				? getActiveSubscriptionActionButtonReplacement()
-				: selectorAttrs.proActionButton,
-			price: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.PlanReferencePrice),
-			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
-			features: () => [
-				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)}),
-				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.proPrices.includedStorage}),
-				lang.get("pricing.comparisonDomainPremium_msg"),
-				lang.get("pricing.comparisonSearchPremium_msg"),
-				lang.get("pricing.comparisonMultipleCalendars_msg"),
-				lang.get("pricing.mailAddressAliasesShort_label", {"{amount}": selectorAttrs.proPrices.includedAliases}),
-				lang.get("pricing.comparisonInboxRulesPremium_msg"),
-				lang.get("pricing.comparisonSupportPro_msg"),
-				lang.get("pricing.comparisonSharingCalendar_msg"),
-				lang.get("pricing.comparisonLoginPro_msg"),
-				lang.get("pricing.comparisonThemePro_msg"),
-				lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedSubscriptionPrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)}),
-			],
-			width: selectorAttrs.boxWidth,
-			height: selectorAttrs.boxHeight,
-			paymentInterval: selectorAttrs.isInitialUpgrade ? selectorAttrs.options.paymentInterval : null,
 			showReferenceDiscount: selectorAttrs.isInitialUpgrade
 		}
 	}

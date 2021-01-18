@@ -40,6 +40,7 @@ import {formatPrice, getSubscriptionPrice, SubscriptionType, UpgradePriceType} f
 import {getPaymentMethodName} from "../PriceUtils"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {getByAbbreviation} from "../../api/common/CountryList"
+import type {SubscriptionData, SubscriptionPlanPrices} from "../SubscriptionUtils"
 
 type GetCredentialsMethod = "login" | "signup"
 
@@ -331,17 +332,19 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, key: string): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
 
-
-		const priceData = {
+		const priceData: SubscriptionPlanPrices = {
+			Premium: prices.premiumPrices,
+			PremiumBusiness: prices.premiumBusinessPrices,
+			Teams: prices.teamsPrices,
+			TeamsBusiness: prices.teamsBusinessPrices,
+			Pro: prices.proPrices
+		}
+		const subscriptionData: SubscriptionData = {
 			options: {
 				businessUse: () => false,
 				paymentInterval: () => 12
 			},
-			premiumPrices: prices.premiumPrices,
-			premiumBusinessPrices: prices.premiumBusinessPrices,
-			teamsPrices: prices.teamsPrices,
-			teamsBusinessPrices: prices.teamsBusinessPrices,
-			proPrices: prices.proPrices
+			planPrices: priceData
 		}
 
 		const giftCardRedeemData: RedeemGiftCardWizardData = {
@@ -352,7 +355,7 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 			giftCardInfo: giftCardInfo,
 			credentials: stream(null),
 			key,
-			premiumPrice: getSubscriptionPrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
+			premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 		}
 
 

@@ -1265,8 +1265,10 @@ export type TranslationKeyType = "about_label"
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
-	//TODO
+	//TODO new
 	| "businessDeletionWarning_msg"
 	| "businessFeature_label"
 	| "cancelBusinessBooking_label"
 	| "businessBooking_label"
+	| "pricing.comparisonDomainBusiness_msg"
+	| "pricing.comparisonOutOfOffice_msg"
