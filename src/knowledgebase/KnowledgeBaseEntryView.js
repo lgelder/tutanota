@@ -23,7 +23,7 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 	constructor() {
 		this._sanitizedEntry = memoized((entry) => {
 			return {
-				content: htmlSanitizer.sanitize(entry.useCase, true).text,
+				content: htmlSanitizer.sanitize(entry.description, true).text,
 			}
 		})
 	}
@@ -60,7 +60,7 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 
 	_handleAnchorClick(event: Event, attrs: KnowledgeBaseEntryViewAttrs): void {
 		let target = (event.target: any)
-		if(target && target.closest) {
+		if (target && target.closest) {
 			let anchorElement = target.closest("a")
 			if (anchorElement && startsWith(anchorElement.href, "tutatemplate:")) {
 				event.preventDefault()

@@ -21,6 +21,7 @@ import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {NotFoundError} from "../api/common/error/RestError"
 import {EntityClient} from "../api/common/EntityClient"
 import {TemplateEditorModel} from "./TemplateEditorModel"
+import {locator} from "../api/main/MainLocator"
 
 /*
 	Creates an Editor Popup in which you can create a new template or edit an existing one
@@ -41,7 +42,7 @@ export class TemplateEditor {
 
 
 	constructor(template: ?EmailTemplate, templateListId: Id, ownerGroup: Id, entityClient: EntityClient) {
-		this._editorModel = new TemplateEditorModel()
+		this._editorModel = new TemplateEditorModel(locator.templateModel)
 		this.template = template ? clone(template) : createEmailTemplate()
 
 		this._templateTitle = stream("")

@@ -19,7 +19,6 @@ import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {windowFacade} from "../misc/WindowFacade"
-import {templateModel} from "./TemplateModel"
 import {isKeyPressed} from "../misc/KeyManager"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {getLanguageCode} from "../settings/TemplateEditorModel"
@@ -27,6 +26,8 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {locator} from "../api/main/MainLocator"
 import {TemplateEditor} from "../settings/TemplateEditor"
+import {TemplateModel} from "./TemplateModel"
+import {neverNull} from "../api/common/utils/Utils"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
@@ -37,9 +38,9 @@ export const SELECT_PREV_TEMPLATE = "previous";
 export type NavAction = "previous" | "next";
 
 /**
-*	Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
-*	Also allows user to change desired language when pasting.
-*/
+ *	Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
+ *	Also allows user to change desired language when pasting.
+ */
 
 export class TemplatePopup implements ModalComponent {
 	_rect: PosRect
@@ -53,8 +54,9 @@ export class TemplatePopup implements ModalComponent {
 	_dropdownDom: HTMLElement
 	_resizeListener: windowSizeListener
 	_redrawStream: Stream<*>
+	_templateModel: TemplateModel
 
-	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
+	constructor(templateModel: TemplateModel, rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
 		this._rect = rect
 		this._onSubmit = onSubmit
 		this._initialWindowWidth = window.innerWidth
@@ -62,8 +64,9 @@ export class TemplatePopup implements ModalComponent {
 			this._close()
 		}
 
+		this._templateModel = templateModel
 		// initial search
-		templateModel.search(highlightedText)
+		this._templateModel.search(highlightedText)
 
 		this._filterTextAttrs = {
 			label: "filter_label",
@@ -82,11 +85,10 @@ export class TemplatePopup implements ModalComponent {
 			label: "createTemplate_action",
 			type: ButtonType.Action,
 			click: () => {
-				locator.mailModel.getUserMailboxDetails().then(details => {
-					if (details.mailbox.templates && details.mailbox._ownerGroup) {
-						new TemplateEditor(null, details.mailbox.templates.list, details.mailbox._ownerGroup, locator.entityClient)
-					}
-				})
+				const groupRoot = this._templateModel.getTemplateGroupRoot()
+				if (groupRoot) {
+					new TemplateEditor(null, groupRoot.templates, neverNull(groupRoot._ownerGroup), locator.entityClient)
+				}
 			},
 			icon: () => Icons.Add,
 		}
@@ -142,7 +144,7 @@ export class TemplatePopup implements ModalComponent {
 			m(".mt-negative-s", { // Header Wrapper
 				onkeydown: (e) => { /* simulate scroll with arrow keys */
 					if (isKeyPressed(e.keyCode, Keys.DOWN, Keys.UP)) { // DOWN
-						const changedSelection = templateModel.selectNextTemplate(isKeyPressed(e.keyCode, Keys.UP)
+						const changedSelection = this._templateModel.selectNextTemplate(isKeyPressed(e.keyCode, Keys.UP)
 							? SELECT_PREV_TEMPLATE
 							: SELECT_NEXT_TEMPLATE)
 						if (changedSelection) {
@@ -160,9 +162,9 @@ export class TemplatePopup implements ModalComponent {
 					oncreate: (vnode) => {
 						this._scrollDom = vnode.dom
 					},
-				}, templateModel.containsResult() ?
-				templateModel.getSearchResults()().map((template, index) => this._renderTemplateListRow(template, index))
-				: m(".row-selected.text-center.pt", lang.get(templateModel.hasLoaded() ? "nothingFound_label" : "loadingTemplates_label"))
+				}, this._templateModel.containsResult() ?
+				this._templateModel.getSearchResults()().map((template, index) => this._renderTemplateListRow(template, index))
+				: m(".row-selected.text-center.pt", lang.get(this._templateModel.hasLoaded() ? "nothingFound_label" : "loadingTemplates_label"))
 			), // left end
 		]
 	}
@@ -174,15 +176,15 @@ export class TemplatePopup implements ModalComponent {
 					backgroundColor: (index % 2) ? theme.list_bg : theme.list_alternate_bg
 				}
 			}, [
-				m(".flex.template-list-row" + (templateModel.isSelectedTemplate(template) ? ".row-selected" : ""), {
+				m(".flex.template-list-row" + (this._templateModel.isSelectedTemplate(template) ? ".row-selected" : ""), {
 						onclick: (e) => {
 							this._filterTextFieldDom.focus()
-							templateModel.setSelectedTemplate(template)
+							this._templateModel.setSelectedTemplate(template)
 							e.stopPropagation()
 						},
 					}, [
 						m(TemplatePopupResultRow, {template: template}),
-						templateModel.isSelectedTemplate(template) ? m(Icon, {
+						this._templateModel.isSelectedTemplate(template) ? m(Icon, {
 							icon: Icons.ArrowForward,
 							style: {marginTop: "auto", marginBottom: "auto"}
 						}) : m("", {style: {width: "17.1px", height: "16px"}}),
@@ -193,12 +195,12 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_renderRightColumn(): Children {
-		const template = templateModel.getSelectedTemplate()
+		const template = this._templateModel.getSelectedTemplate()
 		if (template) {
 			return [
 				m(TemplateExpander, {
 					template: template,
-					model: templateModel,
+					model: this._templateModel,
 					onDropdownCreate: (vnode) => {
 						this._dropdownDom = vnode.dom
 					},
@@ -225,10 +227,10 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_sizeDependingSubmit() { // Allow option for when screen isn't wide enough, open a Dialog to confirm language
-		const selectedTemplate = templateModel.getSelectedTemplate()
-		const language = templateModel.getSelectedLanguage()
+		const selectedTemplate = this._templateModel.getSelectedTemplate()
+		const language = this._templateModel.getSelectedLanguage()
 		if (this._isScreenWideEnough() && selectedTemplate) { // if screen is wide enough, submit content
-			this._onSubmit(templateModel.getContentFromLanguage(language))
+			this._onSubmit(this._templateModel.getContentFromLanguage(language))
 			this._close()
 			m.redraw()
 		} else if (!this._isScreenWideEnough() && selectedTemplate) { // if screen isn't wide enough get all languages from the selected template
@@ -244,7 +246,7 @@ export class TemplatePopup implements ModalComponent {
 				let languageChooser = new DropDownSelector("chooseLanguage_action", null, languages, selectedLanguage, 250)
 				let submitContentAction = (dialog) => {
 					if (selectedTemplate) {
-						this._onSubmit(templateModel.getContentFromLanguage(selectedLanguage()))
+						this._onSubmit(this._templateModel.getContentFromLanguage(selectedLanguage()))
 						dialog.close()
 						this._close()
 						m.redraw()
@@ -257,7 +259,7 @@ export class TemplatePopup implements ModalComponent {
 					okAction: submitContentAction
 				})
 			} else if (languages.length === 1 && selectedTemplate) { // if you only have one language for the selected template, submit without showing the dropdown
-				this._onSubmit(templateModel.getContentFromLanguage(language))
+				this._onSubmit(this._templateModel.getContentFromLanguage(language))
 				this._close()
 				m.redraw()
 			}
@@ -266,7 +268,7 @@ export class TemplatePopup implements ModalComponent {
 
 	_scroll() {
 		this._scrollDom.scroll({
-			top: (TEMPLATE_LIST_ENTRY_HEIGHT * templateModel.getSelectedTemplateIndex()),
+			top: (TEMPLATE_LIST_ENTRY_HEIGHT * this._templateModel.getSelectedTemplateIndex()),
 			left: 0,
 			behavior: 'smooth'
 		})
@@ -289,7 +291,7 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	onClose(): void {
-		templateModel.dispose()
+		this._templateModel.dispose()
 		this._redrawStream.end(true)
 	}
 

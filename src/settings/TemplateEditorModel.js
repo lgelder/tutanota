@@ -6,25 +6,27 @@ import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateC
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {createEmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
 import {downcast} from "../api/common/utils/Utils"
-import {templateModel} from "../templates/TemplateModel"
 import {getElementId} from "../api/common/EntityFunctions"
+import {TemplateModel} from "../templates/TemplateModel"
 
 export class TemplateEditorModel {
 	_allLanguages: Array<Language>
 	_addedLanguages: Array<Language>
 	_allTemplates: Array<EmailTemplate>
+	_templateModel: TemplateModel
 
-	constructor() {
+	constructor(templateModel: TemplateModel) {
 		this._allLanguages = []
 		this._addedLanguages = []
 		this._allTemplates = []
+		this._templateModel = templateModel
 		this.initAllLanguages()
 		this.initTemplates()
 	}
 
 	initTemplates() {
 		console.log("init")
-		templateModel.loadTemplates().then(templates => {
+		this._templateModel.loadTemplates().then(templates => {
 			this._allTemplates = templates
 		})
 	}

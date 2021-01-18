@@ -15,6 +15,10 @@ import {locator} from "../api/main/MainLocator"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {assertMainOrNode} from "../api/Env"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {GroupMembership} from "../api/entities/sys/GroupMembership"
+import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
+import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -26,62 +30,62 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	_dialog: Dialog
 	_list: List<EmailTemplate, TemplateRow>
 	_settingsView: SettingsView
+	_templateGroupMembership: GroupMembership
+	_templateGroupRoot: ?TemplateGroupRoot
 
-	constructor(settingsView: SettingsView) {
+	constructor(settingsView: SettingsView, templateGroupMembership: GroupMembership) {
 		this._settingsView = settingsView
 		const entityClient = locator.entityClient
-		console.log("tested")
+		entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
+		            .then(templateGroupRoot => {
+			            this._templateGroupRoot = templateGroupRoot
+			            const templateListId = templateGroupRoot.templates
+			            const listConfig: ListConfig<EmailTemplate, TemplateRow> = {
+				            rowHeight: size.list_row_height,
+				            fetch: (startId, count) => {
+					            console.log("template list fetch", startId, count)
+					            return entityClient.loadRange(EmailTemplateTypeRef, templateListId, startId, count, true).then(entries => {
+						            console.log("templates", entries)
+						            return entries
+					            })
+				            },
+				            loadSingle: (elementId) => {
+					            return entityClient.load(EmailTemplateTypeRef, [templateListId, elementId])
+				            },
+				            sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
+					            var titleA = a.title.toUpperCase();
+					            var titleB = b.title.toUpperCase();
+					            return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
+				            },
+				            elementSelected: (templates: Array<EmailTemplate>, elementClicked) => {
+					            if (elementClicked) {
+						            this._settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], entityClient)
+						            this._settingsView.focusSettingsDetailsColumn()
+					            } else if (templates.length === 0 && this._settingsView.detailsViewer) {
+						            this._settingsView.detailsViewer = null
+						            m.redraw()
+					            }
 
-		locator.mailModel.getUserMailboxDetails().then(details => {
-			if(details.mailbox.templates) {
-				const templateListId = details.mailbox.templates.list
-				const listConfig: ListConfig<EmailTemplate, TemplateRow> = {
-					rowHeight: size.list_row_height,
-					fetch: (startId, count) => {
-						console.log("template list fetch", startId, count)
-						return entityClient.loadRange(EmailTemplateTypeRef, templateListId, startId, count, true).then(entries => {
-							console.log("templates", entries)
-							return entries
-						})
-					},
-					loadSingle: (elementId) => {
-						return entityClient.load(EmailTemplateTypeRef, [templateListId, elementId])
-					},
-					sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
-						var titleA = a.title.toUpperCase();
-						var titleB = b.title.toUpperCase();
-						return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
-					},
-					elementSelected: (templates: Array<EmailTemplate>, elementClicked) => {
-						if (elementClicked) {
-							this._settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], entityClient)
-							this._settingsView.focusSettingsDetailsColumn()
-						} else if (templates.length === 0 && this._settingsView.detailsViewer) {
-							this._settingsView.detailsViewer = null
-							m.redraw()
-						}
-
-					},
-					createVirtualRow: () => {
-						return new TemplateRow()
-					},
-					showStatus: false,
-					className: "template-list",
-					swipe: {
-						renderLeftSpacer: () => [],
-						renderRightSpacer: () => [],
-						swipeLeft: (listElement) => Promise.resolve(),
-						swipeRight: (listElement) => Promise.resolve(),
-						enabled: false
-					},
-					elementsDraggable: false,
-					multiSelectionAllowed: false,
-					emptyMessage: lang.get("noEntries_msg"),
-				}
-				this._list = new List(listConfig)
-				this._list.loadInitial()
-			}
-		})
+				            },
+				            createVirtualRow: () => {
+					            return new TemplateRow()
+				            },
+				            showStatus: false,
+				            className: "template-list",
+				            swipe: {
+					            renderLeftSpacer: () => [],
+					            renderRightSpacer: () => [],
+					            swipeLeft: (listElement) => Promise.resolve(),
+					            swipeRight: (listElement) => Promise.resolve(),
+					            enabled: false
+				            },
+				            elementsDraggable: false,
+				            multiSelectionAllowed: false,
+				            emptyMessage: lang.get("noEntries_msg"),
+			            }
+			            this._list = new List(listConfig)
+			            this._list.loadInitial()
+		            })
 	}
 
 
@@ -102,11 +106,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 
 	_showDialogWindow(existingTitle?: string, existingID?: string, existingContent?: string, index?: number, allowCancel: boolean = true) {
-		locator.mailModel.getUserMailboxDetails().then(details => {
-			if (details.mailbox.templates && details.mailbox._ownerGroup) {
-				new TemplateEditor(null, details.mailbox.templates.list, details.mailbox._ownerGroup, locator.entityClient)
-			}
-		})
+		if (this._templateGroupRoot) {
+			new TemplateEditor(null, this._templateGroupRoot.templates, neverNull(this._templateGroupRoot._ownerGroup), locator.entityClient)
+		}
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

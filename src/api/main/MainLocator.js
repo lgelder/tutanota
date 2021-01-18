@@ -13,6 +13,8 @@ import {EntityClient} from "../common/EntityClient"
 import type {CalendarModel} from "../../calendar/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/CalendarModel"
 import {ProgressTracker} from "./ProgressTracker"
+import {TemplateModel} from "../../templates/TemplateModel"
+import {KnowledgeBaseModel} from "../../knowledgebase/KnowledgeBaseModel"
 
 assertMainOrNode()
 
@@ -26,6 +28,8 @@ export type MainLocatorType = {|
 	contactModel: ContactModel;
 	entityClient: EntityClient;
 	progressTracker: ProgressTracker;
+	templateModel: TemplateModel;
+	knowledgebase: KnowledgeBaseModel;
 |}
 
 export const locator: MainLocatorType = ({
@@ -38,6 +42,8 @@ export const locator: MainLocatorType = ({
 		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins, this.progressTracker)
 		this.contactModel = new ContactModelImpl(worker)
 		this.entityClient = new EntityClient(worker)
+		this.templateModel = new TemplateModel(locator.eventController, logins, locator.entityClient)
+		this.knowledgebase = new KnowledgeBaseModel(locator.eventController, logins, locator.entityClient)
 
 	}
 }: any)

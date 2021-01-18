@@ -64,6 +64,8 @@ export interface IUserController {
 
 	getLocalAdminGroupMemberships(): GroupMembership[];
 
+	getTemplateMemberships(): GroupMembership[];
+
 	entityEventsReceived($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>;
 
 	deleteSession(sync: boolean): Promise<void>;
@@ -164,6 +166,11 @@ export class UserController implements IUserController {
 	getLocalAdminGroupMemberships(): GroupMembership[] {
 		return this.user.memberships.filter(membership => membership.groupType === GroupType.LocalAdmin)
 	}
+
+	getTemplateMemberships(): GroupMembership[] {
+		return this.user.memberships.filter(membership => membership.groupType === GroupType.Template)
+	}
+
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		return Promise.each(updates, (update) => {

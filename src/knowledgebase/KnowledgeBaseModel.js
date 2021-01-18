@@ -17,6 +17,9 @@ import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {lang} from "../misc/LanguageViewModel"
 import {downcast} from "../api/common/utils/Utils"
+import type {LoginController} from "../api/main/LoginController"
+import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
+import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 
 /**
  *   Model that holds main logic for the Knowdledgebase.
@@ -31,13 +34,14 @@ export class KnowledgeBaseModel {
 	_filterValue: string
 	+_eventController: EventController;
 	+_entityEventReceived: EntityEventsListener;
-	+_mailModel: MailModel;
+	+_logins: LoginController;
 	+_entityClient: EntityClient;
+	_templateGroupRoot: ?TemplateGroupRoot
 
 
-	constructor(eventController: EventController, mailModel: MailModel, entityClient: EntityClient) {
+	constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient) {
 		this._eventController = eventController
-		this._mailModel = mailModel
+		this._logins = logins
 		this._entityClient = entityClient
 		this._allEntries = []
 		this._allKeywords = []
@@ -155,13 +159,19 @@ export class KnowledgeBaseModel {
 	}
 
 	_getKnowledgeBaseListId(): Promise<?Id> {
-		return this._mailModel.getUserMailboxDetails().then(details => {
-			if (details.mailbox.knowledgeBase) {
-				return details.mailbox.knowledgeBase.list
-			} else {
-				return null
-			}
-		})
+		const templateGroupMembership = this._logins.getUserController().getTemplateMemberships()[0]
+		if (this._templateGroupRoot) {
+			return Promise.resolve(this._templateGroupRoot.knowledgeBase)
+		}
+		if (templateGroupMembership) {
+			return this._entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
+			           .then(templateGroupRoot => {
+				           this._templateGroupRoot = templateGroupRoot
+				           return templateGroupRoot.knowledgeBase
+			           })
+		}
+		return Promise.resolve(null)
+
 	}
 
 	dispose() {
@@ -228,6 +238,4 @@ export class KnowledgeBaseModel {
 		}).return()
 	}
 }
-
-export const knowledgebase: KnowledgeBaseModel = new KnowledgeBaseModel(locator.eventController, locator.mailModel, locator.entityClient)
 

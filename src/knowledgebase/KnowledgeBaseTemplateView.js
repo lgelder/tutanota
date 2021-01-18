@@ -2,15 +2,15 @@
 
 import m from "mithril"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
-import {knowledgebase} from "./KnowledgeBaseModel"
 import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
 import {getLanguageCode} from "../settings/TemplateEditorModel"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 import type {SelectorItem} from "../gui/base/DropDownSelectorN"
-import type {LanguageCode} from "../misc/LanguageViewModel"
-import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import stream from "mithril/stream/stream.js"
 import {getFromMap} from "../api/common/utils/MapUtils"
+import {locator} from "../api/main/MainLocator"
 
 export type Attrs = {
 	onLanguageSelected: (LanguageCode) => mixed,
@@ -62,7 +62,7 @@ export class KnowledgeBaseTemplateView {
 
 	_getContent(template: EmailTemplate, language: LanguageCode): string {
 		return getFromMap(this._contents, language, () => {
-			return knowledgebase.getContentFromTemplate(language, template)
+			return locator.knowledgebase.getContentFromTemplate(language, template)
 		})
 	}
 }

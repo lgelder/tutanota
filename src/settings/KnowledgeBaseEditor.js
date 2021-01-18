@@ -24,6 +24,7 @@ import {Keys} from "../api/common/TutanotaConstants"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 import {Icon} from "../gui/base/Icon"
+import {locator} from "../api/main/MainLocator"
 
 /**
  *  Editor to edit / add a knowledgebase entry
@@ -43,7 +44,7 @@ export class KnowledgeBaseEditor {
 	+_ownerGroup: Id
 
 	constructor(entry: ?KnowledgeBaseEntry, entryListId: Id, ownerGroup: Id, entityClient: EntityClient) {
-		this._editorModel = new KnowledgeBaseEditorModel()
+		this._editorModel = new KnowledgeBaseEditorModel(locator.templateModel)
 		this.entry = entry ? clone(entry) : createKnowledgeBaseEntry()
 
 		this._entryTitle = stream("")
@@ -176,7 +177,7 @@ export class KnowledgeBaseEditor {
 			this._entryTitle(this.entry.title)
 			this._editorModel.initAddedKeywords(this.entry.keywords)
 
-			const content = this.entry.useCase
+			const content = this.entry.description
 			this._entryContentEditor.setValue(content)
 
 		}
@@ -194,7 +195,7 @@ export class KnowledgeBaseEditor {
 		}
 		this.entry.title = this._entryTitle()
 		this.entry.keywords = this._editorModel.getAddedKeywords()
-		this.entry.useCase = this._entryContentEditor.getValue()
+		this.entry.description = this._entryContentEditor.getValue()
 
 		let promise
 		if (this.entry._id) {

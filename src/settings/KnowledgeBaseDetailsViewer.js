@@ -30,7 +30,7 @@ export class KnowledgeBaseDetailsViewer {
 		this._entityClient = entityClient
 		this._sanitizedEntry = memoized((entry) => {
 			return {
-				content: htmlSanitizer.sanitize(entry.useCase, true).text,
+				content: htmlSanitizer.sanitize(entry.description, true).text,
 			}
 		})
 

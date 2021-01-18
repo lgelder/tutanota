@@ -1,33 +1,31 @@
 // @flow
 import m from "mithril"
 import {px} from "../gui/size"
-import {knowledgebase} from "./KnowledgeBaseModel"
+import {KnowledgeBaseModel} from "./KnowledgeBaseModel"
 import {theme} from "../gui/theme"
 import {Icons} from "../gui/base/icons/Icons"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {KnowledgeBaseListEntry} from "./KnowledgeBaseListEntry"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonType} from "../gui/base/ButtonN"
 import stream from "mithril/stream/stream.js"
-import {Dialog} from "../gui/base/Dialog"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {KnowledgeBaseEntryView} from "./KnowledgeBaseEntryView"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {KnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {KnowledgeBaseTemplateView} from "./KnowledgeBaseTemplateView"
-import type {LanguageCode} from "../misc/LanguageViewModel"
-import {getListId, isSameId} from "../api/common/EntityFunctions"
+import {getListId} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 
 type KnowledgebaseViewAttrs = {
 	onSubmit: (string) => void,
+	model: KnowledgeBaseModel
 }
 
 export const KNOWLEDGEBASE_PANEL_HEIGHT = 840;
@@ -55,16 +53,17 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 	_redrawStream: Stream<*>
 	_pages: Stream<Array<Page>>;
 
-	constructor({attrs}: Vnode<KnowledgebaseViewAttrs>) {
+	constructor() {
 		this._searchbarValue = stream("")
 		this._pages = stream([{type: "list"}])
 	}
 
 
-	oncreate() {
+	oncreate({attrs}: Vnode<KnowledgebaseViewAttrs>) {
+		const {model} = attrs
 		this._redrawStream = stream.combine(() => {
 			m.redraw()
-		}, [knowledgebase.selectedEntry, knowledgebase.filteredEntries])
+		}, [model.selectedEntry, model.filteredEntries])
 	}
 
 	onremove() {
@@ -80,16 +79,16 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 				width: px(KNOWLEDGEBASE_PANEL_WIDTH),
 				top: px(KNOWLEDGEBASE_PANEL_TOP),
 			}
-		}, [this._renderHeader(attrs), m(".mr-s.ml-s", this._renderCurrentPageContent())])
+		}, [this._renderHeader(attrs), m(".mr-s.ml-s", this._renderCurrentPageContent(attrs.model))])
 	}
 
-	_renderCurrentPageContent(): Children {
+	_renderCurrentPageContent(model: KnowledgeBaseModel): Children {
 		const currentPage = lastThrow(this._pages())
 		switch (currentPage.type) {
 			case "list":
-				return [this._renderSearchBar(), this._renderKeywords(), this._renderList()]
+				return [this._renderSearchBar(model), this._renderKeywords(model), this._renderList(model)]
 			case "entry":
-				const entry = knowledgebase.selectedEntry() // this._selectedEntryStream()
+				const entry = model.selectedEntry() // this._selectedEntryStream()
 				if (!entry) return null
 				return m(KnowledgeBaseEntryView, {
 					entry: entry,
@@ -100,9 +99,9 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 							language: lang.code,
 							fetchedTemplate: null
 						}
-						knowledgebase.loadTemplate(template).then((fetchedTemplate) => {
+						model.loadTemplate(template).then((fetchedTemplate) => {
 							templatePage.fetchedTemplate = fetchedTemplate
-							templatePage.language = knowledgebase.getLanguageFromTemplate(fetchedTemplate)
+							templatePage.language = model.getLanguageFromTemplate(fetchedTemplate)
 							m.redraw()
 						})
 						this._pages(this._pages().concat(templatePage))
@@ -121,6 +120,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 
 	_renderHeader(attrs: KnowledgebaseViewAttrs): Children {
 		const currentPage = lastThrow(this._pages())
+		const knowledgebase = attrs.model
 		switch (currentPage.type) {
 			case "list":
 				return m(".pl", renderHeaderBar(lang.get("knowledgebase_label"), {
@@ -132,7 +132,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 				}, {
 					label: "addEntry_label",
 					click: () => {
-						this._showDialogWindow()
+						this._showDialogWindow(knowledgebase)
 					},
 					type: ButtonType.Primary,
 				}))
@@ -174,19 +174,19 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 		}
 	}
 
-	_renderSearchBar(): Children {
+	_renderSearchBar(model: KnowledgeBaseModel): Children {
 		const searchBarAttrs: TextFieldAttrs = {
 			label: "filter_label",
 			value: this._searchbarValue,
 			oninput: (input) => {
-				knowledgebase.filter(input)
+				model.filter(input)
 			}
 		}
 		return m(TextFieldN, searchBarAttrs)
 	}
 
-	_renderKeywords(): Children {
-		const matchedKeywords = knowledgebase.getMatchedKeywordsInContent()
+	_renderKeywords(model: KnowledgeBaseModel): Children {
+		const matchedKeywords = model.getMatchedKeywordsInContent()
 		return m(".flex.mt-s.wrap", [
 			matchedKeywords.length > 0
 				? m(".small.full-width", lang.get("matchingKeywords_label"))
@@ -197,22 +197,22 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 		])
 	}
 
-	_renderList(): Children {
+	_renderList(model: KnowledgeBaseModel): Children {
 		return m(".mt-s.scroll", [
-			knowledgebase.containsResult()
-				? knowledgebase.filteredEntries().map((entry, index) => this._renderListEntry(entry, index))
+			model.containsResult()
+				? model.filteredEntries().map((entry, index) => this._renderListEntry(model, entry, index))
 				: m(".center", lang.get("noEntryFound_label"))
 		])
 	}
 
-	_renderListEntry(entry: KnowledgeBaseEntry, index: number): Children {
+	_renderListEntry(model: KnowledgeBaseModel, entry: KnowledgeBaseEntry, index: number): Children {
 		return m(".flex.flex-column", [
 			m(".flex.template-list-row.click", {
 				style: {
 					backgroundColor: (index % 2) ? theme.list_bg : theme.list_alternate_bg
 				},
 				onclick: () => {
-					knowledgebase.selectedEntry(entry)
+					model.selectedEntry(entry)
 					this._pages(this._pages().concat({type: "entry", entry: entry._id}))
 				}
 			}, [
@@ -225,12 +225,11 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 		this._pages(this._pages().slice(0, -1))
 	}
 
-	_showDialogWindow() {
-		locator.mailModel.getUserMailboxDetails().then(details => {
-			if (details.mailbox.knowledgeBase && details.mailbox._ownerGroup) {
-				new KnowledgeBaseEditor(null, details.mailbox.knowledgeBase.list, details.mailbox._ownerGroup, locator.entityClient)
-			}
-		})
+	_showDialogWindow(knowledgeBaseModel: KnowledgeBaseModel) {
+		if (knowledgeBaseModel._templateGroupRoot) {
+			new KnowledgeBaseEditor(null, knowledgeBaseModel._templateGroupRoot.knowledgeBase, neverNull(knowledgeBaseModel._templateGroupRoot._ownerGroup), locator.entityClient)
+		}
+
 	}
 }
 

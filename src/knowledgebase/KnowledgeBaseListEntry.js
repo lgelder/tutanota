@@ -15,7 +15,7 @@ export const KNOWLEDGEBASE_LIST_ENTRY_HEIGHT = 50
 
 export class KnowledgeBaseListEntry implements MComponent<KnowledgebaseListEntryAttrs> {
 	view(vnode: Vnode<KnowledgebaseListEntryAttrs>): Children {
-		const {title, keywords, steps} = vnode.attrs.entry
+		const {title, keywords} = vnode.attrs.entry
 		return m(".ml-s.flex.flex-column.overflow-hidden.full-width", {
 			style: {
 				height: px(KNOWLEDGEBASE_LIST_ENTRY_HEIGHT),
