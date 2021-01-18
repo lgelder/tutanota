@@ -53,6 +53,7 @@ import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 import {createBooking} from "../../../src/api/entities/sys/Booking"
+import {createCustomerInfo} from "../../../src/api/entities/sys/CustomerInfo"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
@@ -130,7 +131,7 @@ o.spec("CalendarEventViewModel", function () {
 		viewModel._lastBooking = new LazyLoaded(() => {
 			return Promise.resolve(createBooking({business: true})) // TODO
 		}, null)
-
+		viewModel._lastBooking.getAsync()
 		return viewModel
 	}
 
@@ -1679,7 +1680,8 @@ function makeUserController(aliases: Array<string> = [], accountType: AccountTyp
 		},
 		isInternalUser: () => true,
 		isFreeAccount: () => true,
-		loadCustomer: () => Promise.resolve(createCustomer())
+		loadCustomer: () => Promise.resolve(createCustomer()),
+		loadCustomerInfo: () => Promise.resolve(createCustomerInfo())
 	})
 }
 

@@ -53,9 +53,7 @@ import {
 	getTotalAliases,
 	getTotalStorageCapacity, isBusinessActive,
 	isSharingActive,
-	isWhitelabelActive, showBusinessBuyDialog, showServiceTerms,
-	showSharingBuyDialog,
-	showWhitelabelBuyDialog
+	isWhitelabelActive, showServiceTerms
 } from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -73,6 +71,7 @@ import {Expandable} from "../settings/Expandable"
 import type {ExpandableAttrs} from "../settings/Expandable"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
+import {showBusinessBuyDialog, showSharingBuyDialog, showWhitelabelBuyDialog} from "./BuyDialog"
 
 assertMainOrNode()
 

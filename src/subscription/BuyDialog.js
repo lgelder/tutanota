@@ -17,11 +17,12 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {logins} from "../api/main/LoginController"
 import {NotAuthorizedError} from "../api/common/error/RestError"
 import {getPriceItem} from "./PriceUtils"
-import {formatPrice} from "./SubscriptionUtils"
+import {bookItem, formatPrice} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -109,6 +110,59 @@ export function show(featureType: BookingItemFeatureTypeEnum, count: number, fre
 			})
 		}
 	})
+}
+
+/**
+ * Shows the buy dialog to enable or disable the whitelabel package.
+ * @param enable true if the whitelabel package should be enabled otherwise false.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
+	return showBuyDialogToBookItem(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
+}
+
+/**
+ * Shows the buy dialog to enable or disable the sharing package.
+ * @param enable true if the whitelabel package should be enabled otherwise false.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
+	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
+		if (ok) {
+			return showBuyDialogToBookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
+		} else {
+			return true
+		}
+	})
+}
+
+/**
+ * Shows the buy dialog to enable or disable the business package.
+ * @param enable true if the business package should be enabled otherwise false.
+ * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
+	return (enable ? Promise.resolve(true) : Dialog.confirm("businessDeletionWarning_msg")).then(ok => {
+		if (ok) {
+			return showBuyDialogToBookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
+		} else {
+			return true
+		}
+	})
+}
+
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function showBuyDialogToBookItem(bookingItemFeatureType: BookingItemFeatureTypeEnum, amount: number, freeAmount: number = 0, reactivate: boolean = false): Promise<boolean> {
+	return showProgressDialog("pleaseWait_msg", show(bookingItemFeatureType, amount, freeAmount, reactivate))
+		.then(accepted => {
+			if (accepted) {
+				return bookItem(bookingItemFeatureType, amount)
+			} else {
+				return true
+			}
+		})
 }
 
 function _getBookingText(price: PriceServiceReturn, featureType: NumberString, count: number, freeAmount: number): string {

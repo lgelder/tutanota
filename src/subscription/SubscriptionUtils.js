@@ -16,8 +16,6 @@ import {serviceRequestVoid} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {Dialog} from "../gui/base/Dialog"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
-import * as BuyDialog from "./BuyDialog"
 import {asyncImport} from "../api/common/utils/Utils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
@@ -382,60 +380,6 @@ export function buySharing(enable: boolean): Promise<boolean> {
 export function buyBusiness(enable: boolean): Promise<boolean> {
 	return bookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
 }
-
-/**
- * Shows the buy dialog to enable or disable the whitelabel package.
- * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
- */
-export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
-	return showBuyDialog(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
-}
-
-/**
- * Shows the buy dialog to enable or disable the sharing package.
- * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
- */
-export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
-	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
-		if (ok) {
-			return showBuyDialog(BookingItemFeatureType.Sharing, enable ? 1 : 0)
-		} else {
-			return true
-		}
-	})
-}
-
-/**
- * Shows the buy dialog to enable or disable the business package.
- * @param enable true if the business package should be enabled otherwise false.
- * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
- */
-export function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
-	return (enable ? Promise.resolve(true) : Dialog.confirm("businessDeletionWarning_msg")).then(ok => {
-		if (ok) {
-			return showBuyDialog(BookingItemFeatureType.Business, enable ? 1 : 0)
-		} else {
-			return true
-		}
-	})
-}
-
-/**
- * @returns True if it failed, false otherwise
- */
-export function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum, amount: number, freeAmount: number = 0, reactivate: boolean = false): Promise<boolean> {
-	return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemFeatureType, amount, freeAmount, reactivate))
-		.then(accepted => {
-			if (accepted) {
-				return bookItem(bookingItemFeatureType, amount)
-			} else {
-				return true
-			}
-		})
-}
-
 
 export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
 	asyncImport(typeof module !== "undefined"

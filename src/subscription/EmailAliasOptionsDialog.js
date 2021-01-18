@@ -13,7 +13,8 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {formatPrice, showBuyDialog} from "./SubscriptionUtils"
+import {formatPrice} from "./SubscriptionUtils"
+import {showBuyDialogToBookItem} from "./BuyDialog"
 
 export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -24,7 +25,7 @@ export function show(): Promise<void> {
 			return new Promise(resolve => {
 				const changeEmailAliasPackageAction = (amount: number) => {
 					dialog.close()
-					showBuyDialog(BookingItemFeatureType.Alias, amount, freeEmailAliases)
+					showBuyDialogToBookItem(BookingItemFeatureType.Alias, amount, freeEmailAliases)
 						.then(cancelled => {if (cancelled) show()})
 						.then(() => resolve())
 				}

@@ -60,7 +60,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import * as EditNotificationEmailDialog from "./EditNotificationEmailDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {isWhitelabelActive, showWhitelabelBuyDialog} from "../subscription/SubscriptionUtils"
+import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {SysService} from "../api/entities/sys/Services"
@@ -69,6 +69,7 @@ import {LockedError, PreconditionFailedError} from "../api/common/error/RestErro
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
+import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
 
 assertMainOrNode()
 

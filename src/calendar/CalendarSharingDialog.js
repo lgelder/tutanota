@@ -42,7 +42,7 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
-import {showSharingBuyDialog} from "../subscription/SubscriptionUtils"
+import {showSharingBuyDialog} from "../subscription/BuyDialog"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,
