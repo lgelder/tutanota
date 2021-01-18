@@ -1,14 +1,37 @@
 // @flow
-import {promises as fs} from "fs" // can do fs/promises since node 14
-import {uint8ArrayToBitArray} from "../api/worker/crypto/CryptoUtils"
-import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {aes128Decrypt, aes256Decrypt, aes256Encrypt} from "../api/worker/crypto/Aes"
-import crypto from "crypto"
-import {decrypt256Key} from "../api/worker/crypto/KeyCryptoUtils"
+import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
+import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
-import forge from "node-forge"
+
+export interface CryptoFunctions {
+	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array;
+
+	aes128Decryptkey(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array;
+
+	aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array;
+
+	aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array;
+
+	decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key;
+
+	base64ToKey(base64: Base64): BitArray;
+
+	publicKeyFromPem(pem: string): {verify: (string, string) => boolean};
+
+	randomBytes(bytes: number): Uint8Array;
+
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T>;
+}
 
 export class DesktopCryptoFacade {
+	+fs: $Exports<"fs">
+	+cryptoFns: CryptoFunctions
+
+	constructor(fs: $Exports<"fs">, cryptoFns: CryptoFunctions) {
+		this.fs = fs
+		this.cryptoFns = cryptoFns
+	}
+
 	/**
 	 * decrypts a file in-place
 	 * @param encodedKey
@@ -16,59 +39,57 @@ export class DesktopCryptoFacade {
 	 * @returns {Promise<Uint8Array>}
 	 */
 	aesDecryptFile(encodedKey: string, itemPath: string): Promise<string> {
-		return fs.readFile(itemPath).then(encData => {
-			const key = uint8ArrayToBitArray(base64ToUint8Array(encodedKey))
-			return aes128Decrypt(key, encData)
+		return this.fs.promises.readFile(itemPath).then(encData => {
+			const key = this.cryptoFns.base64ToKey(encodedKey)
+			return this.cryptoFns.aes128Decrypt(key, encData, true)
 		}).then(decData => {
-			return fs.writeFile(itemPath, decData, {encoding: 'binary'})
+			return this.fs.promises.writeFile(itemPath, decData, {encoding: 'binary'})
 		}).then(() => itemPath)
 	}
 
 	aes256DecryptKeyToB64(encryptionKey: Aes256Key, keyToDecryptB64: string): string {
-		return uint8ArrayToBase64(aes256Decrypt(
+		return uint8ArrayToBase64(this.cryptoFns.aes256Decrypt(
 			encryptionKey,
-			Buffer.from(keyToDecryptB64, 'base64'),
+			base64ToUint8Array(keyToDecryptB64),
 			false,
 			false
 		))
 	}
 
 	aes256EncryptKeyToB64(encryptionKey: Aes256Key, keyToEncryptB64: string): string {
-		return uint8ArrayToBase64(aes256Encrypt(
+		return uint8ArrayToBase64(this.cryptoFns.aes256Encrypt(
 			encryptionKey,
-			Buffer.from(keyToEncryptB64, 'base64'),
-			crypto.randomBytes(16),
+			base64ToUint8Array(keyToEncryptB64),
+			this.cryptoFns.randomBytes(16),
 			false,
 			false
 		))
 	}
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, piSk: string, piSkEncSk: string): Promise<T> {
-		const sk = this._decrypt256KeyToArray(piSk, piSkEncSk)
-		return decryptAndMapToInstance(model, instance, sk)
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, piSessionKey: string, piSessionKeyEncSessionKey: string): Promise<T> {
+		const sk = this._decrypt256KeyToArray(piSessionKey, piSessionKeyEncSessionKey)
+		return this.cryptoFns.decryptAndMapToInstance(model, instance, sk)
 	}
 
 	generateId(byteLength: number): string {
-		return base64ToBase64Url(crypto.randomBytes(byteLength).toString('base64'))
+		return base64ToBase64Url(uint8ArrayToBase64(this.cryptoFns.randomBytes(byteLength)))
 	}
 
 	publicKeyFromPem(pem: string): {verify: (string, string) => boolean} {
-		return forge.pki.publicKeyFromPem(pem)
+		return this.cryptoFns.publicKeyFromPem(pem)
 	}
 
 	_decrypt256KeyToArray(encryptionKey: string, keyB64: string): Aes256Key {
-		const encryptionKeyBuffer = Buffer.from(encryptionKey, 'base64')
-		const keyBuffer = Buffer.from(keyB64, 'base64')
-		const encryptionKeyArray = uint8ArrayToBitArray(Uint8Array.from(encryptionKeyBuffer))
-		const keyArray = Uint8Array.from(keyBuffer)
-		return decrypt256Key(encryptionKeyArray, keyArray)
+		const encryptionKeyArray = base64ToKey(encryptionKey)
+		const keyArray = base64ToUint8Array(keyB64)
+		return this.cryptoFns.decrypt256Key(encryptionKeyArray, keyArray)
 	}
 
-	static generateDeviceKey(): string {
-		return crypto.randomBytes(32).toString('base64')
+	generateDeviceKey(): string {
+		return uint8ArrayToBase64(this.cryptoFns.randomBytes(32))
 	}
 
-	static randomHexString(byteLength: number): string {
-		return crypto.randomBytes(byteLength).toString('hex')
+	randomHexString(byteLength: number): string {
+		return uint8ArrayToHex(this.cryptoFns.randomBytes(byteLength))
 	}
 }
