@@ -9,23 +9,6 @@ import {downcast} from "../../../../src/api/common/utils/Utils"
 import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade"
 
 o.spec("DesktopAlarmStorageTest", () => {
-	n.startGroup({
-		group: "DesktopAlarmStorage", allowables: [
-			"./TutanotaError",
-			"../error/CryptoError",
-			"../../api/common/utils/Encoding",
-			"../../api/common/error/CryptoError",
-			"./StringUtils",
-			"./EntityConstants",
-			"./Utils",
-			"../../api/common/utils/Utils",
-			"./utils/Utils",
-			"../TutanotaConstants",
-			"./utils/ArrayUtils",
-			"./MapUtils",
-		]
-	})
-
 	const electron = {}
 	const crypto = {
 		aes256DecryptKeyToB64: (pw, data) => {

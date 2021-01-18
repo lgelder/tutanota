@@ -3,8 +3,6 @@ import n from "../nodemocker"
 import o from "ospec"
 
 o.spec("DesktopCryptoFacadeTest", () => {
-	n.startGroup({group: "DesktopCryptoFacadeTest"})
-
 	const fs = {
 		readFile: () => Promise.resolve("uint8_somedata"),
 		writeFile: (file, data) => data === "decrypted" ? Promise.resolve() : Promise.reject("decryption failed")

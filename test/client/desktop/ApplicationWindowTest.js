@@ -7,163 +7,6 @@ import {ApplicationWindow} from "../../../src/desktop/ApplicationWindow"
 const U2F_EXTENSION_ID = "kmendfapggjehodndflmmgagdbamhnfd" // check u2f-api.js
 
 o.spec("ApplicationWindow Test", function () {
-	n.startGroup({
-		group: "ApplicationWindow",
-		allowables: [
-			'../api/Env'
-		],
-		timeout: 300
-	})
-
-	const electron = {
-		BrowserWindow: n.classify({
-			prototype: {
-				callbacks: {},
-				devToolsOpened: false,
-				destroyed: false,
-				focused: true,
-				minimized: false,
-				bounds: {height: 0, width: 0, x: 0, y: 0},
-				fullscreen: false,
-				isDestroyed: function () {
-					return this.destroyed
-				},
-				on: function (ev: string, cb: () => void) {
-					this.callbacks[ev] = cb
-					return this
-				},
-				once: function (ev: string, cb: () => void) {
-					this.callbacks[ev] = cb
-					return this
-				},
-				emit: function (ev: string) {
-					this.callbacks[ev]()
-				},
-				constructor: function (opts) {
-					this.opts = opts
-					this.id = electron.BrowserWindow.lastId
-					electron.BrowserWindow.lastId = electron.BrowserWindow.lastId + 1
-
-					this.webContents = n.spyify({
-						callbacks: {},
-						destroyed: false,
-						zoomFactor: 1.0,
-
-						isDestroyed: () => {
-							return this.webContents.destroyed
-						},
-						send: (msg, val) => {
-							if (msg === 'set-zoom-factor') {
-								this.webContents.zoomFactor = val
-							}
-						},
-						on: (ev: string, cb: () => void) => {
-							this.webContents.callbacks[ev] = cb
-							return this.webContents
-						},
-						once: (ev: string, cb: () => void) => {
-							this.webContents.callbacks[ev] = cb
-							return this.webContents
-						},
-						isDevToolsOpened: function () {
-							return this.devToolsOpened
-						},
-						openDevTools: function () {
-							this.devToolsOpened = true
-						},
-						closeDevTools: function () {
-							this.devToolsOpened = false
-						},
-						goBack: function () {
-						},
-						goForward: function () {
-						},
-						toggleDevTools: function () {
-							this.devToolsOpened = !this.devToolsOpened
-						},
-						getTitle: () => 'webContents Title',
-						session: {
-							setPermissionRequestHandler: () => {
-							}
-						},
-						findInPage: () => {
-						},
-						stopFindInPage: () => {
-						},
-						getURL: () => 'file:///path/to/app/desktophtml/meh/more',
-						removeAllListeners: (k) => {
-							this.webContents.callbacks[k] = []
-							return this
-						}
-					})
-				},
-				removeMenu: function () {
-
-				},
-				setMenuBarVisibility: function () {
-				},
-				setMinimumSize: function (x: number, y: number) {
-
-				},
-				loadURL: function () {
-					return Promise.resolve()
-				},
-				close: function () {
-				},
-				show: function () {
-				},
-				hide: function () {
-				},
-				center: function () {
-				},
-				showInactive: function () {
-				},
-				isFocused: function () {
-					return this.focused
-				},
-				setFullScreen: function (fullscreen) {
-					this.fullscreen = fullscreen
-				},
-				isFullScreen: function () {
-					return this.fullscreen
-				},
-				isMinimized: function () {
-					return this.minimized
-				},
-				minimize: function () {
-				},
-				focus: function () {
-				},
-				restore: function () {
-				},
-				getBounds: function () {
-					return this.bounds
-				},
-				setBounds: function (bounds) {
-					this.bounds = bounds
-				},
-				setPosition: function (x, y) {
-					this.bounds.x = x;
-					this.bounds.y = y
-				},
-			},
-			statics: {
-				lastId: 0
-			}
-		}),
-		shell: {
-			openExternal: () => {
-			},
-		},
-		Menu: {
-			setApplicationMenu: () => {
-			}
-		},
-		app: {
-			getAppPath: () => "/path/to/app",
-			getVersion: () => "app version"
-		},
-	}
 	const electronLocalshortcut = {
 		callbacks: {},
 		register: function (bw, key, cb) {
@@ -216,6 +59,155 @@ o.spec("ApplicationWindow Test", function () {
 	}
 
 	const standardMocks = () => {
+		const electron = {
+			BrowserWindow: n.classify({
+				prototype: {
+					callbacks: {},
+					devToolsOpened: false,
+					destroyed: false,
+					focused: true,
+					minimized: false,
+					bounds: {height: 0, width: 0, x: 0, y: 0},
+					fullscreen: false,
+					isDestroyed: function () {
+						return this.destroyed
+					},
+					on: function (ev: string, cb: () => void) {
+						this.callbacks[ev] = cb
+						return this
+					},
+					once: function (ev: string, cb: () => void) {
+						this.callbacks[ev] = cb
+						return this
+					},
+					emit: function (ev: string) {
+						this.callbacks[ev]()
+					},
+					constructor: function (opts) {
+						this.opts = opts
+						this.id = electron.BrowserWindow.lastId
+						electron.BrowserWindow.lastId = electron.BrowserWindow.lastId + 1
+
+						this.webContents = n.spyify({
+							callbacks: {},
+							destroyed: false,
+							zoomFactor: 1.0,
+
+							isDestroyed: () => {
+								return this.webContents.destroyed
+							},
+							send: (msg, val) => {
+								if (msg === 'set-zoom-factor') {
+									this.webContents.zoomFactor = val
+								}
+							},
+							on: (ev: string, cb: () => void) => {
+								this.webContents.callbacks[ev] = cb
+								return this.webContents
+							},
+							once: (ev: string, cb: () => void) => {
+								this.webContents.callbacks[ev] = cb
+								return this.webContents
+							},
+							isDevToolsOpened: function () {
+								return this.devToolsOpened
+							},
+							openDevTools: function () {
+								this.devToolsOpened = true
+							},
+							closeDevTools: function () {
+								this.devToolsOpened = false
+							},
+							goBack: function () {
+							},
+							goForward: function () {
+							},
+							toggleDevTools: function () {
+								this.devToolsOpened = !this.devToolsOpened
+							},
+							getTitle: () => 'webContents Title',
+							session: {
+								setPermissionRequestHandler: () => {
+								}
+							},
+							findInPage: () => {
+							},
+							stopFindInPage: () => {
+							},
+							getURL: () => 'file:///path/to/app/desktophtml/meh/more',
+							removeAllListeners: (k) => {
+								this.webContents.callbacks[k] = []
+								return this
+							}
+						})
+					},
+					removeMenu: function () {
+
+					},
+					setMenuBarVisibility: function () {
+					},
+					setMinimumSize: function (x: number, y: number) {
+
+					},
+					loadURL: function () {
+						return Promise.resolve()
+					},
+					close: function () {
+					},
+					show: function () {
+					},
+					hide: function () {
+					},
+					center: function () {
+					},
+					showInactive: function () {
+					},
+					isFocused: function () {
+						return this.focused
+					},
+					setFullScreen: function (fullscreen) {
+						this.fullscreen = fullscreen
+					},
+					isFullScreen: function () {
+						return this.fullscreen
+					},
+					isMinimized: function () {
+						return this.minimized
+					},
+					minimize: function () {
+					},
+					focus: function () {
+					},
+					restore: function () {
+					},
+					getBounds: function () {
+						return this.bounds
+					},
+					setBounds: function (bounds) {
+						this.bounds = bounds
+					},
+					setPosition: function (x, y) {
+						this.bounds.x = x;
+						this.bounds.y = y
+					},
+				},
+				statics: {
+					lastId: 0
+				}
+			}),
+			shell: {
+				openExternal: () => {
+				},
+			},
+			Menu: {
+				setApplicationMenu: () => {
+				}
+			},
+			app: {
+				getAppPath: () => "/path/to/app",
+				getVersion: () => "app version"
+			},
+		}
 		// node modules
 		const electronMock = n.mock("electron", electron).set()
 		const electronLocalshortcutMock = n.mock("electron-localshortcut", electronLocalshortcut).set()
@@ -698,6 +690,7 @@ o.spec("ApplicationWindow Test", function () {
 	})
 
 	o("setBounds and getBounds", function (done) {
+		o.timeout(300)
 		n.setPlatform('linux')
 		const {electronMock, wmMock, confMock, electronLocalshortcutMock} = standardMocks()
 
@@ -832,12 +825,12 @@ o.spec("ApplicationWindow Test", function () {
 
 		let f = () => {
 		}
-		w.on('one-event', f)
+		w.on(downcast('one-event'), f)
 		o(bwInstance.on.callCount).equals(4) // initial + now
 		o(bwInstance.on.args[0]).equals('one-event')
 		o(bwInstance.on.args[1]).equals(f)
 
-		w.once('two-event', f)
+		w.once(downcast('two-event'), f)
 		o(bwInstance.once.callCount).equals(1)
 		o(bwInstance.once.args[0]).equals('two-event')
 		o(bwInstance.once.args[1]).equals(f)

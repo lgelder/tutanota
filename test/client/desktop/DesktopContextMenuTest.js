@@ -3,11 +3,6 @@ import o from "ospec"
 import n from "../nodemocker"
 
 o.spec("DesktopContextMenu Test", () => {
-	n.startGroup({
-		group: "DesktopContextMenu",
-		allowables: [],
-	})
-
 	const lang = {
 		lang: {get: key => key}
 	}

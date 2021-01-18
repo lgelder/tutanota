@@ -1,26 +1,30 @@
 // @flow
 
-import Registry from "winreg"
+import typeof Registry from "winreg"
 import type {WindowManager} from "../DesktopWindowManager"
 
-const autoRunKey = new Registry({
-	hive: Registry.HKCU,
-	key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
-})
 
 type Electron = $Exports<"electron">
 
 export class DesktopIntegratorWin32 {
 	_electron: Electron
+	_registry: Registry
+	_autoRunKey: any
 
-	constructor(electron: Electron) {
+	constructor(electron: Electron, registry: Registry) {
 		this._electron = electron
+		this._registry = registry
+
+		this._autoRunKey = new registry({
+			hive: registry.HKCU,
+			key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
+		})
 	}
 
 	isAutoLaunchEnabled(): Promise<boolean> {
 		// can't promisify here because it screws with autoRunKeys 'this' semantics
 		return new Promise((resolve, reject) => {
-			autoRunKey.get(this._electron.app.name, (err, item) => {
+			this._autoRunKey.get(this._electron.app.name, (err, item) => {
 				if (err) {
 					reject(err)
 				} else {
@@ -35,7 +39,7 @@ export class DesktopIntegratorWin32 {
 		return this.isAutoLaunchEnabled().then(enabled => enabled
 			? Promise.resolve()
 			: new Promise((resolve, reject) => {
-				autoRunKey.set(this._electron.app.name, Registry.REG_SZ, `${process.execPath} -a`, (err) => {
+				this._autoRunKey.set(this._electron.app.name, this._registry.REG_SZ, `${process.execPath} -a`, (err) => {
 					if (err) {
 						reject(err)
 					}
@@ -48,7 +52,7 @@ export class DesktopIntegratorWin32 {
 		// can't promisify here because it screws with autoRunKeys 'this' semantics
 		return this.isAutoLaunchEnabled().then(enabled => enabled
 			? new Promise((resolve, reject) => {
-				autoRunKey.remove(this._electron.app.name, (err) => {
+				this._autoRunKey.remove(this._electron.app.name, (err) => {
 					if (err) {
 						reject(err)
 					}

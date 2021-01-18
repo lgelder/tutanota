@@ -12,6 +12,7 @@ import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {IPC} from "./IPC"
 import {DesktopContextMenu} from "./DesktopContextMenu"
 import {log} from "./DesktopLog"
+import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 
 export type WindowBounds = {|
 	rect: Rectangle,
@@ -28,13 +29,24 @@ export class WindowManager {
 	_contextMenu: DesktopContextMenu
 	ipc: IPC
 	dl: DesktopDownloadManager
+	_newWindowFactory: (noAutoLogin?: boolean) => ApplicationWindow
 
-	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, dl: DesktopDownloadManager) {
+	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, electron: $Exports<"electron">,
+	            localShortcut: LocalShortcutManager, dl: DesktopDownloadManager) {
 		this._conf = conf
 		this._tray = tray
 		this._notifier = notifier
 		this.dl = dl
 		this._contextMenu = new DesktopContextMenu()
+		this._newWindowFactory = (noAutoLogin) => {
+			return new ApplicationWindow(
+				this,
+				this._conf,
+				electron,
+				localShortcut,
+				noAutoLogin
+			)
+		}
 	}
 
 	setIPC(ipc: IPC) {
@@ -42,11 +54,7 @@ export class WindowManager {
 	}
 
 	newWindow(showWhenReady: boolean, noAutoLogin?: boolean): ApplicationWindow {
-		const w = new ApplicationWindow(
-			this,
-			this._conf,
-			noAutoLogin
-		)
+		const w = this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
 		w.on('close', ev => {
 			this.saveBounds(w)

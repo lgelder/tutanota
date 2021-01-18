@@ -29,6 +29,7 @@ import fs from "fs"
 import {DesktopIntegrator} from "./integration/DesktopIntegrator"
 import net from "net"
 import child_process from "child_process"
+import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 
 mp()
 
@@ -49,13 +50,14 @@ alarmStorage.init()
 	            console.warn("alarm storage failed to initialize:", e)
             })
 const updater = new ElectronUpdater(conf, notifier, crypto, app, tray, new UpdaterWrapperImpl())
-const wm = new WindowManager(conf, tray, notifier, dl)
+const shortcutManager = new LocalShortcutManager()
+const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl)
 const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
 alarmScheduler.rescheduleAll()
 
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, crypto, alarmStorage, lang)
-const integrator = new DesktopIntegrator(electron, fs, child_process)
+const integrator = new DesktopIntegrator(electron, fs, child_process, () => import("winreg"))
 const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater, electron, desktopUtils, err, integrator)
 wm.setIPC(ipc)
 

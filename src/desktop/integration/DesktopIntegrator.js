@@ -14,11 +14,12 @@ export class DesktopIntegrator {
 		+unintegrate: ()=>Promise<void>,
 	}>
 
-	constructor(electron: $Exports<"electron">, fs: $Exports<"fs">, childProcess: $Exports<"child_process">) {
+	constructor(electron: $Exports<"electron">, fs: $Exports<"fs">, childProcess: $Exports<"child_process">,
+	            winreg: () => Promise<$Exports<"winreg">>) {
 		switch (process.platform) {
 			case 'win32':
-				this.platformIntegrator = import('./DesktopIntegratorWin32.js')
-					.then(({DesktopIntegratorWin32}) => new DesktopIntegratorWin32(electron))
+				this.platformIntegrator = Promise.all([import('./DesktopIntegratorWin32.js'), winreg()])
+				                                 .then(([integrator, winreg]) => new integrator.DesktopIntegratorWin32(electron, winreg))
 				break
 			case 'darwin':
 				this.platformIntegrator = import('./DesktopIntegratorDarwin.js')

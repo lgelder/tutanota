@@ -3,7 +3,6 @@ import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
 import type {WindowManager} from "../DesktopWindowManager"
 import {log} from "../DesktopLog"
-import fs from "fs"
 
 type Electron = $Exports<"electron">
 type Fs = $Exports<"fs">
@@ -62,7 +61,7 @@ export class DesktopIntegratorLinux {
 	checkFileIsThere(pathToCheck: string): Promise<boolean> {
 		return this._fs.promises.access(
 			pathToCheck,
-			this._fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK
+			this._fs.constants.F_OK | this._fs.constants.W_OK | this._fs.constants.R_OK
 		).then(() => true).catch(() => false)
 	}
 
@@ -77,14 +76,14 @@ export class DesktopIntegratorLinux {
 	Exec=${this.packagePath} -a
 	StartupNotify=false
 	Terminal=false`
-			fs.mkdirSync(path.dirname(this.autoLaunchPath), {recursive: true})
-			fs.writeFileSync(this.autoLaunchPath, autoLaunchDesktopEntry, {encoding: 'utf-8'})
+			this._fs.mkdirSync(path.dirname(this.autoLaunchPath), {recursive: true})
+			this._fs.writeFileSync(this.autoLaunchPath, autoLaunchDesktopEntry, {encoding: 'utf-8'})
 		})
 	}
 
 	disableAutoLaunch(): Promise<void> {
 		return this.isAutoLaunchEnabled()
-		           .then(enabled => enabled ? fs.unlink(this.autoLaunchPath) : Promise.resolve())
+		           .then(enabled => enabled ? this._fs.unlink(this.autoLaunchPath) : Promise.resolve())
 		           .catch(e => {
 			           // don't throw if file not found
 			           if (e.code !== 'ENOENT') throw e
@@ -105,7 +104,7 @@ export class DesktopIntegratorLinux {
 				log.debug(`${this.desktopFilePath} does not exist, checking for permission to ask for permission...`)
 				this.checkFileIsThere(this.nointegrationpath).then(isThere => {
 					if (isThere) {
-						const forbiddenPaths = fs.readFileSync(this.nointegrationpath, {encoding: 'utf8', flag: 'r'})
+						const forbiddenPaths = this._fs.readFileSync(this.nointegrationpath, {encoding: 'utf8', flag: 'r'})
 						                         .trim()
 						                         .split('\n')
 						if (!forbiddenPaths.includes(this.packagePath)) {
@@ -146,14 +145,14 @@ export class DesktopIntegratorLinux {
 
 	unintegrate(): Promise<void> {
 		return Promise.all([
-			fs.unlink(this.iconTargetPath64),
-			fs.unlink(this.iconTargetPath512)
+			this._fs.unlink(this.iconTargetPath64),
+			this._fs.unlink(this.iconTargetPath512)
 		]).catch(e => {
 			if (!e.message.startsWith('ENOENT')) {
 				throw e
 			}
 		}).then(
-			() => fs.unlink(this.desktopFilePath)
+			() => this._fs.unlink(this.desktopFilePath)
 		).catch(e => {
 			if (!e.message.startsWith('ENOENT')) {
 				throw e
@@ -168,28 +167,28 @@ Comment=The desktop client for Tutanota, the secure e-mail service.
 Exec="${this.packagePath}" %U
 Terminal=false
 Type=Application
-Icon=${app.name}.png
-StartupWMClass=${app.name}
+Icon=${this._electron.app.name}.png
+StartupWMClass=${this._electron.app.name}
 MimeType=x-scheme-handler/mailto;
 Categories=Network;
-X-Tutanota-Version=${app.getVersion()}
+X-Tutanota-Version=${this._electron.app.getVersion()}
 TryExec=${this.packagePath}`
-		return fs.promises.mkdir(path.dirname(this.desktopFilePath), {recursive: true})
-		         .then(() => fs.promises.writeFile(this.desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
+		return this._fs.promises.mkdir(path.dirname(this.desktopFilePath), {recursive: true})
+		         .then(() => this._fs.promises.writeFile(this.desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
 	}
 
 	copyIcons(): Promise<void> {
 		return Promise.all([
-			fs.promises.mkdir(this.iconTargetDir64, {recursive: true}),
-			fs.promises.mkdir(this.iconTargetDir512, {recursive: true})
+			this._fs.promises.mkdir(this.iconTargetDir64, {recursive: true}),
+			this._fs.promises.mkdir(this.iconTargetDir512, {recursive: true})
 		]).then(() => {
 			return Promise.all([
-				fs.promises.copyFile(this.iconSourcePath64, this.iconTargetPath64),
-				fs.promises.copyFile(this.iconSourcePath512, this.iconTargetPath512)
+				this._fs.promises.copyFile(this.iconSourcePath64, this.iconTargetPath64),
+				this._fs.promises.copyFile(this.iconSourcePath512, this.iconTargetPath512)
 			])
 		}).then(() => {
 			try {// refresh icon cache (update last modified timestamp)
-				this._childProcess.execFile('touch', [path.join(app.getPath('home'), ".local/share/icons/hicolor")], logExecFile)
+				this._childProcess.execFile('touch', [path.join(this._electron.app.getPath('home'), ".local/share/icons/hicolor")], logExecFile)
 			} catch (e) {
 				// it's ok if this fails for some reason, the icons will appear after a reboot at the latest
 			}
@@ -203,7 +202,7 @@ TryExec=${this.packagePath}`
 	 * ~/.config/tuta_integration/no_integration
 	 */
 	askPermission(): Promise<void> {
-		return dialog.showMessageBox(null, {
+		return this._electron.dialog.showMessageBox(null, {
 			title: lang.get('desktopIntegration_label'),
 			buttons: [lang.get('no_label'), lang.get('yes_label')],
 			defaultId: 1,
@@ -215,8 +214,8 @@ TryExec=${this.packagePath}`
 			let p: Promise<void> = Promise.resolve()
 			if (checkboxChecked) {
 				log.debug("updating no_integration blacklist...")
-				p.then(() => fs.promises.mkdir(path.dirname(this.nointegrationpath), {recursive: true}))
-				 .then(() => fs.promises.writeFile(this.nointegrationpath, this.packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
+				p.then(() => this._fs.promises.mkdir(path.dirname(this.nointegrationpath), {recursive: true}))
+				 .then(() => this._fs.promises.writeFile(this.nointegrationpath, this.packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
 			}
 			if (response === 1) { // clicked yes
 				return p.then(() => this.integrate())
