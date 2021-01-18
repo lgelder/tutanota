@@ -3,22 +3,21 @@
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 import type {KnowledgeBaseEntryKeywords} from "./KnowledgeBaseEntryKeywords"
-import type {KnowledgeBaseStep} from "./KnowledgeBaseStep"
 
 export const KnowledgeBaseEntryTypeRef: TypeRef<KnowledgeBaseEntry> = new TypeRef("tutanota", "KnowledgeBaseEntry")
 export const _TypeModel: TypeModel = {
 	"name": "KnowledgeBaseEntry",
-	"since": 46,
+	"since": 45,
 	"type": "LIST_ELEMENT_TYPE",
-	"id": 1179,
-	"rootId": "CHR1dGFub3RhAASb",
+	"id": 1170,
+	"rootId": "CHR1dGFub3RhAASS",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1183,
-			"since": 46,
+			"id": 1174,
+			"since": 45,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,8 +25,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_id": {
 			"name": "_id",
-			"id": 1181,
-			"since": 46,
+			"id": 1172,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -35,8 +34,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 1185,
-			"since": 46,
+			"id": 1176,
+			"since": 45,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -44,8 +43,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1184,
-			"since": 46,
+			"id": 1175,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -53,26 +52,26 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 1182,
-			"since": 46,
+			"id": 1173,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"title": {
-			"name": "title",
-			"id": 1186,
-			"since": 46,
+		"description": {
+			"name": "description",
+			"id": 1178,
+			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
-		"useCase": {
-			"name": "useCase",
-			"id": 1187,
-			"since": 46,
+		"title": {
+			"name": "title",
+			"id": 1177,
+			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -82,25 +81,16 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"keywords": {
 			"name": "keywords",
-			"id": 1188,
-			"since": 46,
+			"id": 1179,
+			"since": 45,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "KnowledgeBaseEntryKeywords",
 			"final": false
-		},
-		"steps": {
-			"name": "steps",
-			"id": 1189,
-			"since": 46,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"refType": "KnowledgeBaseStep",
-			"final": false
 		}
 	},
 	"app": "tutanota",
-	"version": "46"
+	"version": "45"
 }
 
 export function createKnowledgeBaseEntry(values?: $Shape<$Exact<KnowledgeBaseEntry>>): KnowledgeBaseEntry {
@@ -116,9 +106,8 @@ export type KnowledgeBaseEntry = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	description: string;
 	title: string;
-	useCase: string;
 
 	keywords: KnowledgeBaseEntryKeywords[];
-	steps: KnowledgeBaseStep[];
 }

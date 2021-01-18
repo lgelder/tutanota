@@ -3,20 +3,20 @@
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 
-export const CalendarEventUpdateTypeRef: TypeRef<CalendarEventUpdate> = new TypeRef("tutanota", "CalendarEventUpdate")
+export const TemplateGroupRootTypeRef: TypeRef<TemplateGroupRoot> = new TypeRef("tutanota", "TemplateGroupRoot")
 export const _TypeModel: TypeModel = {
-	"name": "CalendarEventUpdate",
-	"since": 42,
-	"type": "LIST_ELEMENT_TYPE",
-	"id": 1104,
-	"rootId": "CHR1dGFub3RhAARQ",
+	"name": "TemplateGroupRoot",
+	"since": 45,
+	"type": "ELEMENT_TYPE",
+	"id": 1180,
+	"rootId": "CHR1dGFub3RhAASc",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1108,
-			"since": 42,
+			"id": 1184,
+			"since": 45,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -24,8 +24,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_id": {
 			"name": "_id",
-			"id": 1106,
-			"since": 42,
+			"id": 1182,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -33,8 +33,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 1110,
-			"since": 42,
+			"id": 1186,
+			"since": 45,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -42,8 +42,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1109,
-			"since": 42,
+			"id": 1185,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -51,31 +51,32 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 1107,
-			"since": 42,
+			"id": 1183,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
-		},
-		"sender": {
-			"name": "sender",
-			"id": 1111,
-			"since": 42,
-			"type": "String",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": true
 		}
 	},
 	"associations": {
-		"file": {
-			"name": "file",
-			"id": 1112,
-			"since": 42,
-			"type": "LIST_ELEMENT_ASSOCIATION",
+		"knowledgeBase": {
+			"name": "knowledgeBase",
+			"id": 1188,
+			"since": 45,
+			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "File",
+			"refType": "KnowledgeBaseEntry",
+			"final": true,
+			"external": false
+		},
+		"templates": {
+			"name": "templates",
+			"id": 1187,
+			"since": 45,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "EmailTemplate",
 			"final": true,
 			"external": false
 		}
@@ -84,20 +85,20 @@ export const _TypeModel: TypeModel = {
 	"version": "45"
 }
 
-export function createCalendarEventUpdate(values?: $Shape<$Exact<CalendarEventUpdate>>): CalendarEventUpdate {
-	return Object.assign(create(_TypeModel, CalendarEventUpdateTypeRef), values)
+export function createTemplateGroupRoot(values?: $Shape<$Exact<TemplateGroupRoot>>): TemplateGroupRoot {
+	return Object.assign(create(_TypeModel, TemplateGroupRootTypeRef), values)
 }
 
-export type CalendarEventUpdate = {
-	_type: TypeRef<CalendarEventUpdate>;
+export type TemplateGroupRoot = {
+	_type: TypeRef<TemplateGroupRoot>;
 	_errors: Object;
 
 	_format: NumberString;
-	_id: IdTuple;
+	_id: Id;
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	sender: string;
 
-	file: IdTuple;
+	knowledgeBase: Id;
+	templates: Id;
 }

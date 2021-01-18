@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "46"
+	"version": "45"
 }
 
 export function createOutOfOfficeNotificationMessage(values?: $Shape<$Exact<OutOfOfficeNotificationMessage>>): OutOfOfficeNotificationMessage {

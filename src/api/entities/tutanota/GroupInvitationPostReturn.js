@@ -54,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "46"
+	"version": "45"
 }
 
 export function createGroupInvitationPostReturn(values?: $Shape<$Exact<GroupInvitationPostReturn>>): GroupInvitationPostReturn {
