@@ -612,6 +612,10 @@ export class WorkerClient implements EntityRestInterface {
 	isLeader(): boolean {
 		return this._leaderStatus.leaderStatus
 	}
+
+	createTemplateGroup(name: string):Promise<void> {
+		return this._postRequest(new Request('createTemplateGroup', arguments))
+	}
 }
 
 export const worker: WorkerClient = new WorkerClient()

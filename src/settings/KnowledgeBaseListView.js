@@ -34,7 +34,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	constructor(settingsView: SettingsView, templateGroupMembership: GroupMembership) {
 		this._settingsView = settingsView
 		const entityClient = locator.entityClient
-
+		console.log("KnowledgeBaseListView constructor")
 		entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
 		            .then(templateGroupRoot => {
 			            const knowledgebaseListId = templateGroupRoot.knowledgeBase

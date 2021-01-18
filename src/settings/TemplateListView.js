@@ -36,6 +36,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	constructor(settingsView: SettingsView, templateGroupMembership: GroupMembership) {
 		this._settingsView = settingsView
 		const entityClient = locator.entityClient
+		console.log("TemplateListView constructor")
 		entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
 		            .then(templateGroupRoot => {
 			            this._templateGroupRoot = templateGroupRoot

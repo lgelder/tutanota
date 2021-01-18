@@ -1270,6 +1270,7 @@ module.exports = {
 
 		// TODO: put them in order vvv
 		"template_label": "Vorlagen",
+		"templateGroup_label": "Vorlagen",
 		"title_label": "Titel",
 		"tag_label": "Tag",
 		"submit_label": "Einfügen",

@@ -57,6 +57,8 @@ export function show() {
 							                                              return worker.createLocalAdminGroup(nameField.value())
 						                                              }
 					                                              }))
+				} else if (typeField.selectedValue() === GroupType.Template) {
+					showProgressDialog("pleaseWait_msg", worker.createTemplateGroup(nameField.value()))
 				}
 			}
 
@@ -86,6 +88,6 @@ function getAvailableGroupTypes(): GroupTypeEnum[] {
 	} else if (logins.isProdDisabled()) {
 		return logins.getUserController().isGlobalAdmin() ? [GroupType.LocalAdmin] : []
 	} else {
-		return logins.getUserController().isGlobalAdmin() ? [GroupType.Mail, GroupType.LocalAdmin] : [GroupType.Mail]
+		return logins.getUserController().isGlobalAdmin() ? [GroupType.Mail, GroupType.LocalAdmin, GroupType.Template] : [GroupType.Mail]
 	}
 }

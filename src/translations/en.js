@@ -1272,6 +1272,7 @@ module.exports = {
 
 		// TODO: put them in order
 		"template_label": "Templates",
+		"templateGroup_label": "Template",
 		"title_label": "Title",
 		"tag_label": "Tag",
 		"submit_label": "Submit",

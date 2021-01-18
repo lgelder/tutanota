@@ -341,6 +341,8 @@ export function getGroupTypeName(groupType: NumberString): string {
 		return lang.get("localAdmin_label")
 	} else if (groupType === GroupType.User) {
 		return lang.get("userColumn_label")
+	}else if (groupType === GroupType.Template) {
+		return lang.get("templateGroup_label")
 	} else {
 		return groupType // just for testing
 	}

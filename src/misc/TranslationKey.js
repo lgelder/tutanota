@@ -1299,4 +1299,5 @@ export type TranslationKeyType = "about_label"
 	| "templateTagExists_msg"
 	| "emptyTag_msg"
 	| "matchingKeywords_label"
+	| "templateGroup_label"
 
