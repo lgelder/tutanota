@@ -27,6 +27,7 @@ import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {ActionBar} from "../gui/base/ActionBar"
 import {fileApp} from "../native/FileApp"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -92,7 +93,7 @@ export class MultiMailViewer {
 			},
 			{
 				label: "dragAndDropExport_action",
-				click: () => Promise.mapSeries(selectedEntities(), makeMailBundle).then(fileApp.mailBundleExport),
+				click: () => showProgressDialog("pleaseWait_msg", Promise.mapSeries(selectedEntities(), makeMailBundle)).then(fileApp.mailBundleExport),
 				icon: () => Icons.Open,
 				isVisible: () => isDesktop() /* && env.platformId === "win32" */ // TODO disable before release
 			},

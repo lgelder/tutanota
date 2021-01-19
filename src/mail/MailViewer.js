@@ -610,7 +610,7 @@ export class MailViewer {
 		if (isDesktop() /* && env.platformId === "win32" */) { // TODO Switch properly before release
 			actions.push(m(ButtonN, {
 				label: "dragAndDropExport_action",
-				click: () => makeMailBundle(mail).then(bundle => fileApp.mailBundleExport([bundle])),
+				click: () => showProgressDialog("pleaseWait_msg", makeMailBundle(mail)).then(bundle => fileApp.mailBundleExport([bundle])),
 				icon: () => Icons.Open,
 			}))
 		}
