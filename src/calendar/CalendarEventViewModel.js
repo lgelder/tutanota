@@ -59,10 +59,10 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import type {Booking} from "../api/entities/sys/Booking"
 import {isBusinessActive} from "../subscription/SubscriptionUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
@@ -217,9 +217,14 @@ export class CalendarEventViewModel {
 		           .then(customerInfo => {
 			           return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 			                         .then(bookings => {
+				                         console.log("bookings", bookings)
 				                         return bookings.length === 1 ? bookings[0] : null
 			                         })
 		           })
+	}
+
+	updateBooking(): Promise<void> {
+		return this._lastBooking.reload().then(noOp)
 	}
 
 	_applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): void {

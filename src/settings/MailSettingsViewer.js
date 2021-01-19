@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {isSameId} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, isSameId} from "../api/common/EntityFunctions"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaConstants"
@@ -43,11 +43,14 @@ import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
 import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificationDialog"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {formatDate} from "../misc/Formatter"
 import {loadOutOfOfficeNotification} from "./OutOfOfficeNotificationUtils"
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {createNotAvailableForFreeClickHandler} from "../subscription/SubscriptionDialogUtils"
+import {showBusinessBuyDialog} from "../subscription/BuyDialog"
+import {BookingTypeRef} from "../api/entities/sys/Booking"
+import {isBusinessActive} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -66,6 +69,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_editAliasFormAttrs: EditAliasesFormAttrs;
 	_outOfOfficeNotification: LazyLoaded<?OutOfOfficeNotification>;
 	_outOfOfficeIsEnabled: Stream<string>; // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
+	_hasBusinessFeature: Stream<boolean>
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser(logins.getUserController()))
@@ -78,6 +82,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._inboxRulesExpanded = stream(false)
 		this._inboxRulesTableLines = stream([])
 		this._outOfOfficeIsEnabled = stream(lang.get("deactivated_label"))
+		this._hasBusinessFeature = stream(false)
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
 		this._updateInboxRules(logins.getUserController().props)
@@ -92,6 +97,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			return loadOutOfOfficeNotification()
 		}, null)
 		this._outOfOfficeNotification.getAsync().then(() => this._updateOutOfOfficeNotification())
+		this._updateBusinessFeature()
 	}
 
 	view(): Children {
@@ -153,9 +159,15 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		const editOutOfOfficeNotificationButtonAttrs: ButtonAttrs = {
 			label: "outOfOfficeNotification_title",
-			click: () => logins.getUserController().isPremiumAccount()
-				? this._outOfOfficeNotification.getAsync().then(notification => showEditOutOfOfficeNotificationDialog(notification))
-				: showNotAvailableForFreeDialog(true),
+			click: createNotAvailableForFreeClickHandler(false,
+				() => {
+					if (this._hasBusinessFeature()) {
+						this._outOfOfficeNotification.getAsync().then(notification => showEditOutOfOfficeNotificationDialog(notification))
+					} else {
+						showBusinessBuyDialog(true)
+					}
+				},
+				() => logins.getUserController().isPremiumAccount()),
 			icon: () => Icons.Edit
 		}
 
@@ -279,6 +291,18 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		]
 	}
 
+	_updateBusinessFeature(): void {
+		logins.getUserController().loadCustomerInfo()
+		      .then(customerInfo => locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true))
+		      .then(bookings => bookings.length === 1 ? bookings[0] : null)
+		      .then(lastBooking => {
+			      const businessActive = isBusinessActive(lastBooking)
+			      if (businessActive !== this._hasBusinessFeature()) {
+				      this._hasBusinessFeature(businessActive)
+				      m.redraw()
+			      }
+		      })
+	}
 
 	_updatePropertiesSettings(props: TutanotaProperties) {
 		if (props.defaultSender) {
@@ -360,6 +384,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				|| isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				//TODO would it be enough to use either of those, to avoid redrawing twice?
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
+			} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
+				this._updateBusinessFeature()
 			}
 			return p.then(() => {
 				this._identifierListViewer.entityEventReceived(update)

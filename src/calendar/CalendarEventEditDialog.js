@@ -43,6 +43,8 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {theme} from "../gui/theme"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {logins} from "../api/main/LoginController"
+import {showBusinessBuyDialog} from "../subscription/BuyDialog"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -508,8 +510,10 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel): BubbleTextField
 			// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a seperate list.
 			viewModel.shouldShowInviteNotAvailable()
 			         .then(notAvailable => {
-				         if (notAvailable) {
+				         if (notAvailable && !logins.getUserController().isPremiumAccount()) {
 					         showNotAvailableForFreeDialog(false)
+				         } else if (notAvailable) {
+					         showBusinessBuyDialog(true).then(() => viewModel.updateBooking())
 				         } else {
 					         viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
 				         }
@@ -599,8 +603,10 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 						if (value == null) return
 						viewModel.shouldShowInviteNotAvailable()
 						         .then(notAvailable => {
-							         if (notAvailable) {
+							         if (notAvailable && !logins.getUserController().isPremiumAccount()) {
 								         showNotAvailableForFreeDialog(false)
+							         } else if (notAvailable) {
+								         showBusinessBuyDialog(true).then(() => viewModel.updateBooking())
 							         } else {
 								         viewModel.selectGoing(value)
 							         }
