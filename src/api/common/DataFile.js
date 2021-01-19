@@ -1,5 +1,4 @@
 // @flow
-import type {File as TutanotaFile} from "../entities/tutanota/File"
 import {FileTypeRef} from "../entities/tutanota/File"
 import type {File as TutanotaFile} from "../entities/tutanota/File"
 import {isSameTypeRef} from "./utils/EntityUtils";

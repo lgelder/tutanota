@@ -19,7 +19,7 @@ import type {DownloadItem} from "electron"
  * @returns {string}
  */
 export function getTempDirectoryPath(filename: string = ""): string {
-	return path.join(app.getPath('temp'), '/tuta/', filename)
+	return path.join(this._electron.app.getPath('temp'), '/tuta/', filename)
 }
 
 export class DesktopDownloadManager {

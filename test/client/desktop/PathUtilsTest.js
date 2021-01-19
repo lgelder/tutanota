@@ -2,7 +2,7 @@
 import o from "ospec"
 import path from 'path'
 import n from "../nodemocker"
-import {nonClobberingFilename, pathToFileURL} from "../../../src/desktop/PathUtils"
+import {legalizeFilenames, nonClobberingFilename, pathToFileURL} from "../../../src/desktop/PathUtils"
 
 function setEnv(platform: string) {
 	let sep = ''

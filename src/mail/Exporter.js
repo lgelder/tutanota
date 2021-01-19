@@ -11,9 +11,6 @@ import {formatSortableDateTime} from "../api/common/utils/DateUtils"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {fileController} from "../file/FileController"
 import {EntityClient} from "../api/common/EntityClient"
-import {fileApp} from "../native/FileApp"
-import type {MsgParams} from "../desktop/DesktopUtils"
-import {MailState} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

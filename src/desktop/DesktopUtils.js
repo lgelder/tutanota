@@ -2,12 +2,18 @@
 import path from 'path'
 import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
-import {closeSync, openSync, promises as fs, readFileSync, unlinkSync, writeFileSync} from "fs"
+import {closeSync, openSync, promises as fs, readFileSync, unlinkSync, writeFileSync, mkdir} from "fs"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {noOp} from "../api/common/utils/Utils"
 import {log} from "./DesktopLog"
+import {legalizeFilenames} from "./PathUtils"
+import type {MailBundle} from "../mail/MailUtils"
+import {getTempDirectoryPath} from "./DesktopDownloadManager"
+import {Email, AttachmentType, MessageEditorFormat} from "oxmsg"
+
+// import type {MsgEditorFormat, AttachmentType} from "oxmsg/"
 
 export class DesktopUtils {
 	checkIsMailtoHandler(): Promise<boolean> {
@@ -146,20 +152,20 @@ export class DesktopUtils {
 	// TODO The files are no longer being deleted, as we need them to persist in order for the user to be able to presented them
 	// in their file explorer of choice. Do we need to set up some hook to delete it all later? or should we just count on the OS
 	// to do it's thing
-	static writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
+	writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
 		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
-		const legalNames = DesktopUtils.legalizeFilenames(files.map(f => f.name))
+		const legalNames = legalizeFilenames(files.map(f => f.name))
 		const legalFiles = files.map(f => ({
 			content: f.content,
 			name: legalNames[f.name].shift()
 		}))
 
-		return fs.mkdirp(dirPath)
+		return fs.mkdir(dirPath, {recursive: true})
 		         .then(() => Promise.map(legalFiles, f => fs.writeFile(path.join(dirPath, f.name), f.content)))
 		         .then(() => dirPath)
 	}
 
-	static makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
+	makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
 		const email = new Email(bundle.isDraft, bundle.isRead)
 			.subject(`[Tutanota] ${bundle.subject}`)
 			.bodyHtml(bundle.body)
@@ -287,53 +293,3 @@ export function delay(ms: number): Promise<void> {
 		setTimeout(resolve, ms)
 	})
 }
-export type MsgRecipient = Recipient
-
-export type MsgParams = {
-	subject: string,
-	body: string,
-	sender: MsgRecipient,
-	tos: Array<MsgRecipient>,
-	ccs: Array<MsgRecipient>,
-	bccs: Array<MsgRecipient>,
-	replyTos: Array<MsgRecipient>,
-	attachments?: Array<FileReference>,
-	sentOn?: number,
-	receivedOn?: number,
-	isDraft?: boolean,
-	isRead?: boolean
-}
-
-export function makeMsgFile(params: MsgParams): Promise<Uint8Array> {
-
-	const email = new Email(!!params.isDraft, !!params.isRead)
-		.subject(params.subject)
-		.bodyText(params.body)
-		.sender(params.sender.address, params.sender.name)
-		.tos(params.tos)
-		.ccs(params.ccs)
-		.bccs(params.bccs)
-		.replyTos(params.replyTos)
-		.sentOn(params.sentOn ? new Date(params.sentOn) : null)
-		.receivedOn(params.receivedOn ? new Date(params.receivedOn) : null)
-
-	return Promise.each(params.attachments || [], attachment => {
-		return fs.readFile(getTempDirectoryPath(attachment.name)).then((data: Buffer) => {
-			// TODO We could use ATTACH_BY_REF_ONLY but apparently that needs to be implemented still, see oxmsg::attachment.js
-			email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
-		})
-	}).then(() => email.msg())
-}
-
-type LogFn = (...args: any) => void
-export const log: {debug: LogFn, warn: LogFn, error: LogFn} = (typeof env !== "undefined" && env.mode === Mode.Test)
-	? {
-		debug: noOp,
-		warn: noOp,
-		error: noOp,
-	}
-	: {
-		debug: console.log.bind(console),
-		warn: console.warn.bind(console),
-		error: console.error.bind(console)
-	}

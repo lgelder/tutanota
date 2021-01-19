@@ -198,7 +198,7 @@ export class MultiSearchViewer {
 				},
 				{
 					label: "export_action",
-					click: this.getSelectedMails(mails => exportMails(mails)),
+					click: this.getSelectedMails(mails => exportMails(locator.entityClient, mails)),
 					icon: () => Icons.Export,
 					type: ButtonType.Dropdown,
 					isVisible: () => env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)

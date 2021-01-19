@@ -599,8 +599,8 @@ export function mailsToEmlDataFiles(entityClient: EntityClient, mails: Array<Mai
  * @returns {Promise<void>} resolved after the fileController
  * was instructed to open the new zip File containing the mail eml
  */
-export function exportMails(mails: Mail[]): Promise<void> {
-	const exportPromise = mailsToEmlDataFiles(mails)
+export function exportMails(client: EntityClient, mails: Mail[]): Promise<void> {
+	const exportPromise = mailsToEmlDataFiles(client, mails)
 	const zipName = `${sortableTimestamp()}-mail-export.zip`
 	return showProgressDialog("pleaseWait_msg", fileController.zipDataFiles(exportPromise, zipName))
 		.then(zip => fileController.open(zip))

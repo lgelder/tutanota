@@ -13,7 +13,7 @@ import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {SseInfo} from "./sse/DesktopSseClient"
-import {base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {base64ToUint8Array} from "../api/common/utils/Encoding"
 import type {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopConfigKey} from "./config/ConfigKeys";
 import {log} from "./DesktopLog";
@@ -40,7 +40,7 @@ export class IPC {
 	_electron: $Exports<"electron">;
 	_desktopUtils: DesktopUtils;
 	_err: DesktopErrorHandler;
-	_integrator: DesktopIntegrator ;
+	_integrator: DesktopIntegrator;
 
 	constructor(
 		conf: DesktopConfig,
@@ -233,23 +233,13 @@ export class IPC {
 				return !!this._updater
 					? Promise.resolve(this._updater.updateInfo)
 					: Promise.resolve(null)
-			case 'dragExport': {
-				const w = this._wm.get(windowId)
-				if (w) {
-					return DesktopUtils.writeFilesToTmp(args).then(files => w.startDrag({
-						files,
-						icon: nativeImage.createFromDataURL("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAACK1BMVEUAAACEAAqEABGEABCCABCGABCFABCFAA6FAA97AA2EAA+GAA1/AA+GABWBABF6ABCBABCDABGDABB0AA+JAAmEABWEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCFABCEABCEABCEABCEABGFAA+FAA+EABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCDABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCFAA+EABCEABCEABCEABCEABCEABCEABCEABCEABCEABCFABCFABCEABCEABCEABCEABCEABCEABCEABCEABCEABCFABCEABCEABCFABGEABCEABCEABCEABCEABCDAA+EABCEABCEABCEABCDABCEABCEABCFAA+EABCEABGEABCEABCEABCEAA+EABCEABCEABCEABCFABCEABCEABCEABCFAA+EABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABCEABD///+fk0/vAAAAt3RSTlMAAAAAAAAAAAAAAAAAAAAAAAAAAAAACjlZW08hAR2i8P372F0CBpzpQC7ol0j5twZK+rgGBgVLtgW1tEz8s/700ewEma+y5dbJv6eYg2l047FN9Ww/LD5WZnB8i6XN9rDz5vffKAJQ4MNTEQdJeajtrk4iAhUzYZTHrQPcjjIEAQ9rrOeNICrEqwPKVwPLHxLrqgNkVOSpA3PuA4IDjxrOAp4To38FUcBHBNVuFMhSWiWdEGgZMQk2mRxGAAAAAWJLR0S4Tb8m9gAAAAlwSFlzAAALLwAACy8BANEiMQAAAAd0SU1FB+UBDhABOpTTNZEAAAIhSURBVEjHY2AYxICRSUxcQpIwkJKWYYZqYZaVk1cgAigqKatA9DCrqm0nEqhrMLOAtWhqEatluzYr2BpmHV2itejps4G1GBgSrcXImIlULXom7CRrMeUAazEjXou5BRvpWphJ1WJJuhYrqBZrnFoUdG1QBWxhWhRxabGzd3BE1eJESMt2RWcXFL4rLi129m7uHp5WXt4+vn7+KDIBUC2BqFqCrIJDQsPCIyKjomNi41ANi8eqJSFYjNnJJzFJAZtDXbBqSU5hZk5NC0hPIl6LXUZmFidrtnRObp5DPrpVBVAthWjeT8oILirmYGZ2KiktK69wRNZWWYVdCzAKq2tq60CSbPUNtY2VbnBdTTi1AEFzSysXJDsxq7ZFtkN91tGJR8v27V3iED0MDEzcWd2eYEUdPRAtUjhiv7cPVmwx8LD1504ACk2chF+L3WS4FqCq1ClTt2+fNh2/lu0zkLQwMPN2z9yeB/V+Gg4tM8OQtTAwz5q9PW8OXi0Kc/VRtDAwz5s/bQE+LYoLF6HqAAZ38GJ8Dstf0oCmA6iyaMlSiJZlmFoUl69YiaEDWOCHqOLQorBq9Ro2PsyKiF9ATAWrFptVuX2CmFagWIeiRXftalkZIQL1HvM6hBZ5q/VrhFkZCAHmddDCSiG5PERMkLAGuJagjMgNnRxEqAdpybTZrpC+0WCTCDNxGkDeb7bavMGJaPUgLVu2buMQJUHDKCARAABceEOkb0azWgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMS0wMS0xNFQxNTowMTo1OCswMTowMDOQG5MAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjEtMDEtMTRUMTU6MDE6NTgrMDE6MDBCzaMvAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAABJRU5ErkJggg==")
-					}))
-				}
-				return Promise.resolve()
-			}
 			case 'mailBundleExport': {
 				const bundle = args[0]
-				return Promise.map(bundle, DesktopUtils.makeMsgFile)
-				              .then(DesktopUtils.writeFilesToTmp)
+				return Promise.map(bundle, this._desktopUtils.makeMsgFile)
+				              .then(this._desktopUtils.writeFilesToTmp)
 					// TODO: Are we able to select the files aswell?
 					// it's possible to do so with shell.showFileInFolder but that only works for one file
-					          .then(shell.openPath)
+					          .then(this._electron.shell.openPath)
 			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))

@@ -27,7 +27,6 @@ export type PlatformTray = {
 export class DesktopTray {
 	_conf: DesktopConfig;
 	_wm: WindowManager;
-	_notifier: DesktopNotifier;
 
 	_tray: ?Tray;
 
@@ -57,7 +56,7 @@ export class DesktopTray {
 			m.append(new MenuItem({type: 'separator'}))
 			this._wm.getAll().forEach(w => {
 				let label = w.getTitle()
-				if (this._notifier.hasNotificationsForWindow(w)) {
+				if (notifier.hasNotificationsForWindow(w)) {
 					label = "• " + label
 				} else {
 					label = label + "  "
