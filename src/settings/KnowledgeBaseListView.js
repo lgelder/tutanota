@@ -37,6 +37,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 		console.log("KnowledgeBaseListView constructor")
 		entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
 		            .then(templateGroupRoot => {
+			            this._templateGroupRoot = templateGroupRoot
 			            const knowledgebaseListId = templateGroupRoot.knowledgeBase
 			            const listConfig: ListConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
 				            rowHeight: size.list_row_height,
@@ -80,6 +81,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 				            emptyMessage: lang.get("noEntries_msg"),
 			            }
 			            this._list = new List(listConfig)
+			            m.redraw()
 			            this._list.loadInitial()
 		            })
 
@@ -96,7 +98,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 					}
 				}))
 			),
-			m(".rel.flex-grow", m(this._list))
+			m(".rel.flex-grow", this._list ? m(this._list) : null)
 		])
 	}
 
@@ -112,7 +114,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 				return this._list.entityEventReceived(update.instanceId, update.operation)
 			}
 		}).then(() => {
-			this._settingsView.detailsViewer = null // TODO: detailsviewer closes after entry getting updated
+			this._settingsView.detailsViewer = null
 			m.redraw()
 		})
 	}

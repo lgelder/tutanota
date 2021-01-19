@@ -58,6 +58,7 @@ export function show() {
 						                                              }
 					                                              }))
 				} else if (typeField.selectedValue() === GroupType.Template) {
+					dialog.close()
 					showProgressDialog("pleaseWait_msg", worker.createTemplateGroup(nameField.value()))
 				}
 			}

@@ -85,6 +85,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 				            emptyMessage: lang.get("noEntries_msg"),
 			            }
 			            this._list = new List(listConfig)
+			            m.redraw()
 			            this._list.loadInitial()
 		            })
 	}
@@ -101,7 +102,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 					}
 				}))
 			),
-			m(".rel.flex-grow", m(this._list))
+			m(".rel.flex-grow", this._list ? m(this._list) : null)
 		])
 	}
 

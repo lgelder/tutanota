@@ -16,7 +16,6 @@ import stream from "mithril/stream/stream.js"
 import {EntityClient} from "../api/common/EntityClient"
 import type {LoginController} from "../api/main/LoginController"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 
 /**
@@ -212,7 +211,6 @@ export class TemplateModel {
 					           this._templateGroupRoot = templateGroupRoot
 					           templateGroupRoot.templates
 				           });
-
 			}
 		}
 		return Promise.resolve(null);
