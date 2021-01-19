@@ -6,15 +6,15 @@ import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../../src/api/commo
 import {aes128Encrypt, aes128RandomKey, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
 import {keyToBase64, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/CryptoUtils"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
-import type {CryptoFunctions} from "../../../src/desktop/DesktopCryptoFacade"
 import {arrayEquals} from "../../../src/api/common/utils/ArrayUtils"
 import {downcast} from "../../../src/api/common/utils/Utils"
+import type {CryptoFunctions} from "../../../src/desktop/CryptoFns"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = "uint8_somedata"
 	const aes128Key = [1, 2, 8]
 	const aes256Key = [2, 5, 6]
-	const  aes256DecryptedKey = new Uint8Array([2, 5, 6, 2])
+	const aes256DecryptedKey = new Uint8Array([2, 5, 6, 2])
 	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])
 	const aes256EncryptedKeyb64 = uint8ArrayToBase64(aes256EncryptedKey)
 	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
@@ -29,13 +29,6 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			} else {
 				throw new Error("stub!")
 			}
-			// return key.startsWith("bit") && data.startsWith("uint8")
-			// 	? "decrypted"
-			// 	: "nonsense_aes128decryption"
-		},
-
-		aes128Decryptkey(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-			throw new Error("stub!")
 		},
 
 		aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {

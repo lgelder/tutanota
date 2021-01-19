@@ -49,7 +49,7 @@ import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 		await import("./desktop/SocketeerTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")
 		await import("./desktop/DesktopCryptoFacadeTest.js")
-		// await import("./desktop/DesktopContextMenuTest.js")
+		await import("./desktop/DesktopContextMenuTest.js")
 	}
 
 	o.run()

@@ -1,27 +1,8 @@
 // @flow
 import {base64ToKey} from "../api/worker/crypto/CryptoUtils"
 import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../api/common/utils/Encoding"
-import {decryptAndMapToInstance} from "../api/worker/crypto/InstanceMapper"
+import type {CryptoFunctions} from "./CryptoFns"
 
-export interface CryptoFunctions {
-	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array;
-
-	aes128Decryptkey(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array;
-
-	aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array;
-
-	aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array;
-
-	decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key;
-
-	base64ToKey(base64: Base64): BitArray;
-
-	publicKeyFromPem(pem: string): {verify: (string, string) => boolean};
-
-	randomBytes(bytes: number): Uint8Array;
-
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T>;
-}
 
 export class DesktopCryptoFacade {
 	+fs: $Exports<"fs">
@@ -87,9 +68,5 @@ export class DesktopCryptoFacade {
 
 	generateDeviceKey(): string {
 		return uint8ArrayToBase64(this.cryptoFns.randomBytes(32))
-	}
-
-	randomHexString(byteLength: number): string {
-		return uint8ArrayToHex(this.cryptoFns.randomBytes(byteLength))
 	}
 }

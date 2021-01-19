@@ -30,18 +30,19 @@ import {DesktopIntegrator} from "./integration/DesktopIntegrator"
 import net from "net"
 import child_process from "child_process"
 import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
+import {cryptoFns} from "./CryptoFns"
 
 mp()
 
 lang.init(en)
 const conf = new DesktopConfig(app)
 const desktopNet = new DesktopNetworkClient()
-const crypto = new DesktopCryptoFacade()
+const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
 const sock = new Socketeer(net, app)
 const tray = new DesktopTray(conf)
 const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, fs, electron)
-const alarmStorage = new DesktopAlarmStorage(conf, crypto, new KeytarSecretStorage())
+const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, new KeytarSecretStorage())
 alarmStorage.init()
             .then(() => {
 	            log.debug("alarm storage initialized")
@@ -49,16 +50,16 @@ alarmStorage.init()
             .catch(e => {
 	            console.warn("alarm storage failed to initialize:", e)
             })
-const updater = new ElectronUpdater(conf, notifier, crypto, app, tray, new UpdaterWrapperImpl())
+const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 const shortcutManager = new LocalShortcutManager()
 const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl)
-const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
+const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto)
 alarmScheduler.rescheduleAll()
 
 tray.setWindowManager(wm)
-const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, crypto, alarmStorage, lang)
+const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 const integrator = new DesktopIntegrator(electron, fs, child_process, () => import("winreg"))
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater, electron, desktopUtils, err, integrator)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator)
 wm.setIPC(ipc)
 
 app.setAppUserModelId(conf.getConst("appUserModelId"))
