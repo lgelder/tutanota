@@ -173,7 +173,16 @@ ${bootstrap}`
 		console.log(k, v[0])
 	}
 	console.log("started writing bundles", measure())
-	await bundle.write({sourcemap: true, format: "system", dir: "build/dist"})
+	await bundle.write({
+		sourcemap: true,
+		format: "system",
+		dir: "build/dist",
+		manualChunks: (id, {getModuleInfo, getModuleIds}) => {
+			if (id.includes("api/entities")) {
+				return "entities"
+			}
+		}
+	})
 
 
 	await fs.copy("libs/s.js", "build/dist/s.js")
