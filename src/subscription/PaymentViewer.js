@@ -8,7 +8,7 @@ import {TextField} from "../gui/base/TextField"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
+import {formatPriceDataWithInfo, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -45,6 +45,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {locator} from "../api/main/MainLocator"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import type {Booking} from "../api/entities/sys/Booking"
+import {createNotAvailableForFreeClickHandler} from "./SubscriptionDialogUtils"
 
 assertMainOrNode()
 

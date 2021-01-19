@@ -29,7 +29,6 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName} from "./LoadingUtils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -50,6 +49,7 @@ import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 

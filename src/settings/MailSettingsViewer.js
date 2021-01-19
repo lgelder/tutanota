@@ -44,10 +44,10 @@ import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificati
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {formatDate} from "../misc/Formatter"
 import {loadOutOfOfficeNotification} from "./OutOfOfficeNotificationUtils"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 

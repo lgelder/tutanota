@@ -14,6 +14,7 @@ import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {downcast, memoized, noOp} from "../api/common/utils/Utils"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {CalendarAttendeeStatusEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {findAndRemove, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {getCalendarName, getStartOfTheWeekOffsetForUser} from "./CalendarUtils"
@@ -41,8 +42,7 @@ import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {theme} from "../gui/theme"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import type {CalendarAttendeeStatusEnum} from "../api/common/TutanotaConstants"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,

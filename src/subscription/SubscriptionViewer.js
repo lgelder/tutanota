@@ -18,7 +18,7 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
 import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
+import {formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import type {Booking} from "../api/entities/sys/Booking"
@@ -72,6 +72,7 @@ import type {ExpandableAttrs} from "../settings/Expandable"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {showBusinessBuyDialog, showSharingBuyDialog, showWhitelabelBuyDialog} from "./BuyDialog"
+import {createNotAvailableForFreeClickHandler} from "./SubscriptionDialogUtils"
 
 assertMainOrNode()
 

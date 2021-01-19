@@ -9,7 +9,6 @@ import {getInboxRuleTypeNameMapping} from "../mail/InboxRuleHandler"
 import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 import {createInboxRule} from "../api/entities/tutanota/InboxRule"
 import {update} from "../api/main/Entity"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {logins} from "../api/main/LoginController"
 import {getArchiveFolder, getFolderName} from "../mail/MailUtils"
 import type {MailboxDetail} from "../mail/MailModel"
@@ -19,6 +18,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {isSameId} from "../api/common/EntityFunctions"
 import {LockedError} from "../api/common/error/RestError"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 

@@ -27,7 +27,7 @@ import {getAdministratedGroupIds, getDefaultContactFormLanguage} from "../contac
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 

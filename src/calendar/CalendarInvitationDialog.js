@@ -14,8 +14,9 @@ import {downcast} from "../api/common/utils/Utils"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {isSameId} from "../api/common/EntityFunctions"
-import {premiumSubscriptionActive} from "../subscription/PriceUtils"
+
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
+import {premiumSubscriptionActive} from "../subscription/SubscriptionDialogUtils"
 
 
 export function showInvitationDialog(invitation: ReceivedGroupInvitation) {

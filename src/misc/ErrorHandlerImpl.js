@@ -15,7 +15,7 @@ import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
-import {assertMainOrNode, getHttpOrigin, isIOSApp, Mode} from "../api/Env"
+import {assertMainOrNode, getHttpOrigin, Mode} from "../api/Env"
 import {AccountType, ApprovalStatus, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
 import {errorToString, neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
@@ -29,7 +29,6 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
-import {formatPrice} from "../subscription/SubscriptionUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {CheckboxN} from "../gui/base/CheckboxN"
@@ -377,21 +376,6 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 			return true
 		}
 	})
-}
-
-export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
-	if (isIOSApp()) {
-		Dialog.error("notAvailableInApp_msg")
-	} else {
-		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
-			+ lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
-		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link"))
-		      .then(confirmed => {
-			      if (confirmed) {
-				      showUpgradeWizard()
-			      }
-		      })
-	}
 }
 
 export function loggingOut() {

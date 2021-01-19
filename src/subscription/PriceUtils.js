@@ -3,12 +3,7 @@ import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/com
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
 import {formatPrice} from "../subscription/SubscriptionUtils"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {neverNull} from "../api/common/utils/Utils"
-import {logins} from "../api/main/LoginController"
-import {load} from "../api/main/Entity"
-import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {Dialog} from "../gui/base/Dialog"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import type {PriceItemData} from "../api/entities/sys/PriceItemData"
@@ -91,28 +86,3 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 	}
 }
 
-export function createNotAvailableForFreeClickHandler(includedInPremium: boolean,
-                                                      click: clickHandler,
-                                                      available: () => boolean): clickHandler {
-	return (e, dom) => {
-		if (!available()) {
-			showNotAvailableForFreeDialog(includedInPremium)
-		} else {
-			click(e, dom)
-		}
-	}
-}
-
-export function premiumSubscriptionActive(included: boolean): Promise<boolean> {
-	if (logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog(included)
-		return Promise.resolve(false)
-	}
-	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
-		if (customer.canceledPremiumAccount) {
-			return Dialog.error("subscriptionCancelledMessage_msg").return(false)
-		} else {
-			return Promise.resolve(true)
-		}
-	})
-}

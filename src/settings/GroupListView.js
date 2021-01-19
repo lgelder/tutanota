@@ -26,8 +26,8 @@ import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 

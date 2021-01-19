@@ -18,7 +18,6 @@ import {attachDropdown} from "../base/DropdownN"
 import {noOp} from "../../api/common/utils/Utils"
 import {keyManager} from "../../misc/KeyManager"
 import {showPurchaseGiftCardDialog} from "../../subscription/giftcards/PurchaseGiftCardDialog"
-import {createNotAvailableForFreeClickHandler} from "../../subscription/PriceUtils"
 
 type Attrs = void
 

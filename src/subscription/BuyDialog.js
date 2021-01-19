@@ -322,3 +322,5 @@ function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString
 	}
 	return itemPrice
 }
+
+

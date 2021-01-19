@@ -26,8 +26,8 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 assertMainOrNode()
 
