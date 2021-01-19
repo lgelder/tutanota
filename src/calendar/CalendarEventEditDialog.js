@@ -41,10 +41,10 @@ import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {theme} from "../gui/theme"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import type {CalendarAttendeeStatusEnum} from "../api/common/TutanotaConstants"
 import type {ContactModel} from "../contacts/ContactModel"
 import {locator} from "../api/main/MainLocator"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,

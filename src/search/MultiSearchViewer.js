@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
 import {Icons} from "../gui/base/icons/Icons"
-import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
@@ -15,7 +15,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {exportMails, getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../mail/MailUtils"
+import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../mail/MailUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mergeContacts} from "../contacts/ContactMergeUtils"
 import {logins} from "../api/main/LoginController"
@@ -28,7 +28,8 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {NBSP} from "../api/common/utils/StringUtils"
 import {isSameTypeRef} from "../api/common/utils/EntityUtils";
-import {moveMails} from "../mail/MailGuiUtils"
+import {exportMails, moveMails} from "../mail/MailGuiUtils"
+import {createAsyncDropDownButton, createDropDownButton} from "../gui/base/Dropdown";
 
 assertMainOrNode()
 

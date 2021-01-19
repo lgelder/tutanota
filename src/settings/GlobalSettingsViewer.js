@@ -27,7 +27,6 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName} from "./LoadingUtils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -49,6 +48,7 @@ import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListE
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 

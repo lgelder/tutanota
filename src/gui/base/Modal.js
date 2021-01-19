@@ -180,6 +180,14 @@ export const modal: Modal = new Modal()
 // 	replaced.components.map(wrapper => replaced.remove(wrapper.component))
 // }
 
+// const hot = module.hot
+// if (hot) {
+// 	// Save the state (mostly prefix) before the reload
+// 	hot.dispose((data) => {
+// 		modal.components.forEach(wrapper => modal.remove(wrapper.component))
+// 	})
+// }
+
 export interface ModalComponent {
 	hideAnimation(): Promise<void>;
 

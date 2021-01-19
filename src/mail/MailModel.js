@@ -18,7 +18,6 @@ import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
-import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, GroupType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType} from "../api/common/TutanotaConstants"
 import {UserTypeRef} from "../api/entities/sys/User"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -53,6 +52,8 @@ export type MailboxCounters = {
 		[string]: number
 	}
 }
+
+console.log("mail model 2 3 4")
 
 export class MailModel {
 	/** Empty stream until init() is finished, exposed mostly for map()-ing, use getMailboxDetails to get a promise */
@@ -345,11 +346,3 @@ export class MailModel {
 	}
 }
 
-export function getFolder(folders: MailFolder[], type: MailFolderTypeEnum): MailFolder {
-	const folder = folders.find(f => f.folderType === type)
-	return neverNull(folder)
-}
-
-export function getInboxFolder(folders: MailFolder[]): MailFolder {
-	return getFolder(folders, MailFolderType.INBOX)
-}

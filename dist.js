@@ -110,24 +110,25 @@ async function buildWebapp(version) {
 	await clean()
 
 	console.log("bundling polyfill", measure())
-	const polyfillBundle = await rollup({
-		input: ["src/polyfill.js"],
-		plugins: [
-			// terser(),
-			nodeResolve(),
-			commonjs(),
-			{
-				name: "append-libs",
-				async footer() {
-					const systemjs = await fs.readFile("libs/s.js")
-					// TODO: use env prod
-					const bluebird = await fs.readFile("libs/bluebird.js")
-					return systemjs + "\n" + bluebird
-				}
-			}
-		],
-	})
-	await polyfillBundle.write({sourcemap: false, format: "iife", file: "build/dist/polyfill.js"})
+	// FIXME: uncomment
+	// const polyfillBundle = await rollup({
+	// 	input: ["src/polyfill.js"],
+	// 	plugins: [
+	// 		// terser(),
+	// 		nodeResolve(),
+	// 		commonjs(),
+	// 		{
+	// 			name: "append-libs",
+	// 			async footer() {
+	// 				const systemjs = await fs.readFile("libs/s.js")
+	// 				// TODO: use env prod
+	// 				const bluebird = await fs.readFile("libs/bluebird.js")
+	// 				return systemjs + "\n" + bluebird
+	// 			}
+	// 		}
+	// 	],
+	// })
+	// await polyfillBundle.write({sourcemap: false, format: "iife", file: "build/dist/polyfill.js"})
 
 	console.log("started copying images", measure())
 	await fs.copy(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images'))
@@ -141,6 +142,8 @@ ${bootstrap}`
 	console.log("stared bundling", measure())
 	const bundle = await rollup({
 		input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
+		// FIXME: remove
+		treeshake: false,
 		plugins: [
 			analyze({limit: 10, hideDeps: true}),
 			babel({
@@ -165,7 +168,8 @@ ${bootstrap}`
 			commonjs({
 				exclude: "src/**",
 			}),
-			terser(),
+			// FIXME: uncomment
+			// terser(),
 		],
 		perf: true,
 	})

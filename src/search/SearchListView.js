@@ -20,7 +20,6 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
 import {hasMoreResults} from "./SearchModel"
-import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {Dialog} from "../gui/base/Dialog"
 import {flat, groupBy} from "../api/common/utils/ArrayUtils"
 import {
@@ -32,6 +31,7 @@ import {
 	sortCompareByReverseId, TypeRef
 } from "../api/common/utils/EntityUtils";
 import type {ListElement} from "../api/common/utils/EntityUtils"
+import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailGuiUtils";
 
 assertMainOrNode()
 

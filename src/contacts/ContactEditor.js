@@ -2,7 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {parseBirthday} from "../misc/Formatter"
@@ -43,6 +43,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
 import {isSameTypeRef} from "../api/common/utils/EntityUtils";
+import {createDropDownButton} from "../gui/base/Dropdown"
 
 
 assertMainOrNode()

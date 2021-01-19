@@ -5,7 +5,7 @@ import stream from "mithril/stream/stream.js"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {serviceRequestVoid} from "../api/main/Entity"
-import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ease} from "../gui/animation/Easing"
@@ -61,7 +61,7 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	showDeleteConfirmationDialog
+	getFolder
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
@@ -90,7 +90,7 @@ import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {mailToEmlFile} from "./Exporter"
 import {client} from "../misc/ClientDetector"
 import type {PosRect} from "../gui/base/Dropdown"
-import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
+import {createAsyncDropDownButton, createDropDownButton, DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
@@ -103,7 +103,6 @@ import {CALENDAR_MIME_TYPE} from "../calendar/CalendarUtils"
 import {createAsyncDropdown, createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
-import {isNewMailActionAvailable} from "./MailView"
 import {RecipientButton} from "../gui/base/RecipientButton"
 import {Banner, BannerType} from "../gui/base/Banner"
 import {createReportPhishingPostData} from "../api/entities/tutanota/ReportPhishingPostData"
@@ -123,10 +122,10 @@ import {defaultSendMailModel} from "./SendMailModel"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
-import {getFolder, MailModel} from "./MailModel"
+import {MailModel} from "./MailModel"
 import type {ContactModel} from "../contacts/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../api/common/utils/EntityUtils"
-import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {isNewMailActionAvailable, moveMails, promptAndDeleteMails, showDeleteConfirmationDialog} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -138,6 +137,9 @@ type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 
 const DOUBLE_TAP_TIME_MS = 350
 const SCROLL_FACTOR = 4 / 5
+
+
+console.log("mail viewer 2 3 4 5 6 7 8 9 10 11 12 13")
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.

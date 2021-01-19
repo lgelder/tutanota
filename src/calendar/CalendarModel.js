@@ -1,27 +1,18 @@
 //@flow
-import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {
 	assignEventId,
+	calculateAlarmTime,
 	filterInt,
 	findPrivateCalendar,
-	getAllDayDateForTimezone,
-	getAllDayDateUTCFromZone,
-	getDiffInDays,
-	getEventEnd,
 	getEventStart,
-	getStartOfDayWithZone,
 	getTimeZone,
-	isLongEvent,
-	isSameEvent
+	getValidTimeZone, iterateEventOccurrences
 } from "./CalendarUtils"
 import {isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {assertNotNull, clone, defer, downcast, noOp} from "../api/common/utils/Utils"
-import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, CalendarMethod, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
-import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
+import {CalendarMethod, EndType, FeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
@@ -38,7 +29,6 @@ import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
 import {LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
-import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 import m from "mithril"
 import type {User} from "../api/entities/sys/User"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
@@ -46,6 +36,7 @@ import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRo
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import type {CalendarInfo} from "./CalendarView"
 import type {ParsedCalendarData} from "./CalendarImporter"
+import {parseCalendarFile} from "./CalendarImporter"
 import type {CalendarEventUpdate} from "../api/entities/tutanota/CalendarEventUpdate"
 import {CalendarEventUpdateTypeRef} from "../api/entities/tutanota/CalendarEventUpdate"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -61,237 +52,7 @@ import {EntityClient} from "../api/common/EntityClient"
 import type {MailModel} from "../mail/MailModel"
 import {elementIdPart, getElementId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
 import {FileTypeRef} from "../api/entities/tutanota/File"
-import {parseCalendarFile} from "./CalendarImporter"
 
-
-function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
-	return l.startTime.getTime() - r.startTime.getTime()
-}
-
-export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
-                                zone: string = getTimeZone()) {
-	const eventStart = getEventStart(event, zone)
-	let calculationDate = getStartOfDayWithZone(eventStart, zone)
-	const eventEndDate = getEventEnd(event, zone);
-
-	// only add events when the start time is inside this month
-	if (eventStart.getTime() < month.start.getTime() || eventStart.getTime() >= month.end.getTime()) {
-		return
-	}
-
-	// if start time is in current month then also add events for subsequent months until event ends
-	while (calculationDate.getTime() < eventEndDate.getTime()) {
-		if (eventEndDate.getTime() >= month.start.getTime()) {
-			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
-		}
-		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
-	}
-}
-
-export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
-                                         timeZone: string) {
-	const repeatRule = event.repeatRule
-	if (repeatRule == null) {
-		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
-	}
-	const frequency: RepeatPeriodEnum = downcast(repeatRule.frequency)
-	const interval = Number(repeatRule.interval)
-	const isLong = isLongEvent(event, timeZone)
-	let eventStartTime = new Date(getEventStart(event, timeZone))
-	let eventEndTime = new Date(getEventEnd(event, timeZone))
-	// Loop by the frequency step
-	let repeatEndTime = null
-	let endOccurrences = null
-	const allDay = isAllDayEvent(event)
-	// For all-day events we should rely on the local time zone or at least we must use the same zone as in getAllDayDateUTCFromZone
-	// below. If they are not in sync, then daylight saving shifts may cause us to extract wrong UTC date (day in repeat rule zone and in
-	// local zone may be different).
-	const repeatTimeZone = allDay ? timeZone : getValidTimeZone(repeatRule.timeZone)
-	if (repeatRule.endType === EndType.Count) {
-		endOccurrences = Number(repeatRule.endValue)
-	} else if (repeatRule.endType === EndType.UntilDate) {
-		// See CalendarEventDialog for an explanation why it's needed
-		if (allDay) {
-			repeatEndTime = getAllDayDateForTimezone(new Date(Number(repeatRule.endValue)), timeZone)
-		} else {
-			repeatEndTime = new Date(Number(repeatRule.endValue))
-		}
-	}
-	let calcStartTime = eventStartTime
-	const calcDuration = allDay ? getDiffInDays(eventEndTime, eventStartTime) : eventEndTime - eventStartTime
-	let calcEndTime = eventEndTime
-	let iteration = 1
-	while ((endOccurrences == null || iteration <= endOccurrences)
-	&& (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime)
-	&& calcStartTime.getTime() < month.end.getTime()) {
-		if (calcEndTime.getTime() >= month.start.getTime()) {
-			const eventClone = clone(event)
-			if (allDay) {
-				eventClone.startTime = getAllDayDateUTCFromZone(calcStartTime, timeZone)
-				eventClone.endTime = getAllDayDateUTCFromZone(calcEndTime, timeZone)
-			} else {
-				eventClone.startTime = new Date(calcStartTime)
-				eventClone.endTime = new Date(calcEndTime)
-			}
-			if (isLong) {
-				addDaysForLongEvent(events, eventClone, month, timeZone)
-			} else {
-				addDaysForEvent(events, eventClone, month, timeZone)
-			}
-		}
-		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
-		calcEndTime = allDay
-			? incrementByRepeatPeriod(calcStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
-			: DateTime.fromJSDate(calcStartTime).plus(calcDuration).toJSDate()
-		iteration++
-	}
-}
-
-export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
-                                    zone: string = getTimeZone()) {
-	// for long running events we create events for the month only
-
-	// first start of event is inside month
-	const eventStart = getEventStart(event, zone).getTime()
-	const eventEnd = getEventEnd(event, zone).getTime()
-
-	let calculationDate
-	let eventEndInMonth
-
-	if (eventStart >= month.start.getTime() && eventStart < month.end.getTime()) { // first: start of event is inside month
-		calculationDate = getStartOfDayWithZone(new Date(eventStart), zone)
-	} else if (eventStart < month.start.getTime()) { // start is before month
-		calculationDate = new Date(month.start)
-	} else {
-		return // start date is after month end
-	}
-
-	if (eventEnd > month.start.getTime() && eventEnd <= month.end.getTime()) { //end is inside month
-		eventEndInMonth = new Date(eventEnd)
-	} else if (eventEnd > month.end.getTime()) { // end is after month end
-		eventEndInMonth = new Date(month.end)
-	} else {
-		return // end is before start of month
-	}
-
-	let iterations = 0
-	while (calculationDate.getTime() < eventEndInMonth) {
-		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
-		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
-		if (iterations++ > 10000) {
-			throw new Error("Run into the infinite loop, addDaysForLongEvent")
-		}
-	}
-}
-
-
-export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number, ianaTimeZone: string): Date {
-	switch (repeatPeriod) {
-		case RepeatPeriod.DAILY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({days: interval}).toJSDate()
-		case RepeatPeriod.WEEKLY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({weeks: interval}).toJSDate()
-		case RepeatPeriod.MONTHLY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({months: interval}).toJSDate()
-		case RepeatPeriod.ANNUALLY:
-			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({years: interval}).toJSDate()
-		default:
-			throw new Error("Unknown repeat period")
-	}
-}
-
-const OCCURRENCES_SCHEDULED_AHEAD = 10
-
-export function iterateEventOccurrences(
-	now: Date,
-	timeZone: string,
-	eventStart: Date,
-	eventEnd: Date,
-	frequency: RepeatPeriodEnum,
-	interval: number,
-	endType: EndTypeEnum,
-	endValue: number,
-	alarmTrigger: AlarmIntervalEnum,
-	localTimeZone: string,
-	callback: (time: Date, occurrence: number) => mixed) {
-
-
-	let occurrences = 0
-	let futureOccurrences = 0
-
-	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
-	const calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
-	const endDate = endType === EndType.UntilDate
-		? isAllDayEvent
-			? getAllDayDateForTimezone(new Date(endValue), localTimeZone)
-			: new Date(endValue)
-		: null
-
-	while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && (endType !== EndType.Count || occurrences < endValue)) {
-		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval
-			* occurrences, isAllDayEvent ? localTimeZone : timeZone);
-
-		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
-			break;
-		}
-
-		const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone);
-
-		if (alarmTime >= now) {
-			callback(alarmTime, occurrences);
-			futureOccurrences++;
-		}
-		occurrences++;
-	}
-}
-
-export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, ianaTimeZone?: string): Date {
-	let diff
-	switch (interval) {
-		case AlarmInterval.FIVE_MINUTES:
-			diff = {minutes: 5}
-			break
-		case AlarmInterval.TEN_MINUTES:
-			diff = {minutes: 10}
-			break
-		case AlarmInterval.THIRTY_MINUTES:
-			diff = {minutes: 30}
-			break
-		case AlarmInterval.ONE_HOUR:
-			diff = {hours: 1}
-			break
-		case AlarmInterval.ONE_DAY:
-			diff = {days: 1}
-			break
-		case AlarmInterval.TWO_DAYS:
-			diff = {days: 2}
-			break
-		case AlarmInterval.THREE_DAYS:
-			diff = {days: 3}
-			break
-		case AlarmInterval.ONE_WEEK:
-			diff = {weeks: 1}
-			break
-		default:
-			diff = {minutes: 5}
-	}
-	return DateTime.fromJSDate(date, {zone: ianaTimeZone}).minus(diff).toJSDate()
-}
-
-function getValidTimeZone(zone: string, fallback: ?string): string {
-	if (IANAZone.isValidZone(zone)) {
-		return zone
-	} else {
-		if (fallback && IANAZone.isValidZone(fallback)) {
-			console.warn(`Time zone ${zone} is not valid, falling back to ${fallback}`)
-			return fallback
-		} else {
-			const actualFallback = FixedOffsetZone.instance(new Date().getTimezoneOffset()).name
-			console.warn(`Fallback time zone ${zone} is not valid, falling back to ${actualFallback}`)
-			return actualFallback
-		}
-	}
-}
 
 // Complete as needed
 export interface CalendarModel {

@@ -13,7 +13,7 @@ import {_TypeModel as GiftCardTypeModel, GiftCardTypeRef} from "../../api/entiti
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {UserError} from "../../api/common/error/UserError"
-import {formatPrice, showServiceTerms} from "../SubscriptionUtils"
+import {showServiceTerms} from "../SubscriptionUtils"
 import {Dialog} from "../../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
@@ -39,6 +39,7 @@ import {ParserError} from "../../misc/parsing"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {elementIdPart, GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {HttpMethod} from "../../api/common/EntityFunctions"
+import {formatPrice} from "../PriceUtils"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24

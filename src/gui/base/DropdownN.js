@@ -23,6 +23,9 @@ assertMainOrNodeBoot()
 
 export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
 
+
+console.log("dropdownn 3 4 5 6 7")
+
 // TODO: add resize listener like in the old Dropdown
 export class DropdownN {
 	children: $ReadOnlyArray<DropDownChildAttrs>;

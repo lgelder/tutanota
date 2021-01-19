@@ -12,7 +12,7 @@ import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth} from "../misc/Formatter"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {getMailFolderIcon, getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/MailUtils"
+import {getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/MailUtils"
 import Badge from "../gui/base/Badge"
 import {Icon} from "../gui/base/Icon"
 import type {Contact} from "../api/entities/tutanota/Contact"
@@ -27,6 +27,7 @@ import m from "mithril"
 import {theme} from "../gui/theme"
 import {getContactListName} from "../contacts/ContactUtils.js"
 import {isSameTypeRef, TypeRef} from "../api/common/utils/EntityUtils";
+import {getMailFolderIcon} from "../mail/MailGuiUtils";
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState,

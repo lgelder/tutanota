@@ -17,7 +17,7 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
+import {createNotAvailableForFreeClickHandler, formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import type {Booking} from "../api/entities/sys/Booking"
@@ -44,7 +44,6 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
-	formatPrice,
 	getIncludedAliases,
 	getIncludedStorageCapacity,
 	getNbrOfUsers,

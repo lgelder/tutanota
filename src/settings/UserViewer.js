@@ -39,18 +39,17 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
-import {checkAndImportUserData} from "./ImportUsersViewer"
+import {checkAndImportUserData, CSV_USER_FORMAT} from "./ImportUsersViewer"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
 
 assertMainOrNode()
-export const CSV_USER_FORMAT = "username;user@domain.com;password"
 
 export class UserViewer {
 	view: Function;

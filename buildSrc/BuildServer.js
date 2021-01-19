@@ -204,7 +204,11 @@ function runHttpServer(log) {
 		messageAllSockets(obj) {
 			const message = JSON.stringify(obj)
 			for (const socket of sockets) {
-				socket.send(message)
+				try {
+					socket.send(message)
+				} catch (e) {
+					log("Failed to message socket", e)
+				}
 			}
 		}
 	}

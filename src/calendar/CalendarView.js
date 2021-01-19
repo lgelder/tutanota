@@ -24,6 +24,10 @@ import {locator} from "../api/main/MainLocator"
 import {downcast, freezeMap, memoized, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {
+	addDaysForEvent,
+	addDaysForLongEvent,
+	addDaysForRecurringEvent,
+	DEFAULT_HOUR_OF_DAY,
 	getCalendarName,
 	getCapabilityText,
 	getEventStart,
@@ -40,7 +44,6 @@ import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {worker} from "../api/main/WorkerClient"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
 import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
@@ -57,7 +60,6 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
 import type {GroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
@@ -84,9 +86,9 @@ import {CalendarEventPopup} from "./CalendarEventPopup"
 import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
 import {getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
 import {exportCalendar, showCalendarImportDialog} from "./CalendarImporterDialog"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
-export const DEFAULT_HOUR_OF_DAY = 6
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,

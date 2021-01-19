@@ -2,7 +2,7 @@
 import m from "mithril"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
-import {getInboxFolder} from "../mail/MailModel";
+import {getInboxFolder} from "../mail/MailUtils";
 
 
 export function openMailbox(userId: Id, mailAddress: string, requestedPath: ?string): void {

@@ -23,7 +23,6 @@ import {
 import {PermissionError} from "../api/common/error/PermissionError"
 import {locator} from "../api/main/MainLocator"
 import {logins} from "../api/main/LoginController"
-import {formatPrice} from "../subscription/SubscriptionUtils"
 import {ALLOWED_IMAGE_FORMATS, ConversationType, Keys, MailMethod} from "../api/common/TutanotaConstants"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import {PreconditionFailedError} from "../api/common/error/RestError"
@@ -60,6 +59,7 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {downcast, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {formatPrice} from "../subscription/PriceUtils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -88,6 +88,8 @@ export function createMailEditorAttrs(model: SendMailModel, doBlockExternalConte
 		_onSend: () => {}
 	}
 }
+
+console.log("mail edito 2 3 4 5 6")
 
 
 export class MailEditor implements MComponent<MailEditorAttrs> {

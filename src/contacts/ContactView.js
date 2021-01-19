@@ -4,7 +4,7 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import type {CurrentView} from "../gui/base/Header"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {ContactEditor} from "./ContactEditor"
 import type {Contact} from "../api/entities/tutanota/Contact"
@@ -45,6 +45,7 @@ import {flat} from "../api/common/utils/ArrayUtils"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {isSameId} from "../api/common/utils/EntityUtils";
 import type {ContactModel} from "./ContactModel"
+import {createDropDownButton} from "../gui/base/Dropdown";
 
 assertMainOrNode()
 

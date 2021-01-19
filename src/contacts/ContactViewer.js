@@ -45,6 +45,8 @@ function insertBetween(array: any[], spacer: () => VirtualElement) {
 }
 
 
+console.log("contact viewer")
+
 export class ContactViewer {
 	view: Function;
 	contact: Contact;

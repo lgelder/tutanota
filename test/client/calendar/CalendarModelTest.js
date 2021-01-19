@@ -2,18 +2,22 @@
 import o from "ospec"
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef, createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {createRepeatRuleWithValues, getAllDayDateUTCFromZone, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"
+import {
+	addDaysForEvent,
+	addDaysForLongEvent, addDaysForRecurringEvent,
+	createRepeatRuleWithValues,
+	getAllDayDateUTCFromZone,
+	getMonth,
+	getTimeZone,
+	incrementByRepeatPeriod,
+	iterateEventOccurrences
+} from "../../../src/calendar/CalendarUtils"
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, downcast, neverNull, noOp} from "../../../src/api/common/utils/Utils"
 import {asResult, mapToObject} from "../../api/TestUtils"
 import type {CalendarModel} from "../../../src/calendar/CalendarModel"
 import {
-	addDaysForEvent,
-	addDaysForLongEvent,
-	addDaysForRecurringEvent,
-	CalendarModelImpl,
-	incrementByRepeatPeriod,
-	iterateEventOccurrences
+	CalendarModelImpl
 } from "../../../src/calendar/CalendarModel"
 import {AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"

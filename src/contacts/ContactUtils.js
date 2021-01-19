@@ -3,18 +3,13 @@ import {lang} from "../misc/LanguageViewModel.js"
 import type {ContactAddressTypeEnum, ContactPhoneNumberTypeEnum, ContactSocialTypeEnum} from "../api/common/TutanotaConstants"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
-import {createRestriction} from "../search/SearchUtils"
 import type {Contact} from "../api/entities/tutanota/Contact"
-import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
-import {asyncFindAndMap, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import type {Birthday} from "../api/entities/tutanota/Birthday"
 import {formatDate, formatDateWithMonth} from "../misc/Formatter"
 import type {TranslationKey} from "../misc/LanguageViewModel"
-import {DbError} from "../api/common/error/DbError"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
-import {WorkerClient} from "../api/main/WorkerClient"
-import {compareOldestFirst, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
+import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

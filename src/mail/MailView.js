@@ -36,17 +36,15 @@ import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
 	appendEmailSignature,
-	archiveMails,
+	getFolder,
 	getFolderIcon,
 	getFolderName,
+	getInboxFolder,
 	getMailboxName,
 	getSortedCustomFolders,
-	getSortedSystemFolders,
-	moveToInbox,
-	showDeleteConfirmationDialog
+	getSortedSystemFolders
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
-import {getFolder, getInboxFolder} from "./MailModel";
 import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {ActionBar} from "../gui/base/ActionBar";
@@ -68,7 +66,7 @@ import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeS
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {getListId, isSameId} from "../api/common/utils/EntityUtils";
-import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {archiveMails, isNewMailActionAvailable, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -813,6 +811,3 @@ export class MailView implements CurrentView {
 	}
 }
 
-export function isNewMailActionAvailable(): boolean {
-	return logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
-}

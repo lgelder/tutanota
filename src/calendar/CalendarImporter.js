@@ -1,8 +1,8 @@
 //@flow
-import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, CalendarAttendeeStatus, EndType, reverse, SECOND_MS} from "../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, SECOND_MS} from "../api/common/TutanotaConstants"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
+import {calendarAttendeeStatusToParstat, iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
 import {getAllDayDateLocal, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
@@ -234,12 +234,3 @@ export function formatDate(date: Date, timeZone: string): string {
 	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
 }
 
-const calendarAttendeeStatusToParstat = {
-	// WE map ADDED to NEEDS-ACTION for sending out invites
-	[CalendarAttendeeStatus.ADDED]: "NEEDS-ACTION",
-	[CalendarAttendeeStatus.NEEDS_ACTION]: "NEEDS-ACTION",
-	[CalendarAttendeeStatus.ACCEPTED]: "ACCEPTED",
-	[CalendarAttendeeStatus.DECLINED]: "DECLINED",
-	[CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
-}
-export const parstatToCalendarAttendeeStatus: {[string]: CalendarAttendeeStatusEnum} = reverse(calendarAttendeeStatusToParstat)

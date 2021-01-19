@@ -15,15 +15,8 @@ import {
 	MailFolderType,
 	MailState
 } from "../api/common/TutanotaConstants"
-import {
-	assertNotNull,
-	downcast,
-	getMailBodyText,
-	neverNull,
-	noOp
-} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode, isApp, isDesktop} from "../api/Env"
-import {update} from "../api/main/Entity"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {contains} from "../api/common/utils/ArrayUtils"
 import type {LoginController} from "../api/main/LoginController"
@@ -33,19 +26,12 @@ import type {Language} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import type {MailboxDetail, MailModel} from "./MailModel"
-import {getFolder, getInboxFolder} from "./MailModel"
 import {getContactDisplayName} from "../contacts/ContactUtils"
-import {Dialog} from "../gui/base/Dialog"
-import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
+import type {lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
-import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {mailToEmlFile} from "./Exporter"
-import {sortableTimestamp} from "../api/common/utils/DateUtils"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import {locator} from "../api/main/MainLocator"
 import type {IUserController} from "../api/main/UserController"
 import type {InlineImages} from "./MailViewer"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -53,7 +39,6 @@ import type {ContactModel} from "../contacts/ContactModel"
 import type {User} from "../api/entities/sys/User"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
-import {fileController} from "../file/FileController"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {EntityClient} from "../api/common/EntityClient"
@@ -62,7 +47,6 @@ import {client} from "../misc/ClientDetector"
 import {getTimeZone} from "../calendar/CalendarUtils"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
-import {moveMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -369,6 +353,15 @@ export function getFolderIcon(folder: MailFolder): lazyIcon {
 }
 
 
+export function getFolder(folders: MailFolder[], type: MailFolderTypeEnum): MailFolder {
+	const folder = folders.find(f => f.folderType === type)
+	return neverNull(folder)
+}
+
+export function getInboxFolder(folders: MailFolder[]): MailFolder {
+	return getFolder(folders, MailFolderType.INBOX)
+}
+
 export function getArchiveFolder(folders: MailFolder[]): MailFolder {
 	return getFolder(folders, MailFolderType.ARCHIVE)
 }
@@ -424,27 +417,6 @@ export function getDefaultSender(logins: LoginController, mailboxDetails: Mailbo
 	}
 }
 
-export function showDeleteConfirmationDialog(mails: $ReadOnlyArray<Mail>): Promise<boolean> {
-	let groupedMails = mails.reduce((all, mail) => {
-		locator.mailModel.isFinalDelete(locator.mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
-		return all
-	}, {trash: [], move: []})
-
-	let confirmationTextId = null
-	if (groupedMails.trash.length > 0) {
-		if (groupedMails.move.length > 0) {
-			confirmationTextId = "finallyDeleteSelectedEmails_msg"
-		} else {
-			confirmationTextId = "finallyDeleteEmails_msg"
-		}
-	}
-	if (confirmationTextId != null) {
-		return Dialog.confirm(confirmationTextId)
-	} else {
-		return Promise.resolve(true)
-	}
-}
-
 
 /** @deprecated use {@link getSenderNameForUser} instead */
 export function getSenderName(mailboxDetails: MailboxDetail): string {
@@ -482,16 +454,6 @@ export function getMailboxName(logins: LoginController, mailboxDetails: MailboxD
 		return getGroupInfoDisplayName(neverNull(mailboxDetails.mailGroupInfo))
 	}
 }
-
-export function getMailFolderIcon(mail: Mail): AllIconsEnum {
-	let folder = locator.mailModel.getMailFolder(mail._id[0])
-	if (folder) {
-		return getFolderIcon(folder)()
-	} else {
-		return Icons.Folder
-	}
-}
-
 
 export interface ImageHandler {
 	insertImage(srcAttr: string, attrs?: {[string]: string}): HTMLElement
@@ -559,40 +521,11 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 }
 
 
-export function archiveMails(mails: Mail[]): Promise<*> {
-	if (mails.length > 0) {
-		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0])
-		              .then((folders) => moveMails(locator.mailModel, mails, getArchiveFolder(folders)))
-	} else {
-		return Promise.resolve()
-	}
-}
-
-export function moveToInbox(mails: Mail[]): Promise<*> {
-	if (mails.length > 0) {
-		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0])
-		              .then((folders) => moveMails(locator.mailModel, mails, getInboxFolder(folders)))
-	} else {
-		return Promise.resolve()
-	}
-}
-
-export function exportMails(entityClient: EntityClient, mails: Mail[]): Promise<void> {
-	const mapper = mail => entityClient.load(MailBodyTypeRef, mail.body)
-	                                   .then(body => mailToEmlFile(entityClient, mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
-	const exportPromise = Promise.map(mails, mapper, {concurrency: 5})
-	const zipName = `${sortableTimestamp()}-mail-export.zip`
-	return showProgressDialog("pleaseWait_msg", fileController.zipDataFiles(exportPromise, zipName))
-		.then(zip => fileController.open(zip))
-}
-
-export function markMails(mails: Mail[], unread: boolean): Promise<void> {
+export function markMails(entityClient: EntityClient, mails: Mail[], unread: boolean): Promise<void> {
 	return Promise.all(mails.map(mail => {
 		if (mail.unread !== unread) {
 			mail.unread = unread
-			return update(mail)
+			return entityClient.update(mail)
 				.catch(NotFoundError, noOp)
 				.catch(LockedError, noOp)
 		} else {

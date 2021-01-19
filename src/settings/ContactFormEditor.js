@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType, Keys} from "../api/common/TutanotaConstants"
@@ -43,6 +43,7 @@ import type {InputField} from "../api/entities/tutanota/InputField"
 import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {isSameId, stringToCustomId} from "../api/common/utils/EntityUtils";
+import {createDropDownButton} from "../gui/base/Dropdown";
 
 assertMainOrNode()
 

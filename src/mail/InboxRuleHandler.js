@@ -11,7 +11,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {logins} from "../api/main/LoginController"
 import type {MailboxDetail} from "./MailModel"
-import {getInboxFolder} from "./MailModel"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import type {InboxRule} from "../api/entities/tutanota/InboxRule"
@@ -21,6 +20,7 @@ import {splitInChunks} from "../api/common/utils/ArrayUtils"
 import {EntityClient} from "../api/common/EntityClient"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {getElementId, getListId, isSameId} from "../api/common/utils/EntityUtils";
+import {getInboxFolder} from "./MailUtils"
 
 assertMainOrNode()
 
