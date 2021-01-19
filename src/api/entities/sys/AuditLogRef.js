@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1115,
-			"since": 22,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"items": {
-			"name": "items",
 			"id": 1116,
-			"since": 22,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "AuditLogEntry",
 			"final": true,
-			"external": false
+			"refType": "AuditLogEntry"
 		}
 	},
 	"app": "sys",

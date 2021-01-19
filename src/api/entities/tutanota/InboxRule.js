@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 574,
-			"since": 12,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"type": {
-			"name": "type",
 			"id": 575,
-			"since": 12,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"value": {
-			"name": "value",
 			"id": 576,
-			"since": 12,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -43,14 +37,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"targetFolder": {
-			"name": "targetFolder",
 			"id": 577,
-			"since": 12,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "MailFolder",
 			"final": false,
-			"external": false
+			"refType": "MailFolder"
 		}
 	},
 	"app": "tutanota",

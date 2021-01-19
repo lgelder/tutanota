@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 93,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"address": {
-			"name": "address",
 			"id": 95,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"name": "name",
 			"id": 94,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
@@ -43,14 +37,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"contact": {
-			"name": "contact",
 			"id": 96,
-			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "Contact",
 			"final": false,
-			"external": false
+			"refType": "Contact"
 		}
 	},
 	"app": "tutanota",

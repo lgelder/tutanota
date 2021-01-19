@@ -94,20 +94,20 @@ o.spec("ContactIndexer test", () => {
 		o(args[0]).equals(ContactModel)
 		o(args[1]).equals(c)
 		let attributes = attributeHandlers.map(h => {
-			return {attribute: h.attribute.name, value: h.value()}
+			return {attribute: h.attribute.id, value: h.value()}
 		})
 		o(attributes).deepEquals([
-			{attribute: "firstName", value: "FN"},
-			{attribute: "lastName", value: "LN"},
-			{attribute: "nickname", value: "NN"},
-			{attribute: "role", value: "R"},
-			{attribute: "title", value: "T"},
-			{attribute: "comment", value: "C"},
-			{attribute: "company", value: "co"},
-			{attribute: "addresses", value: "A0,A1"},
-			{attribute: "mailAddresses", value: "MA0,MA1"},
-			{attribute: "phoneNumbers", value: "PN0,PN1"},
-			{attribute: "socialIds", value: ""},
+			{attribute: ContactModel.values["firstName"].id, value: "FN"},
+			{attribute: ContactModel.values["lastName"].id , value: "LN"},
+			{attribute: ContactModel.values["nickname"].id, value: "NN"},
+			{attribute: ContactModel.values["role"].id, value: "R"},
+			{attribute: ContactModel.values["title"].id, value: "T"},
+			{attribute: ContactModel.values["comment"].id, value: "C"},
+			{attribute: ContactModel.values["company"].id, value: "co"},
+			{attribute: ContactModel.associations["addresses"].id, value: "A0,A1"},
+			{attribute: ContactModel.associations["mailAddresses"].id, value: "MA0,MA1"},
+			{attribute: ContactModel.associations["phoneNumbers"].id, value: "PN0,PN1"},
+			{attribute: ContactModel.associations["socialIds"].id, value: ""},
 		])
 	})
 

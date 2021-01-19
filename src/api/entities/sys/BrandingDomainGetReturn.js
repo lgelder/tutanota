@@ -15,9 +15,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1724,
-			"since": 56,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,13 +24,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"certificateInfo": {
-			"name": "certificateInfo",
 			"id": 1725,
-			"since": 56,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "CertificateInfo",
-			"final": false
+			"final": false,
+			"refType": "CertificateInfo"
 		}
 	},
 	"app": "sys",

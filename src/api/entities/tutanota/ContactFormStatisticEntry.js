@@ -15,36 +15,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 826,
-			"since": 22,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"bucketEncSessionKey": {
-			"name": "bucketEncSessionKey",
 			"id": 827,
-			"since": 22,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"customerPubEncBucketKey": {
-			"name": "customerPubEncBucketKey",
 			"id": 828,
-			"since": 22,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"customerPubKeyVersion": {
-			"name": "customerPubKeyVersion",
 			"id": 829,
-			"since": 22,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
@@ -53,13 +45,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"statisticFields": {
-			"name": "statisticFields",
 			"id": 830,
-			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "ContactFormStatisticField",
-			"final": false
+			"final": false,
+			"refType": "ContactFormStatisticField"
 		}
 	},
 	"app": "tutanota",

@@ -76,12 +76,12 @@ o.spec("GroupInfoIndexer test", function () {
 		o(args[0]).equals(GroupInfoModel)
 		o(args[1]).equals(g)
 		let attributes = attributeHandlers.map(h => {
-			return {attribute: h.attribute.name, value: h.value()}
+			return {attribute: h.attribute.id, value: h.value()}
 		})
 		o(JSON.stringify(attributes)).deepEquals(JSON.stringify([
-			{attribute: "name", value: "N"},
-			{attribute: "mailAddress", value: "MA"},
-			{attribute: "mailAddressAliases", value: "MA0,MA1"},
+			{attribute: GroupInfoModel.values["name"].id, value: "N"},
+			{attribute: GroupInfoModel.values["mailAddress"].id, value: "MA"},
+			{attribute: GroupInfoModel.associations["mailAddressAliases"].id, value: "MA0,MA1"},
 		]))
 	})
 

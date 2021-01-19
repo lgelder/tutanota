@@ -14,45 +14,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1760,
-			"since": 63,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"authVerifier": {
-			"name": "authVerifier",
 			"id": 1762,
-			"since": 63,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mailAddress": {
-			"name": "mailAddress",
 			"id": 1761,
-			"since": 63,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"recoverCodeVerifier": {
-			"name": "recoverCodeVerifier",
 			"id": 1763,
-			"since": 63,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"targetAccountMailAddress": {
-			"name": "targetAccountMailAddress",
 			"id": 1764,
-			"since": 63,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,

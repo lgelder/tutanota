@@ -146,16 +146,16 @@ o.spec("MailIndexer test", () => {
 		o(args[1]).equals(mail)
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
 		let attributes = attributeHandlers.map(h => {
-			return {attribute: h.attribute.name, value: h.value()}
+			return {attribute: h.attribute.id, value: h.value()}
 		})
 		o(JSON.stringify(attributes)).deepEquals(JSON.stringify([
-			{attribute: "subject", value: "Su"},
-			{attribute: "toRecipients", value: "tr0N <tr0A>,tr1N <tr1A>"},
-			{attribute: "ccRecipients", value: "ccr0N <ccr0A>,ccr1N <ccr1A>"},
-			{attribute: "bccRecipients", value: "bccr0N <bccr0A>,bccr1N <bccr1A>"},
-			{attribute: "sender", value: "SN <SA>"},
-			{attribute: "body", value: "BT"},
-			{attribute: "attachments", value: "FN"},
+			{attribute: MailModel.values["subject"].id, value: "Su"},
+			{attribute: MailModel.associations["toRecipients"].id, value: "tr0N <tr0A>,tr1N <tr1A>"},
+			{attribute: MailModel.associations["ccRecipients"].id, value: "ccr0N <ccr0A>,ccr1N <ccr1A>"},
+			{attribute: MailModel.associations["bccRecipients"].id, value: "bccr0N <bccr0A>,bccr1N <bccr1A>"},
+			{attribute: MailModel.associations["sender"].id, value: "SN <SA>"},
+			{attribute: MailModel.associations["body"].id, value: "BT"},
+			{attribute: MailModel.associations["attachments"].id, value: "FN"},
 		]))
 	})
 

@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 318,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,

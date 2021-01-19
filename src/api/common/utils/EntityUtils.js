@@ -188,7 +188,7 @@ export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
 	}
 	for (let valueName of Object.keys(typeModel.values)) {
 		let value = typeModel.values[valueName]
-		i[valueName] = _getDefaultValue(value)
+		i[valueName] = _getDefaultValue(valueName, value)
 	}
 	for (let associationName of Object.keys(typeModel.associations)) {
 		let association = typeModel.associations[associationName]
@@ -201,12 +201,12 @@ export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
 	return (i: any);
 }
 
-function _getDefaultValue(value: ModelValue): any {
-	if (value.name === "_format") {
+function _getDefaultValue(valueName: string, value: ModelValue): any {
+	if (valueName === "_format") {
 		return "0"
-	} else if (value.name === "_id") {
+	} else if (valueName === "_id") {
 		return null // aggregate ids are set in the worker, list ids must be set explicitely and element ids are created on the server
-	} else if (value.name === "_permissions") {
+	} else if (valueName === "_permissions") {
 		return null
 	} else if (value.cardinality === Cardinality.ZeroOrOne) {
 		return null

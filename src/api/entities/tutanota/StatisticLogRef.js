@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 876,
-			"since": 25,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"items": {
-			"name": "items",
 			"id": 877,
-			"since": 25,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "StatisticLogEntry",
 			"final": true,
-			"external": false
+			"refType": "StatisticLogEntry"
 		}
 	},
 	"app": "tutanota",

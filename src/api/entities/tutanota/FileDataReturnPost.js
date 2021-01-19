@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 343,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"fileData": {
-			"name": "fileData",
 			"id": 344,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "FileData",
 			"final": false,
-			"external": false
+			"refType": "FileData"
 		}
 	},
 	"app": "tutanota",

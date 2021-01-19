@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 441,
-			"since": 7,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"folders": {
-			"name": "folders",
 			"id": 442,
-			"since": 7,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "MailFolder",
 			"final": true,
-			"external": false
+			"refType": "MailFolder"
 		}
 	},
 	"app": "tutanota",

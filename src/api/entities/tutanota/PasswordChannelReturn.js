@@ -15,9 +15,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 328,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,13 +24,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"phoneNumberChannels": {
-			"name": "phoneNumberChannels",
 			"id": 329,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "PasswordChannelPhoneNumber",
-			"final": true
+			"final": true,
+			"refType": "PasswordChannelPhoneNumber"
 		}
 	},
 	"app": "tutanota",

@@ -258,7 +258,6 @@ type TypeModel = {
 
 type ModelValue = {
 	id: number,
-	name: string,
 	type: ValueTypeEnum,
 	cardinality: CardinalityEnum,
 	final: boolean,

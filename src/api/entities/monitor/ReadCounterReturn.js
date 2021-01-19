@@ -14,18 +14,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 17,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"value": {
-			"name": "value",
 			"id": 18,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": false,

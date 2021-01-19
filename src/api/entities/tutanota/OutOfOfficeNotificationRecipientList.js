@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1148,
-			"since": 44,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"list": {
-			"name": "list",
 			"id": 1149,
-			"since": 44,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "OutOfOfficeNotificationRecipient",
 			"final": true,
-			"external": false
+			"refType": "OutOfOfficeNotificationRecipient"
 		}
 	},
 	"app": "tutanota",

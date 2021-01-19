@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 770,
-			"since": 19,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"name": "name",
 			"id": 771,
-			"since": 19,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": true
 		},
 		"value": {
-			"name": "value",
 			"id": 772,
-			"since": 19,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,

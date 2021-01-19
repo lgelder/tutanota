@@ -14,45 +14,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 342,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"accountType": {
-			"name": "accountType",
 			"id": 345,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"authToken": {
-			"name": "authToken",
 			"id": 343,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"language": {
-			"name": "language",
 			"id": 344,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mobilePhoneNumber": {
-			"name": "mobilePhoneNumber",
 			"id": 346,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,

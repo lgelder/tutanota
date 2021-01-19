@@ -15,9 +15,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 965,
-			"since": 33,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,13 +24,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"calendarData": {
-			"name": "calendarData",
 			"id": 966,
-			"since": 33,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "CalendarGroupData",
-			"final": false
+			"final": false,
+			"refType": "CalendarGroupData"
 		}
 	},
 	"app": "tutanota",
