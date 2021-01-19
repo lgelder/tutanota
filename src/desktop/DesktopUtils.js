@@ -152,20 +152,21 @@ export class DesktopUtils {
 	// TODO The files are no longer being deleted, as we need them to persist in order for the user to be able to presented them
 	// in their file explorer of choice. Do we need to set up some hook to delete it all later? or should we just count on the OS
 	// to do it's thing
-	writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
+	async writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): string {
 		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
 		const legalNames = legalizeFilenames(files.map(f => f.name))
 		const legalFiles = files.map(f => ({
 			content: f.content,
 			name: legalNames[f.name].shift()
 		}))
-
-		return fs.mkdir(dirPath, {recursive: true})
-		         .then(() => Promise.map(legalFiles, f => fs.writeFile(path.join(dirPath, f.name), f.content)))
-		         .then(() => dirPath)
+		await fs.mkdir(dirPath, {recursive: true})
+		for (let file of legalFiles) {
+			await fs.writeFile(path.join(dirPath, file.name), file.content)
+		}
+		return dirPath
 	}
 
-	makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
+	async makeMsgFile(bundle: MailBundle): {name: string, content: Uint8Array} {
 		const email = new Email(bundle.isDraft, bundle.isRead)
 			.subject(`[Tutanota] ${bundle.subject}`)
 			.bodyHtml(bundle.body)
@@ -179,12 +180,11 @@ export class DesktopUtils {
 			.receivedOn(new Date(bundle.receivedOn))
 			.headers(bundle.headers || "")
 
-		return Promise.each(bundle.attachments, attachment => {
-			return fs.readFile(getTempDirectoryPath(attachment.name)).then((data: Buffer) => {
-				// TODO We could use ATTACH_BY_REF_ONLY but apparently that needs to be implemented still, see oxmsg::attachment.js
-				email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
-			})
-		}).then(() => ({name: bundle.subject, content: email.msg()}))
+		for (let attachment of bundle.attachments) {
+			const data = await fs.readFile(getTempDirectoryPath(attachment.name))
+			email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
+		}
+		return {name: bundle.subject, content: email.msg()}
 	}
 }
 

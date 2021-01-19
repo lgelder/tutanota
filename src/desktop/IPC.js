@@ -81,7 +81,7 @@ export class IPC {
 		this._err = errorHandler
 	}
 
-	_invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): Promise<any> {
+	async _invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): any {
 
 		switch (method) {
 			case 'init':
@@ -234,12 +234,12 @@ export class IPC {
 					? Promise.resolve(this._updater.updateInfo)
 					: Promise.resolve(null)
 			case 'mailBundleExport': {
-				const bundle = args[0]
-				return Promise.map(bundle, this._desktopUtils.makeMsgFile)
-				              .then(this._desktopUtils.writeFilesToTmp)
-					// TODO: Are we able to select the files aswell?
-					// it's possible to do so with shell.showFileInFolder but that only works for one file
-					          .then(this._electron.shell.openPath)
+				const files = await Promise.all(args[0].map(async (bundle) => await this._desktopUtils.makeMsgFile(bundle)))
+				const dir = await this._desktopUtils.writeFilesToTmp(files)
+				// TODO: Are we able to select the files aswell?
+				// it's possible to do so with shell.showFileInFolder but that only works for one file
+				this._electron.shell.openPath(dir)
+				return
 			}
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
