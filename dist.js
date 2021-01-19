@@ -120,6 +120,7 @@ async function buildWebapp(version) {
 				name: "append-libs",
 				async footer() {
 					const systemjs = await fs.readFile("libs/s.js")
+					// TODO: use env prod
 					const bluebird = await fs.readFile("libs/bluebird.js")
 					return systemjs + "\n" + bluebird
 				}
@@ -173,16 +174,19 @@ ${bootstrap}`
 		console.log(k, v[0])
 	}
 	console.log("started writing bundles", measure())
-	await bundle.write({
+	const output = await bundle.write({
 		sourcemap: true,
 		format: "system",
 		dir: "build/dist",
 		manualChunks: (id, {getModuleInfo, getModuleIds}) => {
 			if (id.includes("api/entities")) {
 				return "entities"
+			} else if (id.includes("src/translation")) {
+				return "translation-" + getModuleInfo(id).id
 			}
 		}
 	})
+	const chunks = output.output.map(c => c.fileName)
 
 
 	await fs.copy("libs/s.js", "build/dist/s.js")
@@ -209,6 +213,8 @@ ${bootstrap}`
 			? createHtml(env.create(restUrl, version, "App", true), bundles)
 			: null,
 	])
+
+	await bundleServiceWorker(chunks, version)
 }
 
 async function buildDesktopClient(version) {
@@ -277,25 +283,59 @@ async function buildDesktopClient(version) {
 	}
 }
 
-function bundleServiceWorker(bundles) {
-	return fs.readFile("src/serviceworker/sw.js", "utf8").then((content) => {
-		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
-			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
-			.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
-		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
-		// of "declare var"
-		const customDomainFileExclusions = ["index.html", "index.js"]
-		// This is a hack to use the same build for tests and for prod. This module is not compiled with SystemJS
-		// and is just processed with babel so we want to define "module" variable but if we do it with new variable Babel
-		// will rename module to _module so we define it on self which has the same effect but is not detected by Babel.
-		// See the comment near the end of sw.js
-		content = `self.module = {}
-${content}
-function filesToCache() { return ${JSON.stringify(filesToCache)} }
-function version() { return "${version}" }
-function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
-		return babelCompile(content).code
-	}).then((content) => _writeFile(distLoc("sw.js"), content))
+async function bundleServiceWorker(bundles, version) {
+	const customDomainFileExclusions = ["index.html", "index.js"]
+	const filesToCache = ["index-index.js", "WorkerBootstrap.js", "index.html", "polyfill.js"]
+		.concat(bundles.filter(it => !it.startsWith("translation")))
+		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
+	const swBundle = await rollup({
+		input: ["src/serviceworker/sw.js"],
+		plugins: [
+			babel({
+				plugins: [
+					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
+					"@babel/plugin-transform-flow-strip-types",
+					"@babel/plugin-proposal-class-properties",
+					"@babel/plugin-transform-computed-properties",
+					"@babel/plugin-transform-parameters",
+					"@babel/plugin-transform-shorthand-properties",
+					"@babel/plugin-transform-spread",
+				],
+				babelHelpers: "bundled",
+			}),
+			terser(),
+			{
+				name: "sw-banner",
+				banner() {
+					return `function filesToCache() { return ${JSON.stringify(filesToCache)} }
+					function version() { return "${version}" }
+					function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
+				}
+			}
+		],
+	})
+	await swBundle.write({
+		sourcemap: true,
+		format: "iife",
+		file: "build/dist/sw.js"
+	})
+// 	return fs.readFile("src/serviceworker/sw.js", "utf8").then((content) => {
+// 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
+// 			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
+// 			.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
+// 		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
+// 		// of "declare var"
+// 		// This is a hack to use the same build for tests and for prod. This module is not compiled with SystemJS
+// 		// and is just processed with babel so we want to define "module" variable but if we do it with new variable Babel
+// 		// will rename module to _module so we define it on self which has the same effect but is not detected by Babel.
+// 		// See the comment near the end of sw.js
+// 		content = `self.module = {}
+// ${content}
+// function filesToCache() { return ${JSON.stringify(filesToCache)} }
+// function version() { return "${version}" }
+// function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
+// 		return babelCompile(content).code
+// 	}).then((content) => _writeFile(distLoc("sw.js"), content))
 }
 
 function createHtml(env) {
