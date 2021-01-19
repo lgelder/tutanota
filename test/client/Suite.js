@@ -28,9 +28,14 @@ import "./calendar/CalendarEventViewModelTest"
 import "./gui/ColorTest"
 import "./mail/SendMailModelTest"
 import o from "ospec"
+import {random} from "../../src/api/worker/crypto/Randomizer"
+import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 
 (async () => {
 	if (typeof process != "undefined") {
+		// setup the Entropy for all testcases
+		random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])
+
 		await import("./desktop/PathUtilsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest")
 		await import("./desktop/ElectronUpdaterTest")
@@ -43,8 +48,8 @@ import o from "ospec"
 		await import("./desktop/IPCTest.js")
 		await import("./desktop/SocketeerTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")
-		// await import("./desktop/DesktopCryptoFacadeTest.js")
-		// await import("./desktop/DesktopContextMenuTest.js")
+		await import("./desktop/DesktopCryptoFacadeTest.js")
+		await import("./desktop/DesktopContextMenuTest.js")
 	}
 
 	o.run()

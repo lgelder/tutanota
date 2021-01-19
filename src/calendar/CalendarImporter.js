@@ -17,13 +17,7 @@ import {flat} from "../api/common/utils/ArrayUtils"
 import {DateTime} from "luxon"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
-import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {elementIdPart, isSameId, listIdPart} from "../api/common/utils/EntityUtils"
-import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {loadAll, loadMultiple} from "../api/main/Entity"
-import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
-import {fileController} from "../file/FileController"
+
 
 export type ParsedCalendarData = {method: string, contents: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>}
 
@@ -43,51 +37,6 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
 	const tree = parseICalendar(value)
 	return parseCalendarEvents(tree, zone)
-}
-
-export function exportCalendar(
-	calendarName: string,
-	groupRoot: CalendarGroupRoot,
-	userAlarmInfos: Id,
-	now: Date,
-	zone: string
-) {
-	showProgressDialog("pleaseWait_msg", loadAllEvents(groupRoot)
-		.then((allEvents) => {
-			return Promise.map(allEvents, event => {
-				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
-				if (thisUserAlarms.length > 0) {
-					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
-						.then(alarms => ({event, alarms}))
-				} else {
-					return {event, alarms: []}
-				}
-			})
-		})
-		.then((eventsWithAlarms) => exportCalendarEvents(calendarName, eventsWithAlarms, now, zone)))
-}
-
-function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
-	return loadAll(CalendarEventTypeRef, groupRoot.longEvents)
-		.then((longEvents) =>
-			loadAll(CalendarEventTypeRef, groupRoot.shortEvents).then((shortEvents) => {
-				return shortEvents.concat(longEvents)
-			}))
-}
-
-function exportCalendarEvents(
-	calendarName: string,
-	events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>,
-	now: Date,
-	zone: string,
-) {
-	const stringValue = serializeCalendar(env.versionNumber, events, now, zone)
-	const data = stringToUtf8Uint8Array(stringValue)
-	const tmpFile = createFile()
-	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
-	tmpFile.mimeType = CALENDAR_MIME_TYPE
-	tmpFile.size = String(data.byteLength)
-	return fileController.open(convertToDataFile(tmpFile, data))
 }
 
 export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {

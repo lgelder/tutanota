@@ -1,31 +1,9 @@
 // @flow
 import o from "ospec"
-import mockery from 'mockery'
-import path from 'path'
-import {downcast, neverNull} from "../../src/api/common/utils/Utils"
-
-let exit = {value: undefined}
-let random = {value: undefined}
-const platform = process.platform
-let testcount = 0
-
-function disable(cleanups: Array<()=>void>): void {
-	cleanups.forEach(f => f())
-	mockery.deregisterAll()
-	mockery.disable()
-	setProperty(process, 'exit', neverNull(exit).value)
-	setProperty(Math, 'random', neverNull(random).value)
-	setPlatform(platform)
-}
-
-// register and get a test subject
-function subject(module: string): any {
-	mockery.registerAllowable(module)
-	return require(module)
-}
+import {downcast} from "../../src/api/common/utils/Utils"
 
 /**
- * you need to call .get() on the return value to actually register the replacer with mockery and to spyify its functions.
+ * you need to call .get() on the return value to actually register the replacer to spyify its functions.
  * placer object that replaces the module and gets returned when require(old) is called. Its functions are spyified when .get() is called.
  * warning: contents of array properties will not be spyified
  * @param old name of the module to replace
@@ -160,58 +138,15 @@ class MockBuilder<T> {
 	 */
 	set<R>(): R {
 		const copy = spyify(this._mock)
-		mockery.deregisterMock(this._old)
-		mockery.registerMock(this._old, copy)
 		return downcast(copy)
 	}
 }
 
 const n = {
-	subject,
 	classify,
 	mock,
 	spyify,
 	setPlatform,
 }
-
-const allowedNodeModules = [
-	'promise', './promise',
-	'path', './path',
-	'util', './util',
-	'url',
-	'./es5',
-	'./async',
-	'./schedule',
-	'./errors',
-	'./finally',
-	'./context',
-	'./queue',
-	'./thenables',
-	'./promise_array',
-	'./debuggability',
-	'./catch_filter',
-	'./nodeback',
-	'./method',
-	'./bind',
-	'./cancel',
-	'./direct_resolve',
-	'./synchronous_inspection',
-	'./join',
-	'./map.js',
-	'./call_get.js',
-	'./using.js',
-	'./timers.js',
-	'./generators.js',
-	'./nodeify.js',
-	'./promisify.js',
-	'./props.js',
-	'./race.js',
-	'./reduce.js',
-	'./settle.js',
-	'./some.js',
-	'./filter.js',
-	'./each.js',
-	'./any.js'
-]
 
 export default n

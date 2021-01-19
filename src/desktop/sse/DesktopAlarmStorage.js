@@ -49,7 +49,7 @@ export class DesktopAlarmStorage {
 	_generateAndStoreDeviceKey(): Promise<string> {
 		console.warn("device key not found, generating a new one")
 		// save key entry in keychain
-		return this._secretStorage.setPassword(SERVICE_NAME, ACCOUNT_NAME, DesktopCryptoFacade.generateDeviceKey())
+		return this._secretStorage.setPassword(SERVICE_NAME, ACCOUNT_NAME, this._crypto.generateDeviceKey())
 		           .then(() => this._secretStorage.findPassword(SERVICE_NAME))
 		           .then(pw => {
 			           if (!pw) {

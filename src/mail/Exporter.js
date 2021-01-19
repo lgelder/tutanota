@@ -3,7 +3,7 @@ import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/En
 import {pad} from "../api/common/utils/StringUtils"
 import {createFile, FileTypeRef} from "../api/entities/tutanota/File"
 import {worker} from "../api/main/WorkerClient"
-import {convertToDataFile, createDataFile, getCleanedMimeType} from "../api/common/DataFile"
+import {convertToDataFile, getCleanedMimeType} from "../api/common/DataFile"
 import {getMailHeaders, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"

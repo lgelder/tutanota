@@ -20,7 +20,7 @@ import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
 import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {createFile} from "../api/entities/tutanota/File"
-import {convertToDataFile, createDataFile} from "../api/common/DataFile"
+import {convertToDataFile} from "../api/common/DataFile"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])

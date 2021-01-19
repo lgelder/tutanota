@@ -5,9 +5,10 @@ import {promisify} from 'util'
 import {closeSync, openSync, promises as fs, readFileSync, unlinkSync, writeFileSync, mkdir} from "fs"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
-import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {noOp} from "../api/common/utils/Utils"
 import {log} from "./DesktopLog"
+import {uint8ArrayToHex} from "../api/common/utils/Encoding"
+import {cryptoFns} from "./CryptoFns"
 import {legalizeFilenames} from "./PathUtils"
 import type {MailBundle} from "../mail/MailUtils"
 import {getTempDirectoryPath} from "./DesktopDownloadManager"
@@ -217,10 +218,14 @@ function getLockFilePath() {
  * @private
  */
 function _writeToDisk(contents: string): string {
-	const filename = DesktopCryptoFacade.randomHexString(12)
+	const filename = randomHexString(12)
 	const filePath = path.join(path.dirname(process.execPath), filename)
 	writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
 	return filePath
+}
+
+function randomHexString(byteLength: number): string {
+	return uint8ArrayToHex(cryptoFns.randomBytes(byteLength))
 }
 
 /**

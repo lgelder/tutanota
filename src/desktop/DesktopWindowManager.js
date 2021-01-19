@@ -37,7 +37,7 @@ export class WindowManager {
 		this._tray = tray
 		this._notifier = notifier
 		this.dl = dl
-		this._contextMenu = new DesktopContextMenu()
+		this._contextMenu = new DesktopContextMenu(electron)
 		this._newWindowFactory = (noAutoLogin) => {
 			return new ApplicationWindow(
 				this,

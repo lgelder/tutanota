@@ -72,7 +72,6 @@
 		"glob": "7.1.6",
 		"js-yaml": "3.13.1",
 		"mithril-node-render": "2.3.0",
-		"mockery": "^2.1.0",
 		"node-forge": "0.10.0",
 		"node-static": "0.7.11",
 		"nollup": "^0.14.4",
