@@ -153,8 +153,8 @@ export class DesktopUtils {
 	// TODO The files are no longer being deleted, as we need them to persist in order for the user to be able to presented them
 	// in their file explorer of choice. Do we need to set up some hook to delete it all later? or should we just count on the OS
 	// to do it's thing
-	async writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): string {
-		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
+	async writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
+		const dirPath = path.join(app.getPath('temp'), 'tutanota', randomHexString(12))
 		const legalNames = legalizeFilenames(files.map(f => f.name))
 		const legalFiles = files.map(f => ({
 			content: f.content,
@@ -167,7 +167,7 @@ export class DesktopUtils {
 		return dirPath
 	}
 
-	async makeMsgFile(bundle: MailBundle): {name: string, content: Uint8Array} {
+	async makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
 		const email = new Email(bundle.isDraft, bundle.isRead)
 			.subject(`[Tutanota] ${bundle.subject}`)
 			.bodyHtml(bundle.body)
