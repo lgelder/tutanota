@@ -7453,7 +7453,7 @@ var long = createCommonjsModule(function (module) {
 			if ((numBits &= 63) === 0) {
 				return this;
 			} else if (numBits < 32) {
-				return fromBits(this.low < < numBits, this.high << numBits
+				return fromBits(this.low << numBits, this.high << numBits
 					| this.low >>> 32 - numBits, this.unsigned);
 			} else {
 				return fromBits(0, this.low << numBits - 32, this.unsigned);
