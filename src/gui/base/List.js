@@ -337,22 +337,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 
 	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
-		console.log(ev)
-		// for flow
-		const customDragStart = this._config.dragStart
-			? this._config.dragStart
-			: (e, vR, sE) => false
-		const entities = this.getSelectedEntities()
-		if (entities.length < 2) {
-			const entityArray = virtualRow.entity
-				? [virtualRow.entity]
-				: []
-			if (customDragStart(ev, virtualRow, entityArray)) return
-		} else {
-			if (customDragStart(ev, virtualRow, entities)) return
-		}
-
-
 		// unfortunately, IE only allowes "text" and "url"
 		neverNull(ev.dataTransfer).setData("text", getLetId(neverNull(virtualRow.entity))[1]);
 	}
