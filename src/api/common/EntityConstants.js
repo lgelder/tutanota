@@ -1,27 +1,26 @@
-// ES5 as it is used from the build process, too
-// ATTENTION: cannot be imported with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+// We cannot use Flow here because it's used during build
 
-export var Type = {
+export const Type = {
 	Element: "ELEMENT_TYPE",
 	ListElement: "LIST_ELEMENT_TYPE",
 	DataTransfer: "DATA_TRANSFER_TYPE",
 	Aggregated: "AGGREGATED_TYPE"
 }
 
-export var Cardinality = {
+export const Cardinality = {
 	ZeroOrOne: "ZeroOrOne",
 	Any: "Any",
 	One: "One"
 }
 
-export var AssociationType = {
+export const AssociationType = {
 	ElementAssociation: "ELEMENT_ASSOCIATION",
 	ListAssociation: "LIST_ASSOCIATION",
 	ListElementAssociation: "LIST_ELEMENT_ASSOCIATION",
 	Aggregation: "AGGREGATION",
 }
 
-export var ValueType = {
+export const ValueType = {
 	String: "String",
 	Number: "Number",
 	Bytes: "Bytes",
@@ -32,12 +31,12 @@ export var ValueType = {
 	CompressedString: "CompressedString",
 }
 
-export var ResourceType = {
+export const ResourceType = {
 	Persistence: "Persistence",
 	Service: "Service"
 }
 
-export var ValueToFlowTypes = {
+export const ValueToFlowTypes = {
 	String: "string",
 	Number: "NumberString",
 	Bytes: "Uint8Array",
