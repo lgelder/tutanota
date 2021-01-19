@@ -1,11 +1,6 @@
 // bluebird must be imported here by the build script
 // dynamicImport must be declared here by the build script
 
-self.Promise = Promise.config({
-	longStackTraces: false,
-	warnings: false
-})
-
 /**
  * Receives the first message from the client and initializes the WorkerImpl to receive all future messages. Sends a response to the client on this first message.
  */

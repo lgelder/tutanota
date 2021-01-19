@@ -113,7 +113,7 @@ async function buildWebapp(version) {
 	const polyfillBundle = await rollup({
 		input: ["src/polyfill.js"],
 		plugins: [
-			terser(),
+			// terser(),
 			nodeResolve(),
 			commonjs(),
 			{
@@ -132,7 +132,7 @@ async function buildWebapp(version) {
 	await fs.copy(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images'))
 	await fs.copy(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html'))
 	let bootstrap = await fs.readFile('src/api/worker/WorkerBootstrap.js', 'utf-8')
-	bootstrap = `importScripts('s.js', 'bluebird.js', 'polyfill.js')
+	bootstrap = `importScripts('./polyfill.js')
 var dynamicImport = System.import.bind(System)
 ${bootstrap}`
 	await fs.writeFile('build/dist/WorkerBootstrap.js', bootstrap, 'utf-8')
