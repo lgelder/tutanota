@@ -3,10 +3,9 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {load, loadRange, update} from "../api/main/Entity"
-import {showAddSpamRuleDialog} from "./AddSpamRuleDialog"
-import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
+import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSparmRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
-import {getCustomMailDomains, neverNull, noOp, objectEntries} from "../api/common/utils/Utils"
+import {getCustomMailDomains, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
@@ -48,7 +47,6 @@ import {ExpandableTable} from "./ExpandableTable"
 import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
-import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 
@@ -542,34 +540,5 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				return this._updateDomains()
 			}
 		}).return()
-	}
-}
-
-export function getSpamRuleTypeNameMapping(): SelectorItemList<SpamRuleTypeEnum> {
-	return [
-		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
-		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},
-		{value: SpamRuleType.DISCARD, name: lang.get("emailSenderDiscardlist_action")}
-	]
-}
-
-function getSpamRuleFieldToName(): {[SpamRuleFieldTypeEnum]: string} {
-	return {
-		[SpamRuleFieldType.FROM]: lang.get("from_label"),
-		[SpamRuleFieldType.TO]: lang.get("to_label"),
-		[SpamRuleFieldType.CC]: "CC",
-		[SpamRuleFieldType.BCC]: "BCC",
-	}
-}
-
-export function getSpamRuleFieldMapping(): SelectorItemList<SpamRuleFieldTypeEnum> {
-	return objectEntries(getSpamRuleFieldToName()).map(([value, name]) => ({value, name}))
-}
-
-function escape(s: string) {
-	if (s.indexOf('"') !== -1 || s.indexOf(',') !== -1) {
-		return '"' + s.replace(new RegExp('"', 'g'), `\\"`) + '"'
-	} else {
-		return s
 	}
 }
