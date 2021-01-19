@@ -3,6 +3,7 @@ import o from "ospec/ospec.js"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import type {Guest} from "../../../src/calendar/CalendarEventViewModel"
+import {lang} from "../../../src/misc/LanguageViewModel"
 import {CalendarEventViewModel} from "../../../src/calendar/CalendarEventViewModel"
 import {clone, downcast, noOp} from "../../../src/api/common/utils/Utils"
 import {LazyLoaded} from "../../../src/api/common/utils/LazyLoaded"
@@ -14,7 +15,7 @@ import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import type {AccountTypeEnum, ShareCapabilityEnum} from "../../../src/api/common/TutanotaConstants"
 import {
 	AccountType,
-	AlarmInterval,
+	AlarmInterval, BookingItemFeatureType,
 	CalendarAttendeeStatus,
 	GroupType,
 	ShareCapability,
@@ -40,7 +41,6 @@ import {SendMailModel} from "../../../src/mail/SendMailModel"
 import type {LoginController} from "../../../src/api/main/LoginController"
 import type {ContactModel} from "../../../src/contacts/ContactModel"
 import {EventController} from "../../../src/api/main/EventController"
-import {lang} from "../../../src/misc/LanguageViewModel"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail} from "../../../src/api/entities/tutanota/Mail"
 import type {Contact} from "../../../src/api/entities/tutanota/Contact"
@@ -54,6 +54,10 @@ import {createContactMailAddress} from "../../../src/api/entities/tutanota/Conta
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 import {createBooking} from "../../../src/api/entities/sys/Booking"
 import {createCustomerInfo} from "../../../src/api/entities/sys/CustomerInfo"
+import {createBookingItem} from "../../../src/api/entities/sys/BookingItem"
+import {createBookingsRef} from "../../../src/api/entities/sys/BookingsRef"
+import {GENERATED_MAX_ID, TypeRef} from "../../../src/api/common/EntityFunctions"
+import {mock, mockAttribute} from "../../api/TestUtils"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
@@ -80,7 +84,8 @@ o.spec("CalendarEventViewModel", function () {
 		              calendarModel = makeCalendarModel(),
 		              mailModel = makeMailModel(),
 		              contactModel = makeContactModel(),
-		              mail = null
+		              mail = null,
+		              businessBooked = false
 	              }: {|
 		userController?: IUserController,
 		distributor?: CalendarUpdateDistributor,
@@ -91,6 +96,7 @@ o.spec("CalendarEventViewModel", function () {
 		contactModel?: ContactModel,
 		existingEvent: ?CalendarEvent,
 		mail?: ?Mail,
+		businessBooked?: boolean
 	|}): CalendarEventViewModel {
 		const loginController: LoginController = downcast({
 				getUserController: () => userController,
@@ -115,10 +121,23 @@ o.spec("CalendarEventViewModel", function () {
 			}[purpose]
 		}
 
+		const loadMock = mockAttribute(entityClient, entityClient.loadRange, <T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) => {
+			const bookings = []
+			if (businessBooked) {
+				const businessItem = createBookingItem({
+					currentCount: "1",
+					featureType: BookingItemFeatureType.Business,
+				})
+				bookings.push(createBooking({items: [businessItem]}))
+			}
+			return Promise.resolve(bookings)
+		})
+		// unmockAttribute(loadMock)
 		const viewModel = new CalendarEventViewModel(
 			userController,
 			distributor,
 			calendarModel,
+			entityClient,
 			mailboxDetail,
 			sendFactory,
 			now,
@@ -128,10 +147,7 @@ o.spec("CalendarEventViewModel", function () {
 			mail,
 			false,
 		)
-		viewModel._lastBooking = new LazyLoaded(() => {
-			return Promise.resolve(createBooking({business: true})) // TODO
-		}, null)
-		viewModel._lastBooking.getAsync()
+		viewModel._hasBusinessFeature(true)
 		return viewModel
 	}
 
@@ -1610,32 +1626,34 @@ o.spec("CalendarEventViewModel", function () {
 		})
 	})
 
-	o.spec("shouldShowInviteNotAvailable", async function () {
-		o("not available for free users", async function () {
+	o.spec("shouldShowInviteNotAvailable", function () {
+		o("not available for free users", function () {
 			const userController = makeUserController([], AccountType.FREE)
-			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			const notAvailable = await viewModel.shouldShowInviteNotAvailable()
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null, businessBooked: false})
+			const notAvailable = viewModel.shouldShowInviteNotAvailable()
 			o(notAvailable).equals(true)
 		})
 
 		o("not available for premium users without business subscription", async function () {
 			const userController = makeUserController([], AccountType.PREMIUM)
-			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			const notAvailable = await viewModel.shouldShowInviteNotAvailable()
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null, businessBooked: false})
+			await viewModel.updateBusinessFeature()
+			const notAvailable = viewModel.shouldShowInviteNotAvailable()
 			o(notAvailable).equals(true)
 		})
 
 		o("available for premium users with business subscription", async function () {
 			const userController = makeUserController([], AccountType.PREMIUM)
-			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			const notAvailable = await viewModel.shouldShowInviteNotAvailable()
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null, businessBooked: true})
+			await viewModel.updateBusinessFeature()
+			const notAvailable = viewModel.shouldShowInviteNotAvailable()
 			o(notAvailable).equals(false)
 		})
 
-		o("available for external users", async function () {
+		o("available for external users", function () {
 			const userController = makeUserController([], AccountType.EXTERNAL)
-			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
-			const notAvailable = await viewModel.shouldShowInviteNotAvailable()
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null, businessBooked: false})
+			const notAvailable = viewModel.shouldShowInviteNotAvailable()
 			o(notAvailable).equals(false)
 		})
 	})
@@ -1661,7 +1679,7 @@ function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Ma
 }
 
 function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM, defaultSender?: string): IUserController {
-
+	const bookingsRef = createBookingsRef({items: GENERATED_MAX_ID})
 	return downcast({
 		user: createUser({
 			_id: userId,
@@ -1681,7 +1699,7 @@ function makeUserController(aliases: Array<string> = [], accountType: AccountTyp
 		isInternalUser: () => true,
 		isFreeAccount: () => true,
 		loadCustomer: () => Promise.resolve(createCustomer()),
-		loadCustomerInfo: () => Promise.resolve(createCustomerInfo())
+		loadCustomerInfo: () => Promise.resolve(createCustomerInfo({bookings: bookingsRef}))
 	})
 }
 

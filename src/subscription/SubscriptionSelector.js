@@ -6,7 +6,6 @@ import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import type {SubscriptionOptions, SubscriptionPlanPrices, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
-	BusinessUseItems,
 	formatPrice,
 	getActionButtonBySubscription,
 	getFormattedSubscriptionPrice,
@@ -15,7 +14,13 @@ import {
 	SubscriptionType,
 	UpgradePriceType
 } from "./SubscriptionUtils"
+import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
+
+const BusinessUseItems: SegmentControlItem<boolean>[] = [
+	{name: lang.get("pricing.privateUse_label"), value: false},
+	{name: lang.get("pricing.businessUse_label"), value: true}
+]
 
 export type SubscriptionActionButtons = {|
 	Free: Component,

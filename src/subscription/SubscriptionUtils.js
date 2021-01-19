@@ -6,7 +6,6 @@ import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
@@ -44,17 +43,6 @@ export const UpgradeType = {
 	Switch: 'Switch' // switching in paid account
 }
 export type UpgradeTypeEnum = $Values<typeof UpgradeType>;
-
-
-export const PaymentIntervalItems: SegmentControlItem<number>[] = [
-	{name: lang.get("pricing.yearly_label"), value: 12},
-	{name: lang.get("pricing.monthly_label"), value: 1}
-]
-
-export const BusinessUseItems: SegmentControlItem<boolean>[] = [
-	{name: lang.get("pricing.privateUse_label"), value: false},
-	{name: lang.get("pricing.businessUse_label"), value: true}
-]
 
 export type SubscriptionConfig = {|
 	nbrOfAliases: number,

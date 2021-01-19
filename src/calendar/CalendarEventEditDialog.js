@@ -508,17 +508,17 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel): BubbleTextField
 			}, () => createBubbleContextButtons(recipientInfo.name, mailAddress))
 			const bubble = new Bubble(recipientInfo, buttonAttrs, mailAddress)
 			// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a seperate list.
-			viewModel.shouldShowInviteNotAvailable()
-			         .then(notAvailable => {
-				         if (notAvailable && !logins.getUserController().isPremiumAccount()) {
-					         showNotAvailableForFreeDialog(false)
-				         } else if (notAvailable) {
-					         showBusinessBuyDialog(true).then(() => viewModel.updateBooking())
-				         } else {
-					         viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
-				         }
-				         remove(invitePeopleValueTextField.bubbles, bubble)
-			         })
+			Promise.resolve().then(() => {
+				const notAvailable = viewModel.shouldShowInviteNotAvailable()
+				if (notAvailable && !logins.getUserController().isPremiumAccount()) {
+					showNotAvailableForFreeDialog(false)
+				} else if (notAvailable) {
+					showBusinessBuyDialog(true).then(() => viewModel.updateBusinessFeature())
+				} else {
+					viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
+				}
+				remove(invitePeopleValueTextField.bubbles, bubble)
+			})
 			return bubble
 		},
 
@@ -601,16 +601,14 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 					class: "",
 					selectionChangedHandler: (value) => {
 						if (value == null) return
-						viewModel.shouldShowInviteNotAvailable()
-						         .then(notAvailable => {
-							         if (notAvailable && !logins.getUserController().isPremiumAccount()) {
-								         showNotAvailableForFreeDialog(false)
-							         } else if (notAvailable) {
-								         showBusinessBuyDialog(true).then(() => viewModel.updateBooking())
-							         } else {
-								         viewModel.selectGoing(value)
-							         }
-						         })
+						const notAvailable = viewModel.shouldShowInviteNotAvailable()
+						if (notAvailable && !logins.getUserController().isPremiumAccount()) {
+							showNotAvailableForFreeDialog(false)
+						} else if (notAvailable) {
+							showBusinessBuyDialog(true).then(() => viewModel.updateBusinessFeature())
+						} else {
+							viewModel.selectGoing(value)
+						}
 					},
 				}))
 				: viewModel.canModifyGuests()
