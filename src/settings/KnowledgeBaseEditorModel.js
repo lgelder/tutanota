@@ -12,16 +12,11 @@ import {TemplateModel} from "../templates/TemplateModel"
 
 export class KnowledgeBaseEditorModel {
 	_addedKeywords: Array<KnowledgeBaseEntryKeywords>
-	_availableTemplates: Array<EmailTemplate>
 	_templateModel: TemplateModel
 
 	constructor(templateModel: TemplateModel) {
 		this._addedKeywords = []
 		this._templateModel = templateModel
-		this._templateModel.loadTemplates().then( //  templates to make them available for reference
-			(templates) => {
-				this._availableTemplates = templates
-			})
 	}
 
 	initAddedKeywords(keywords: Array<KnowledgeBaseEntryKeywords>) {
@@ -29,7 +24,7 @@ export class KnowledgeBaseEditorModel {
 	}
 
 	getAvailableTemplates(): Array<EmailTemplate> {
-		return this._availableTemplates
+		return this._templateModel.getAllTemplates()
 	}
 
 	getAddedKeywords(): Array<KnowledgeBaseEntryKeywords> {
@@ -43,14 +38,6 @@ export class KnowledgeBaseEditorModel {
 			keyword = createKnowledgeBaseEntryKeywords({keyword: keywordString})
 			if (!this.hasKeyword(keyword)) {
 				this._addedKeywords.push(keyword)
-			}
-		}
-	}
-
-	addAvailableTemplate(template: ?EmailTemplate) {
-		if (!this._availableTemplates.includes(template)) {
-			if (template) {
-				this._availableTemplates.push(template)
 			}
 		}
 	}

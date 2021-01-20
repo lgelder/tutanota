@@ -180,6 +180,7 @@ styles.registerStyle('main', () => {
 
 		".hr": {margin: 0, border: 'none', height: '1px', 'background-color': theme.content_border},
 		".border": {border: `1px solid ${theme.content_border}`},
+		".transparent-border > div": {'border-color' : "transparent !important"},
 
 		".white-space-pre": {'white-space': "pre"},
 
@@ -291,6 +292,7 @@ styles.registerStyle('main', () => {
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
 
 		'.border-top': {'border-top': `1px solid ${theme.content_border}`},
+
 
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},

@@ -15,13 +15,13 @@ import {OperationType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {EntityClient} from "../api/common/EntityClient"
 import type {LoginController} from "../api/main/LoginController"
-import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
+import {TemplateGroupModel} from "./TemplateGroupModel"
 
 /**
  *   Model that holds main logic for the Template Feature.
  *   Handles things like returning the selected Template, selecting Templates, indexes, scrolling.
  */
+
 
 export class TemplateModel {
 	_allTemplates: Array<EmailTemplate>
@@ -34,9 +34,10 @@ export class TemplateModel {
 	+_entityEventReceived: EntityEventsListener;
 	+_logins: LoginController;
 	+_entityClient: EntityClient;
-	_templateGroupRoot: ?TemplateGroupRoot
+	_templateGroupModel: TemplateGroupModel;
 
-	constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient) {
+
+	constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient, templateGroupModel: TemplateGroupModel) {
 		this._eventController = eventController
 		this._logins = logins
 		this._entityClient = entityClient
@@ -45,39 +46,28 @@ export class TemplateModel {
 		this._searchResults = stream([])
 		this._selectedTemplate = null
 		this._hasLoaded = false
-		this._templateGroupRoot = null
+		this._templateGroupModel = templateGroupModel
 
 		this._entityEventReceived = (updates) => {
 			return Promise.each(updates, update => {
 				if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
 					if (update.operation === OperationType.CREATE) {
-						return this._getTemplateListId().then((listId) => {
-							if (listId && listId === update.instanceListId) {
-								return this._entityClient.load(EmailTemplateTypeRef, [listId, update.instanceId])
-								           .then((template) => {
-									           this._allTemplates.push(template)
-									           this._searchResults(this._allTemplates)
-								           })
-							}
-						})
+						return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId])
+						           .then((template) => {
+							           this._allTemplates.push(template)
+							           this._searchResults(this._allTemplates)
+						           })
+
 					} else if (update.operation === OperationType.UPDATE) {
-						return this._getTemplateListId().then((listId) => {
-							if (listId && listId === update.instanceListId) {
-								return this._entityClient.load(EmailTemplateTypeRef, [listId, update.instanceId])
-								           .then((template) => {
-									           findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
-									           this._allTemplates.push(template)
-									           this._searchResults(this._allTemplates)
-								           })
-							}
-						})
+						return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId])
+						           .then((template) => {
+							           findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
+							           this._allTemplates.push(template)
+							           this._searchResults(this._allTemplates)
+						           })
 					} else if (update.operation === OperationType.DELETE) {
-						return this._getTemplateListId().then((listId) => {
-							if (listId && listId === update.instanceListId) {
-								findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
-								this._searchResults(this._allTemplates)
-							}
-						})
+						findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
+						this._searchResults(this._allTemplates)
 					}
 				}
 			}).return()
@@ -86,8 +76,16 @@ export class TemplateModel {
 	}
 
 	init(): Promise<void> {
-		return this.loadTemplates().then(templates => {
-			this._allTemplates = templates
+		const allEmailTemplates = []
+		return this._templateGroupModel.init().then(templateGroupInstances => {
+			Promise.each(templateGroupInstances, templateGroupInstance => {
+				return this._entityClient.loadAll(EmailTemplateTypeRef, templateGroupInstance.groupRoot.templates)
+				           .then((templates) => {
+					           allEmailTemplates.push(...templates)
+				           })
+			})
+		}).then(() => {
+			this._allTemplates = allEmailTemplates
 			this._searchResults(this._allTemplates)
 			this._hasLoaded = true
 			this.setSelectedTemplate(this.containsResult() ? this._searchResults()[0] : null) // needs to be called, because otherwise the selection would be null, even when templates are loaded. (fixes bug)
@@ -116,6 +114,10 @@ export class TemplateModel {
 			let clientLanguage = lang.code
 			this._selectedLanguage = this._isLanguageInContent(clientLanguage) ? clientLanguage : downcast(neverNull(this._selectedTemplate).contents[0].languageCode)
 		}
+	}
+
+	getAllTemplates(): Array<EmailTemplate> {
+		return this._allTemplates
 	}
 
 	getSearchResults(): Stream<Array<EmailTemplate>> {
@@ -186,38 +188,6 @@ export class TemplateModel {
 			}
 		}
 		return ""
-	}
-
-	loadTemplates(): Promise<Array<EmailTemplate>> {
-		return this._getTemplateListId().then((listId) => {
-			if (listId) {
-				return this._entityClient.loadAll(EmailTemplateTypeRef, listId)
-			} else {
-				return []
-			}
-		})
-	}
-
-	_getTemplateListId(): Promise<?Id> {
-		if (this._templateGroupRoot) {
-			return Promise.resolve(this._templateGroupRoot.templates)
-		}
-		if (this._logins.isInternalUserLoggedIn()) {
-			const memberships = this._logins.getUserController().getTemplateMemberships()
-			const templateGroupMembership = memberships[0]
-			if (templateGroupMembership) {
-				return this._entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
-				           .then(templateGroupRoot => {
-					           this._templateGroupRoot = templateGroupRoot
-					           templateGroupRoot.templates
-				           });
-			}
-		}
-		return Promise.resolve(null);
-	}
-
-	getTemplateGroupRoot(): ?TemplateGroupRoot {
-		return this._templateGroupRoot
 	}
 }
 

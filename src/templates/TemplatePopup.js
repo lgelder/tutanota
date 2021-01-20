@@ -85,10 +85,11 @@ export class TemplatePopup implements ModalComponent {
 			label: "createTemplate_action",
 			type: ButtonType.Action,
 			click: () => {
-				const groupRoot = this._templateModel.getTemplateGroupRoot()
-				if (groupRoot) {
-					new TemplateEditor(null, groupRoot.templates, neverNull(groupRoot._ownerGroup), locator.entityClient)
-				}
+				// TODO
+				// const groupRoot = this._templateModel.getTemplateGroupRoot()
+				// if (groupRoot) {
+				// 	new TemplateEditor(null, groupRoot.templates, neverNull(groupRoot._ownerGroup), locator.entityClient)
+				// }
 			},
 			icon: () => Icons.Add,
 		}

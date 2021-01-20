@@ -12,13 +12,11 @@ import {TemplateModel} from "../templates/TemplateModel"
 export class TemplateEditorModel {
 	_allLanguages: Array<Language>
 	_addedLanguages: Array<Language>
-	_allTemplates: Array<EmailTemplate>
 	_templateModel: TemplateModel
 
 	constructor(templateModel: TemplateModel) {
 		this._allLanguages = []
 		this._addedLanguages = []
-		this._allTemplates = []
 		this._templateModel = templateModel
 		this.initAllLanguages()
 		this.initTemplates()
@@ -26,9 +24,6 @@ export class TemplateEditorModel {
 
 	initTemplates() {
 		console.log("init")
-		this._templateModel.loadTemplates().then(templates => {
-			this._allTemplates = templates
-		})
 	}
 
 	initAllLanguages() {
@@ -152,9 +147,9 @@ export class TemplateEditorModel {
 	tagAlreadyExists(tag: string, currentTemplate: EmailTemplate): boolean {
 		let filteredTemplates
 		if (currentTemplate._id) { // null if it's a new template
-			filteredTemplates = this._allTemplates.filter(template => getElementId(template) !== getElementId(currentTemplate)) // filter the current template because otherwise you can't edit it
+			filteredTemplates = this._templateModel.getAllTemplates().filter(template => getElementId(template) !== getElementId(currentTemplate)) // filter the current template because otherwise you can't edit it
 		} else {
-			filteredTemplates = this._allTemplates
+			filteredTemplates = this._templateModel.getAllTemplates()
 		}
 		return filteredTemplates.some(template => template.tag.toLowerCase() === tag.toLowerCase())
 	}

@@ -18,6 +18,8 @@ import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {neverNull} from "../api/common/utils/Utils"
+import {TemplateGroupModel} from "../templates/TemplateGroupModel"
+import {EntityClient} from "../api/common/EntityClient"
 
 assertMainOrNode()
 
@@ -29,62 +31,63 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	_list: List<KnowledgeBaseEntry, KnowledgeBaseRow>
 	_settingsView: SettingsView
 	_templateGroupRoot: ?TemplateGroupRoot
-	_templateGroupMembership: GroupMembership
+	_templateGroupModel: TemplateGroupModel
+	_entityClient: EntityClient
 
-	constructor(settingsView: SettingsView, templateGroupMembership: GroupMembership) {
+	constructor(settingsView: SettingsView, templateGroupModel: TemplateGroupModel, entityClient: EntityClient) {
 		this._settingsView = settingsView
-		const entityClient = locator.entityClient
-		console.log("KnowledgeBaseListView constructor")
-		entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
-		            .then(templateGroupRoot => {
-			            this._templateGroupRoot = templateGroupRoot
-			            const knowledgebaseListId = templateGroupRoot.knowledgeBase
-			            const listConfig: ListConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
-				            rowHeight: size.list_row_height,
-				            fetch: (startId, count) => {
-					            return entityClient.loadRange(KnowledgeBaseEntryTypeRef, knowledgebaseListId, startId, count, true).then(entries => {
-						            return entries
-					            })
-				            },
-				            loadSingle: (elementId) => {
-					            return entityClient.load(KnowledgeBaseEntryTypeRef, [knowledgebaseListId, elementId])
-				            },
-				            sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
-					            var titleA = a.title.toUpperCase();
-					            var titleB = b.title.toUpperCase();
-					            return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
-				            },
-				            elementSelected: (entries: Array<KnowledgeBaseEntry>, elementClicked) => {
-					            if (elementClicked) {
-						            this._settingsView.detailsViewer = new KnowledgeBaseDetailsViewer(entries[0], entityClient)
-						            this._settingsView.focusSettingsDetailsColumn()
-					            } else if (entries.length === 0 && this._settingsView.detailsViewer) {
-						            this._settingsView.detailsViewer = null
-						            m.redraw()
-					            }
+		this._entityClient = entityClient
+		this._templateGroupModel = templateGroupModel
+		templateGroupModel.init().then(templateGroupInstances => {
+// select first
 
-				            },
-				            createVirtualRow: () => {
-					            return new KnowledgeBaseRow()
-				            },
-				            showStatus: false,
-				            className: "knowledgeBase-list",
-				            swipe: {
-					            renderLeftSpacer: () => [],
-					            renderRightSpacer: () => [],
-					            swipeLeft: (listElement) => Promise.resolve(),
-					            swipeRight: (listElement) => Promise.resolve(),
-					            enabled: false
-				            },
-				            elementsDraggable: false,
-				            multiSelectionAllowed: false,
-				            emptyMessage: lang.get("noEntries_msg"),
-			            }
-			            this._list = new List(listConfig)
-			            m.redraw()
-			            this._list.loadInitial()
-		            })
+		})
+	}
 
+	_updateKnowledgeBaseList(templateGroupRoot: TemplateGroupRoot) {
+		const knowledgebaseListId = templateGroupRoot.knowledgeBase
+		const listConfig: ListConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
+			rowHeight: size.list_row_height,
+			fetch: (startId, count) => {
+				return this._entityClient.loadRange(KnowledgeBaseEntryTypeRef, knowledgebaseListId, startId, count, true)
+			},
+			loadSingle: (elementId) => {
+				return this._entityClient.load(KnowledgeBaseEntryTypeRef, [knowledgebaseListId, elementId])
+			},
+			sortCompare: (a: KnowledgeBaseEntry, b: KnowledgeBaseEntry) => {
+				var titleA = a.title.toUpperCase();
+				var titleB = b.title.toUpperCase();
+				return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
+			},
+			elementSelected: (entries: Array<KnowledgeBaseEntry>, elementClicked) => {
+				if (elementClicked) {
+					this._settingsView.detailsViewer = new KnowledgeBaseDetailsViewer(entries[0], this._entityClient)
+					this._settingsView.focusSettingsDetailsColumn()
+				} else if (entries.length === 0 && this._settingsView.detailsViewer) {
+					this._settingsView.detailsViewer = null
+					m.redraw()
+				}
+
+			},
+			createVirtualRow: () => {
+				return new KnowledgeBaseRow()
+			},
+			showStatus: false,
+			className: "knowledgeBase-list",
+			swipe: {
+				renderLeftSpacer: () => [],
+				renderRightSpacer: () => [],
+				swipeLeft: (listElement) => Promise.resolve(),
+				swipeRight: (listElement) => Promise.resolve(),
+				enabled: false
+			},
+			elementsDraggable: false,
+			multiSelectionAllowed: false,
+			emptyMessage: lang.get("noEntries_msg"),
+		}
+		this._list = new List(listConfig)
+		m.redraw()
+		this._list.loadInitial()
 	}
 
 	view(): Children {
