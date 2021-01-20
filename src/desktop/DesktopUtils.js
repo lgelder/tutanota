@@ -11,7 +11,6 @@ import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {cryptoFns} from "./CryptoFns"
 import {legalizeFilenames} from "./PathUtils"
 import type {MailBundle} from "../mail/MailUtils"
-import {getTempDirectoryPath} from "./DesktopDownloadManager"
 import {Email, AttachmentType, MessageEditorFormat} from "oxmsg"
 
 // import type {MsgEditorFormat, AttachmentType} from "oxmsg/"
@@ -168,8 +167,9 @@ export class DesktopUtils {
 	}
 
 	async makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
+		const subject = `[Tutanota] ${bundle.subject}`
 		const email = new Email(bundle.isDraft, bundle.isRead)
-			.subject(`[Tutanota] ${bundle.subject}`)
+			.subject(subject)
 			.bodyHtml(bundle.body)
 			.bodyFormat(MessageEditorFormat.EDITOR_FORMAT_HTML)
 			.sender(bundle.sender.address, bundle.sender.name)
@@ -182,11 +182,14 @@ export class DesktopUtils {
 			.headers(bundle.headers || "")
 
 		for (let attachment of bundle.attachments) {
-			const data = await fs.readFile(getTempDirectoryPath(attachment.name))
+			const data = await fs.readFile(attachment.location)
 			email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
 		}
-		return {name: bundle.subject, content: email.msg()}
+
+		return {name: `${subject}_export.msg`, content: email.msg()}
 	}
+
+
 }
 
 
